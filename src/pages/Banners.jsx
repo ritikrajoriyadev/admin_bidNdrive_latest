@@ -518,7 +518,7 @@ export default function Banners() {
                   <tr key={banner?.id || banner?._id || `banner-${index}`} className="hover:bg-gray-800/50 transition">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <img src={banner.image} alt={banner.title} className="w-12 h-12 rounded-lg object-cover border border-white/10" />
+                        <img src={banner?.image?.url || banner?.image} alt={banner.title} className="w-12 h-12 rounded-lg object-cover border border-white/10" />
                         <div>
                           <p className="text-sm font-medium text-white">{banner.title}</p>
                           <p className="text-xs text-white/40">{banner.description.substring(0, 40)}...</p>

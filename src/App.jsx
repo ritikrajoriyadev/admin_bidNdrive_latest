@@ -18,7 +18,7 @@ import Settings from './pages/Settings';
 import AdsPopups from './pages/AdsPopups';
 import Pdi from './pages/Pdi';
 import Loans from './pages/Loans';
-// import AuctionCars from './pages/AuctionCars';
+import AuctionCars from './pages/AuctionCars';
 import ProtectedRoute from './components/ProtectedRoute';
 import { ToastProvider } from './context/ToastContext';
 import ToastContainer from './components/ToastContainer';
@@ -113,14 +113,14 @@ function App() {
               </ProtectedRoute>
             } 
           />
-            {/* <Route 
+          <Route 
             path="/auction-cars" 
             element={
               <ProtectedRoute>
                 <Layout><AuctionCars /></Layout>
               </ProtectedRoute>
             } 
-          /> */}
+          />
           <Route 
             path="/subadmin" 
             element={

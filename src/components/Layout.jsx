@@ -1,32 +1,64 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 
 const Layout = ({ children }) => {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   return (
     <div className="flex min-h-screen bg-gray-950">
-      {/* Sidebar */}
-      <Sidebar />
 
-      {/* Main content — offset by sidebar collapsed width */}
-      <div className="flex-1 flex flex-col min-h-screen ml-[68px] transition-all duration-300">
+      {/* Mobile overlay backdrop */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Sidebar — hidden on mobile unless mobileOpen, always visible on md+ */}
+      <div className={`
+        fixed left-0 top-0 h-screen z-50 transition-transform duration-300
+        ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:translate-x-0
+      `}>
+        <Sidebar onCloseMobile={() => setMobileOpen(false)} />
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 flex flex-col min-h-screen md:ml-[68px] transition-all duration-300 w-full min-w-0">
 
         {/* Top Header Bar */}
-        <header className="sticky top-0 z-40 h-[68px] flex items-center justify-between px-6 border-b border-white/5 bg-gray-950/80 backdrop-blur-md flex-shrink-0">
-          {/* Page title area */}
-          <div className="flex flex-col">
-            <h1 className="text-white text-[17px] font-semibold tracking-tight leading-tight">Dashboard</h1>
-            <p className="text-white/30 text-[11px] font-medium tracking-wide uppercase">Overview</p>
+        <header className="sticky top-0 z-40 h-[60px] md:h-[68px] flex items-center justify-between px-4 md:px-6 border-b border-white/5 bg-gray-950/80 backdrop-blur-md flex-shrink-0">
+
+          {/* Left: Hamburger (mobile) + Page title */}
+          <div className="flex items-center gap-3">
+            {/* Hamburger button — only on mobile */}
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="md:hidden w-9 h-9 rounded-lg bg-white/5 border border-white/8 flex items-center justify-center text-white/60 hover:text-white/90 transition-all"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
+            </button>
+
+            <div className="flex flex-col">
+              <h1 className="text-white text-[15px] md:text-[17px] font-semibold tracking-tight leading-tight">Dashboard</h1>
+              <p className="text-white/30 text-[10px] md:text-[11px] font-medium tracking-wide uppercase hidden sm:block">Overview</p>
+            </div>
           </div>
 
           {/* Right side actions */}
-          <div className="flex items-center gap-3">
-            {/* Search */}
-            <button className="flex items-center gap-2 px-3 h-9 rounded-lg bg-white/5 border border-white/8 text-white/40 text-sm hover:bg-white/8 hover:text-white/60 transition-all duration-200">
+          <div className="flex items-center gap-2 md:gap-3">
+            {/* Search — hidden on small mobile */}
+            <button className="hidden sm:flex items-center gap-2 px-3 h-9 rounded-lg bg-white/5 border border-white/8 text-white/40 text-sm hover:bg-white/8 hover:text-white/60 transition-all duration-200">
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
               </svg>
-              <span className="hidden sm:inline text-xs">Search...</span>
-              <span className="hidden sm:inline text-xs bg-white/10 px-1.5 py-0.5 rounded text-white/30 font-mono">⌘K</span>
+              <span className="hidden md:inline text-xs">Search...</span>
+              <span className="hidden md:inline text-xs bg-white/10 px-1.5 py-0.5 rounded text-white/30 font-mono">⌘K</span>
             </button>
 
             {/* Notifications */}
@@ -39,7 +71,7 @@ const Layout = ({ children }) => {
 
             {/* Avatar */}
             <div className="relative cursor-pointer group">
-              <div  onClick={() => (window.location.href = '/profile')} className="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-indigo-500/25 group-hover:shadow-indigo-500/40 transition-shadow duration-200">
+              <div onClick={() => (window.location.href = '/profile')} className="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-indigo-500/25 group-hover:shadow-indigo-500/40 transition-shadow duration-200">
                 A
               </div>
               <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-gray-950" />
@@ -48,8 +80,8 @@ const Layout = ({ children }) => {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-6 overflow-auto">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 p-4 md:p-6 overflow-auto">
+          <div className="max-w-7xl mx-auto w-full">
             {children}
           </div>
         </main>
@@ -58,4 +90,4 @@ const Layout = ({ children }) => {
   );
 };
 
-export default Layout;
+export default Layout;

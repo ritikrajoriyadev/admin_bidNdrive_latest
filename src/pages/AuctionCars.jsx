@@ -4,13 +4,12 @@ import { useToast } from '../hooks/useToast';
 import { Search, MessageSquare, User, Phone, Mail, Calendar, DollarSign, Car } from 'lucide-react';
 
 const statusConfig = {
+  open: { label: 'Open', bg: 'bg-emerald-500/15', text: 'text-emerald-400', dot: 'bg-emerald-400' },
+  live_auction: { label: 'Live Now', bg: 'bg-rose-500/15', text: 'text-rose-400', dot: 'bg-rose-400 animate-pulse' },
+  closed: { label: 'Closed', bg: 'bg-gray-500/15', text: 'text-gray-400', dot: 'bg-gray-400' },
+  pending: { label: 'Pending', bg: 'bg-amber-500/15', text: 'text-amber-400', dot: 'bg-amber-400' },
   new: { label: 'New', bg: 'bg-indigo-500/15', text: 'text-indigo-400', dot: 'bg-indigo-400' },
-  interested: { label: 'Interested', bg: 'bg-amber-500/15', text: 'text-amber-400', dot: 'bg-amber-400' },
-  negotiating: { label: 'Negotiating', bg: 'bg-violet-500/15', text: 'text-violet-400', dot: 'bg-violet-400' },
-  test_drive: { label: 'Test Drive', bg: 'bg-blue-500/15', text: 'text-blue-400', dot: 'bg-blue-400' },
-  sale_pending: { label: 'Sale Pending', bg: 'bg-rose-500/15', text: 'text-rose-400', dot: 'bg-rose-400' },
   sold: { label: 'Sold', bg: 'bg-emerald-500/15', text: 'text-emerald-400', dot: 'bg-emerald-400' },
-  rejected: { label: 'Rejected', bg: 'bg-gray-500/15', text: 'text-gray-400', dot: 'bg-gray-400' },
 };
 
 const priorityConfig = {
@@ -167,27 +166,32 @@ export default function AuctionCars() {
       setLoading(true);
       try {
         const token = localStorage.getItem('adminToken');
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/car-enquiries/admin/all`, {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/enquiries/auction`, {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           }
         });
-     const data = response.data.data.map((enquiry) => ({
-  id: enquiry._id,
-  carMake: enquiry.carId?.basicDetails?.make || 'N/A',
-  carModel: enquiry.carId?.basicDetails?.model || 'N/A',
-  carYear: enquiry.carId?.basicDetails?.year || 'N/A',
-  carPrice: enquiry.carId?.sellingDetails?.expectedPrice || 0,
-  offeredPrice: enquiry.offeredPrice || 0,
-  customerName: `${enquiry.userId?.firstName || ''} ${enquiry.userId?.lastName || ''}`.trim() || enquiry.contactDetails?.name || 'N/A',
-  customerEmail: enquiry.userId?.email || enquiry.contactDetails?.email || 'N/A',
-  customerPhone: enquiry.userId?.phone || enquiry.contactDetails?.phone || 'N/A',
-  message: enquiry.message || 'No message provided',
-  status: enquiry.status || 'pending',
-  priority: enquiry.priority || 'medium',
-  date: new Date(enquiry.createdAt).toLocaleDateString(),
-}));
+        const data = response.data.data.map((auction) => {
+          const enquiry = auction.enquiryId || {};
+          return {
+            id: auction._id,
+            carMake: enquiry.carDetails?.make || 'N/A',
+            carModel: enquiry.carDetails?.model || 'N/A',
+            carYear: enquiry.carDetails?.year || 'N/A',
+            carPrice: enquiry.sellingDetails?.expectedPrice || 0,
+            offeredPrice: auction.startingPrice || 0,
+            customerName: `${enquiry.userId?.firstName || ''} ${enquiry.userId?.lastName || ''}`.trim() || 'N/A',
+            customerEmail: enquiry.userId?.email || 'N/A',
+            customerPhone: enquiry.userId?.phone || 'N/A',
+            message: enquiry.description || 'No description provided',
+            status: auction.isLive ? 'live_auction' : (auction.status || 'pending'),
+            priority: 'high',
+            date: new Date(auction.startDate || auction.createdAt).toLocaleDateString(),
+            bidsCount: auction.bids ? auction.bids.length : 0,
+            isLive: auction.isLive
+          };
+        });
         setEnquiries(data);
         addToast('Enquiries loaded successfully', 'success');
       } catch (error) {
@@ -234,49 +238,49 @@ export default function AuctionCars() {
 
   // Statistics
   const totalEnquiries = enquiries.length;
-  const newEnquiries = enquiries.filter(e => e.status === 'new').length;
-  const soldEnquiries = enquiries.filter(e => e.status === 'sold').length;
-  const avgOfferedPrice = enquiries.length > 0
+  const liveAuctions = enquiries.filter(e => e.isLive).length;
+  const totalBids = enquiries.reduce((sum, e) => sum + (e.bidsCount || 0), 0);
+  const avgStartingPrice = enquiries.length > 0
     ? Math.round(enquiries.reduce((sum, e) => sum + e.offeredPrice, 0) / enquiries.length)
     : 0;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 w-full">
       {/* Header */}
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold text-white">Car Sale Enquiries</h1>
-        <p className="text-white/40 text-sm">Track and manage customer enquiries for vehicles</p>
+        <h1 className="text-3xl font-bold text-white">Auction Cars</h1>
+        <p className="text-white/40 text-sm">Track and manage all live and upcoming vehicle auctions</p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <StatCard
-          label="Total Enquiries"
+          label="Total Auctions"
           value={totalEnquiries}
-          icon={<MessageSquare className="w-4 h-4" />}
+          icon={<Car className="w-4 h-4" />}
           accent="bg-indigo-500"
           sub="All Time"
         />
         <StatCard
-          label="New Enquiries"
-          value={newEnquiries}
-          icon={<Car className="w-4 h-4" />}
-          accent="bg-amber-500"
-          sub="Pending Response"
+          label="Live Auctions"
+          value={liveAuctions}
+          icon={<MessageSquare className="w-4 h-4" />}
+          accent="bg-rose-500"
+          sub="Active Now"
         />
         <StatCard
-          label="Sold"
-          value={soldEnquiries}
+          label="Total Bids"
+          value={totalBids}
           icon={<DollarSign className="w-4 h-4" />}
           accent="bg-emerald-500"
-          sub="Completed"
+          sub="All Auctions"
         />
         <StatCard
-          label="Avg Offered"
-          value={`$${(avgOfferedPrice / 1000).toFixed(1)}K`}
+          label="Avg Starting Price"
+          value={`$${(avgStartingPrice / 1000).toFixed(1)}K`}
           icon={<Calendar className="w-4 h-4" />}
           accent="bg-violet-500"
-          sub="Customer Offers"
+          sub="Current Avg"
         />
       </div>
 
@@ -293,7 +297,7 @@ export default function AuctionCars() {
           />
         </div>
         <div className="flex gap-2 flex-wrap">
-          {['all', 'new', 'interested', 'test_drive', 'negotiating', 'sale_pending', 'sold'].map((status) => (
+          {['all', 'open', 'live_auction', 'closed', 'sold'].map((status) => (
             <button
               key={status}
               onClick={() => setFilterStatus(status)}
@@ -321,15 +325,15 @@ export default function AuctionCars() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full whitespace-nowrap min-w-full">
               <thead>
                 <tr className="border-b border-white/[0.06]">
                   <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Vehicle</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Customer</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Listed Price</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Offered Price</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Seller Details</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Expected Price</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Starting Price</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Total Bids</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Priority</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Date</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Action</th>
                 </tr>
@@ -360,14 +364,15 @@ export default function AuctionCars() {
                         <p className="text-emerald-400 font-semibold">${enq.offeredPrice.toLocaleString()}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-full ${sc.bg} ${sc.text}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
-                          {sc.label}
+                        <span className="flex items-center gap-1.5 font-bold text-white">
+                          <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                          {enq.bidsCount}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border ${pc.bg} ${pc.text} ${pc.border}`}>
-                          {pc.label}
+                        <span className={`inline-flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-full ${sc.bg} ${sc.text}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+                          {sc.label}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-white/60 text-sm">{enq.date}</td>

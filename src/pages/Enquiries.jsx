@@ -147,22 +147,6 @@ const DetailDrawer = ({ enquiry, onClose, onStatusChange }) => {
             </div>
           )}
 
-          {/* Change Status */}
-          <div>
-            <p className="text-white/25 text-[10px] font-bold tracking-widest uppercase mb-2">Update Status</p>
-            <div className="grid grid-cols-2 gap-2">
-              {Object.entries(statusConfig).map(([key, cfg]) => (
-                <button
-                  key={key}
-                  onClick={() => onStatusChange(enquiry.id, key)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold transition-all duration-200 ${enquiry.status === key ? `${cfg.bg} ${cfg.text} border-current` : 'bg-white/[0.03] text-white/35 border-white/[0.06] hover:bg-white/[0.06]'}`}
-                >
-                  <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-                  {cfg.label}
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* Reply box */}
           <div>
@@ -195,41 +179,50 @@ const Enquiries = () => {
   const [technicians, setTechnicians] = useState([]);
   const [selectedTechId, setSelectedTechId] = useState('');
   const [assignPriority, setAssignPriority] = useState('medium');
+  const [actionModalOpen, setActionModalOpen] = useState(false);
+  const [actionType, setActionType] = useState('note'); // 'note' or 'cost'
+  const [noteText, setNoteText] = useState('');
+  const [estimatedCost, setEstimatedCost] = useState('');
+  const [actualCost, setActualCost] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const toast = useToast();
+  const fetchEnquiries = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('adminToken');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/enquiries`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = response.data.data.map(enquiry => ({
+        id: enquiry._id,
+        name: `${enquiry.userId?.firstName || 'Unknown'} ${enquiry.userId?.lastName || ''}`,
+        email: enquiry.userId?.email || 'N/A',
+        phone: enquiry.contactNumber,
+        subject: enquiry.title,
+        message: enquiry.description,
+        status: enquiry.status,
+        priority: enquiry.priority,
+        date: new Date(enquiry.createdAt).toLocaleDateString(),
+        avatar: `${enquiry.userId?.firstName?.[0] || 'U'}${enquiry.userId?.lastName?.[0] || ''}`.toUpperCase(),
+        sellingDetails: enquiry.sellingDetails,
+        attachments: enquiry.attachments,
+        notes: enquiry.notes,
+        estimatedCost: enquiry.estimatedCost || 0,
+        actualCost: enquiry.actualCost || 0
+      }));
+      setEnquiries(data);
+    } catch (err) {
+      setError('Failed to fetch enquiries');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchEnquiries = async () => {
-      try {
-        const token = localStorage.getItem('adminToken');
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/enquiries`, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        const data = response.data.data.map(enquiry => ({
-          id: enquiry._id,
-          name: `${enquiry.userId.firstName} ${enquiry.userId.lastName}`,
-          email: enquiry.userId.email,
-          phone: enquiry.contactNumber,
-          subject: enquiry.title,
-          message: enquiry.description,
-          status: enquiry.status,
-          priority: enquiry.priority,
-          date: new Date(enquiry.createdAt).toLocaleDateString(),
-          avatar: `${enquiry.userId.firstName[0]}${enquiry.userId.lastName[0]}`.toUpperCase(),
-          sellingDetails: enquiry.sellingDetails,
-          attachments: enquiry.attachments,
-          notes: enquiry.notes
-        }));
-        setEnquiries(data);
-      } catch (err) {
-        setError('Failed to fetch enquiries');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchEnquiries();
   }, []);
 
@@ -293,6 +286,63 @@ const Enquiries = () => {
     setAssignModalOpen(true);
   };
 
+
+
+  const openNoteModal = (enquiry) => {
+    setAssignTarget(enquiry);
+    setNoteText('');
+    setActionType('note');
+    setActionModalOpen(true);
+  };
+
+  const openCostModal = (enquiry) => {
+    setAssignTarget(enquiry);
+    setEstimatedCost(enquiry.estimatedCost || '');
+    setActualCost(enquiry.actualCost || '');
+    setActionType('cost');
+    setActionModalOpen(true);
+  };
+
+  const handleAddNote = async () => {
+    if (!noteText.trim()) return toast.error('Please enter a note');
+    try {
+      setSubmitting(true);
+      const token = localStorage.getItem('adminToken');
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/admin/enquiries/${assignTarget.id}/add-note`, 
+        { text: noteText },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Note added successfully');
+      setActionModalOpen(false);
+      fetchEnquiries();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to add note');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleUpdateCost = async () => {
+    try {
+      setSubmitting(true);
+      const token = localStorage.getItem('adminToken');
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/enquiries/${assignTarget.id}/cost`, 
+        { 
+          estimatedCost: Number(estimatedCost) || 0, 
+          actualCost: Number(actualCost) || 0 
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Cost updated successfully');
+      setActionModalOpen(false);
+      fetchEnquiries();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update cost');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleAssign = async () => {
     if (!assignTarget) {
       toast.error('No enquiry selected for assignment');
@@ -315,12 +365,9 @@ const Enquiries = () => {
         },
       });
 
-      setEnquiries(prev => prev.map(e => e.id === assignTarget.id ? { ...e, status: 'assigned', priority: assignPriority } : e));
-      setSelected(prev => prev?.id === assignTarget.id ? { ...prev, status: 'assigned', priority: assignPriority } : prev);
-
       toast.success('Enquiry assigned successfully');
       setAssignModalOpen(false);
-      setAssignTarget(null);
+      fetchEnquiries();
     } catch (err) {
       console.error('Assign failed', err);
       toast.error('Failed to assign enquiry');
@@ -338,7 +385,7 @@ const Enquiries = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="w-full">
       {loading && (
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-white">Loading enquiries...</div>
@@ -372,8 +419,9 @@ const Enquiries = () => {
 
           {/* ── Filters + Search ── */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-            {/* Status Tabs */}
-            <div className="flex items-center gap-1 bg-white/[0.04] rounded-xl p-1 border border-white/[0.06]">
+            {/* Status Tabs - scrollable on mobile */}
+            <div className="w-full sm:w-auto overflow-x-auto pb-1">
+              <div className="flex items-center gap-1 bg-white/[0.04] rounded-xl p-1 border border-white/[0.06] w-max">
               {filterTabs.map(tab => (
                 <button
                   key={tab.key}
@@ -389,6 +437,7 @@ const Enquiries = () => {
                   </span>
                 </button>
               ))}
+              </div>
             </div>
 
             {/* Search */}
@@ -406,8 +455,11 @@ const Enquiries = () => {
 
           {/* ── Table ── */}
           <div className="rounded-2xl bg-gray-900 border border-white/[0.06] overflow-hidden">
+            {/* Table wrapper with horizontal scroll */}
+            <div className="overflow-x-auto">
+              <div className="min-w-[640px]">
             {/* Table head */}
-            <div className="grid grid-cols-[2fr_2fr_1fr_1fr_80px] gap-4 px-5 py-3 border-b border-white/[0.05] bg-white/[0.02]">
+            <div className="grid grid-cols-[2fr_2fr_1fr_1fr_160px] gap-4 px-5 py-3 border-b border-white/[0.05] bg-white/[0.02]">
               {['Sender', 'Subject', 'Priority', 'Status', 'Action'].map(h => (
                 <span key={h} className="text-white/25 text-[10px] font-bold tracking-widest uppercase">{h}</span>
               ))}
@@ -430,7 +482,7 @@ const Enquiries = () => {
                 return (
                   <div
                     key={enq.id}
-                    className="grid grid-cols-[2fr_2fr_1fr_1fr_80px] gap-4 px-5 py-4 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.025] transition-colors duration-150 cursor-pointer items-center group"
+                    className="grid grid-cols-[2fr_2fr_1fr_1fr_160px] gap-4 px-5 py-4 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.025] transition-colors duration-150 cursor-pointer items-center group"
                     onClick={() => setSelected(enq)}
                   >
                     {/* Sender */}
@@ -466,20 +518,37 @@ const Enquiries = () => {
                     </div>
 
                     {/* Action */}
-                    <div className="flex gap-1">
+                    <div className="flex flex-wrap gap-2">
                       <button
                         onClick={e => { e.stopPropagation(); setSelected(enq); }}
-                        className="flex items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors duration-150 opacity-0 group-hover:opacity-100"
+                        className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 transition-all group/btn relative"
+                        title="View Details"
                       >
-                        View
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                       </button>
+                      
                       <button
                         onClick={e => { e.stopPropagation(); openAssignModal(enq); }}
-                        className="flex items-center gap-1.5 text-xs font-semibold text-emerald-300 hover:text-emerald-200 transition-colors duration-150 opacity-0 group-hover:opacity-100"
+                        className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-all"
+                        title="Assign Technician"
                       >
-                        Assign
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14m-7-7h14" /></svg>
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6m-3-3h6"/></svg>
+                      </button>
+
+                      <button
+                        onClick={e => { e.stopPropagation(); openNoteModal(enq); }}
+                        className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all"
+                        title="Add Note"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      </button>
+
+                      <button
+                        onClick={e => { e.stopPropagation(); openCostModal(enq); }}
+                        className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all"
+                        title="Set Cost"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                       </button>
                     </div>
                   </div>
@@ -498,57 +567,204 @@ const Enquiries = () => {
                 </div>
               </div>
             )}
+              </div>
+            </div>
           </div>
+
+          {/* Action Modal (Note/Cost) */}
+          {actionModalOpen && assignTarget && (
+            <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => setActionModalOpen(false)}>
+              <div
+                className="w-full max-w-md rounded-2xl bg-gray-900 border border-white/[0.08] shadow-2xl overflow-hidden"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className={`h-1.5 w-full bg-gradient-to-r ${actionType === 'note' ? 'from-amber-500 to-orange-500' : 'from-blue-500 to-indigo-500'}`} />
+                
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${actionType === 'note' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : 'bg-blue-500/10 border-blue-500/20 text-blue-400'}`}>
+                        {actionType === 'note' ? (
+                          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        ) : (
+                          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="text-white text-lg font-bold">{actionType === 'note' ? 'Add Note' : 'Set Service Cost'}</h3>
+                        <p className="text-white/40 text-xs truncate max-w-[200px]">{assignTarget.subject}</p>
+                      </div>
+                    </div>
+                    <button onClick={() => setActionModalOpen(false)} className="text-white/20 hover:text-white transition-colors">
+                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                  </div>
+
+                  {actionType === 'note' ? (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-[10px] font-bold text-white/30 uppercase tracking-widest mb-2">Internal Note</label>
+                        <textarea
+                          value={noteText}
+                          onChange={e => setNoteText(e.target.value)}
+                          placeholder="Type your note here..."
+                          className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-4 text-white text-sm outline-none focus:border-amber-500/50 transition-all min-h-[120px] resize-none"
+                        />
+                      </div>
+                      <button
+                        onClick={handleAddNote}
+                        disabled={submitting || !noteText.trim()}
+                        className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-sm hover:from-amber-400 hover:to-orange-400 transition-all disabled:opacity-50 shadow-lg shadow-amber-500/20"
+                      >
+                        {submitting ? 'Adding...' : 'Add Note →'}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[10px] font-bold text-white/30 uppercase tracking-widest mb-2">Estimated Cost (₹)</label>
+                          <input
+                            type="number"
+                            value={estimatedCost}
+                            onChange={e => setEstimatedCost(e.target.value)}
+                            placeholder="0"
+                            className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-blue-500/50 transition-all"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-white/30 uppercase tracking-widest mb-2">Actual Cost (₹)</label>
+                          <input
+                            type="number"
+                            value={actualCost}
+                            onChange={e => setActualCost(e.target.value)}
+                            placeholder="0"
+                            className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-blue-500/50 transition-all"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleUpdateCost}
+                        disabled={submitting}
+                        className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold text-sm hover:from-blue-400 hover:to-indigo-400 transition-all disabled:opacity-50 shadow-lg shadow-blue-500/20"
+                      >
+                        {submitting ? 'Updating...' : 'Update Cost →'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Assign Modal */}
           {assignModalOpen && assignTarget && (
-            <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/60 p-4" onClick={() => setAssignModalOpen(false)}>
-              <div className="w-full max-w-md rounded-2xl bg-gray-900 border border-white/[0.07] p-5" onClick={e => e.stopPropagation()}>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-white text-lg font-semibold">Assign Enquiry</h3>
-                  <button onClick={() => setAssignModalOpen(false)} className="text-white/50 hover:text-white">
-                    ✕
-                  </button>
+            <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => setAssignModalOpen(false)}>
+              <div
+                className="w-full max-w-md rounded-2xl bg-gray-900 border border-white/[0.08] shadow-2xl overflow-hidden"
+                onClick={e => e.stopPropagation()}
+              >
+                {/* Modal Header */}
+                <div className="bg-gradient-to-r from-indigo-600/20 to-violet-600/10 border-b border-white/[0.06] px-6 py-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-white text-base font-bold">Assign Enquiry</h3>
+                        <p className="text-white/40 text-xs mt-0.5">Choose technician & priority</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setAssignModalOpen(false)}
+                      className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/40 hover:text-white/70 transition-all"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </button>
+                  </div>
                 </div>
-                <p className="text-white/60 mb-4">Enquiry <span className="font-semibold text-white">{assignTarget.subject}</span></p>
-                <div className="space-y-3">
-                  <label className="block text-sm text-white/60">Technician</label>
-                  <select
-                    value={selectedTechId}
-                    onChange={e => setSelectedTechId(e.target.value)}
-                    className="w-full bg-blue/[0.05] border rounded-lg px-3 py-2 text-white outline-none"
-                  >
-                    <option value="" disabled>Select technician</option>
-                    {console.log(technicians)}
-                    {technicians.map(tech => (
-                      <option  className="text-black" key={tech.id} value={tech.id}>{tech.name}</option>
-                    ))}
-                  </select>
+
+                {/* Modal Body */}
+                <div className="p-6 space-y-5">
+                  {/* Enquiry info */}
+                  <div className="flex items-start gap-3 p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+                    <svg className="w-4 h-4 text-white/30 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    <div className="min-w-0">
+                      <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-0.5">Enquiry</p>
+                      <p className="text-white text-sm font-semibold truncate">{assignTarget.subject}</p>
+                      <p className="text-white/40 text-xs mt-0.5">{assignTarget.name}</p>
+                    </div>
+                  </div>
+
+                  {/* Technician Select */}
+                  <div>
+                    <label className="block text-xs font-bold text-white/40 uppercase tracking-widest mb-2">Select Technician</label>
+                    <select
+                      value={selectedTechId}
+                      onChange={e => setSelectedTechId(e.target.value)}
+                      className="w-full bg-gray-800 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-indigo-500/60 focus:bg-gray-800/80 transition-all appearance-none cursor-pointer"
+                      style={{ colorScheme: 'dark' }}
+                    >
+                      <option value="" disabled className="bg-gray-800 text-white/50">Choose a technician...</option>
+                      {technicians.map(tech => (
+                        <option className="bg-gray-800 text-white" key={tech.id} value={tech.id}>{tech.name}</option>
+                      ))}
+                    </select>
+                    {technicians.length === 0 && (
+                      <p className="text-amber-400/70 text-xs mt-1.5 flex items-center gap-1">
+                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        No technicians available
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Priority Select */}
+                  <div>
+                    <label className="block text-xs font-bold text-white/40 uppercase tracking-widest mb-2">Priority Level</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { value: 'low', label: 'Low', color: 'text-emerald-400', border: 'border-emerald-500/30', bg: 'bg-emerald-500/10', activeBg: 'bg-emerald-500/20' },
+                        { value: 'medium', label: 'Medium', color: 'text-amber-400', border: 'border-amber-500/30', bg: 'bg-amber-500/10', activeBg: 'bg-amber-500/20' },
+                        { value: 'high', label: 'High', color: 'text-rose-400', border: 'border-rose-500/30', bg: 'bg-rose-500/10', activeBg: 'bg-rose-500/20' },
+                      ].map(opt => (
+                        <button
+                          key={opt.value}
+                          onClick={() => setAssignPriority(opt.value)}
+                          className={`py-2.5 rounded-xl border text-xs font-bold transition-all duration-200 ${
+                            assignPriority === opt.value
+                              ? `${opt.activeBg} ${opt.border} ${opt.color} shadow-sm`
+                              : 'bg-white/[0.03] border-white/[0.07] text-white/30 hover:text-white/50 hover:bg-white/[0.06]'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-3 mt-3">
-                  <label className="block text-sm text-white/60">Priority</label>
-                  <select
-                    value={assignPriority}
-                    onChange={e => setAssignPriority(e.target.value)}
-                    className="w-full bg-white/[0.05] border rounded-lg px-3 py-2 text-white outline-none"
-                  >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                  </select>
-                </div>
-                <div className="mt-5 flex justify-end gap-2">
+
+                {/* Modal Footer */}
+                <div className="px-6 pb-6 flex gap-3">
                   <button
                     onClick={() => setAssignModalOpen(false)}
-                    className="px-4 py-2 rounded-lg bg-white/[0.08] text-white text-sm hover:bg-white/[0.12]"
+                    className="flex-1 py-2.5 rounded-xl bg-white/[0.06] text-white/60 text-sm font-semibold hover:bg-white/[0.10] hover:text-white/80 transition-all"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleAssign}
-                    className="px-4 py-2 rounded-lg bg-emerald-500 text-white text-sm hover:bg-emerald-400"
+                    className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 text-white text-sm font-bold hover:from-indigo-400 hover:to-violet-400 transition-all shadow-lg shadow-indigo-500/25 disabled:opacity-50"
+                    disabled={!selectedTechId}
                   >
-                    Assign
+                    Assign Now →
                   </button>
                 </div>
               </div>

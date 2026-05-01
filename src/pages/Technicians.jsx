@@ -48,6 +48,8 @@ const Technicians = () => {
         }
       );
 
+      console.log("Technicians API Response:", res.data);
+
       const mappedTechnicians = res.data.data.technicians?.map(tech => ({
         id: tech._id,
         name: `${tech.firstName} ${tech.lastName}`.trim(),
@@ -90,11 +92,36 @@ const Technicians = () => {
     inactive: { label: 'Inactive', bg: 'bg-white/[0.06]', text: 'text-white/40', dot: 'bg-white/30' },
   };
 
-  const handleStatusChange = async (technicianId, newStatus) => {
-    // TODO: Replace with actual API call later
-    setSelectedTechnician(prev => prev ? { ...prev, status: newStatus } : null);
-    toast.success(`Technician status updated to ${newStatus}`);
-    fetchTechnicians(); // Refresh list
+  const handleStatusChange = async (technicianId, currentStatus, targetStatus) => {
+    // If already in target status, just close
+    if (currentStatus === targetStatus) {
+      setSelectedTechnician(null);
+      return;
+    }
+
+    try {
+      const res = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/admin/technicians/${technicianId}/toggle-status`,
+        { isActive: targetStatus === 'active' },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      console.log("Toggle Status Response:", res.data);
+
+      if (res.data.success) {
+        toast.success(res.data.message || `Technician ${targetStatus === 'active' ? 'activated' : 'deactivated'} successfully`);
+        fetchTechnicians();
+        setSelectedTechnician(null);
+      }
+    } catch (err) {
+      console.error("Error toggling status:", err);
+      toast.error(err.response?.data?.message || "Failed to update status");
+    }
   };
 
   const handleCreateTechnician = async (e) => {
@@ -430,14 +457,14 @@ const TechnicianModal = ({ technician, onClose, onStatusChange }) => {
 
           <div className="flex gap-3">
             <button 
-              onClick={() => onStatusChange(technician.id, 'active')}
-              className="flex-1 py-3 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 rounded-2xl font-medium transition-all"
+              onClick={() => onStatusChange(technician.id, technician.status, 'active')}
+              className={`flex-1 py-3 rounded-2xl font-medium transition-all border bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/30 text-emerald-400`}
             >
               Mark Active
             </button>
             <button 
-              onClick={() => onStatusChange(technician.id, 'inactive')}
-              className="flex-1 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl font-medium transition-all"
+              onClick={() => onStatusChange(technician.id, technician.status, 'inactive')}
+              className={`flex-1 py-3 rounded-2xl font-medium transition-all border bg-white/5 hover:bg-white/10 border-white/10 text-white/70`}
             >
               Mark Inactive
             </button>

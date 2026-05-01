@@ -249,7 +249,7 @@ const NavItem = ({ item, open }) => (
   </div>
 );
 
-const Sidebar = () => {
+const Sidebar = ({ onCloseMobile }) => {
   const [open, setOpen] = useState(false);
 
   const mainNav = navItems.slice(0, 6);
@@ -265,16 +265,29 @@ const Sidebar = () => {
       <div className={`pointer-events-none absolute right-0 top-0 w-px h-full bg-gradient-to-b from-transparent via-indigo-500 to-transparent transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0'}`} />
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-[15px] h-[68px] border-b border-white/5 flex-shrink-0 overflow-hidden">
-        <div className="w-[38px] h-[38px] min-w-[38px] rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/40 flex-shrink-0">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+      <div className="flex items-center justify-between px-[15px] h-[68px] border-b border-white/5 flex-shrink-0 overflow-hidden">
+        <div className="flex items-center gap-3">
+          <div className="w-[38px] h-[38px] min-w-[38px] rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/40 flex-shrink-0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <div className={`flex flex-col overflow-hidden whitespace-nowrap transition-all duration-200 ${open ? 'opacity-100 translate-x-0 delay-75' : 'opacity-0 -translate-x-2'}`}>
+            <span className="text-white text-[15px] font-bold tracking-tight leading-tight">AdminPanel</span>
+            <span className="text-white/30 text-[10px] font-medium tracking-widest uppercase">Control Suite</span>
+          </div>
         </div>
-        <div className={`flex flex-col overflow-hidden whitespace-nowrap transition-all duration-200 ${open ? 'opacity-100 translate-x-0 delay-75' : 'opacity-0 -translate-x-2'}`}>
-          <span className="text-white text-[15px] font-bold tracking-tight leading-tight">AdminPanel</span>
-          <span className="text-white/30 text-[10px] font-medium tracking-widest uppercase">Control Suite</span>
-        </div>
+        {/* Mobile close button */}
+        {onCloseMobile && (
+          <button
+            onClick={onCloseMobile}
+            className="md:hidden w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-white/40 hover:text-white/70 flex-shrink-0"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* ── Nav ── */}

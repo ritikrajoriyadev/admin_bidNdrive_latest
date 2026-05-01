@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useToast } from '../hooks/useToast';
-import { Search, Plus, Trash2, Edit2, Send, Calendar, Users, MessageSquare, Eye } from 'lucide-react';
+import { Search, Plus, Trash2, Edit2, Send, Calendar, Users, MessageSquare, Eye, MousePointerClick, Target, Bell, Clock, AlertTriangle, Tag, RefreshCw, Info, User, Box, Car } from 'lucide-react';
 
 /* ─── Stat Card ─────────────────────────────────────────────────────────── */
 const StatCard = ({ label, value, icon, accentClass, change }) => (
@@ -38,20 +38,49 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-/* ─── Target Badge ─────────────────────────────────────────────────────── */
-const TargetBadge = ({ target }) => {
-  const config = {
-    'all_users': { label: 'All Users', color: 'bg-blue-500/20 text-blue-300' },
-    'buyers': { label: 'Buyers Only', color: 'bg-emerald-500/20 text-emerald-300' },
-    'car_model': { label: 'By Car Model', color: 'bg-indigo-500/20 text-indigo-300' },
-    'category': { label: 'By Category', color: 'bg-violet-500/20 text-violet-300' },
-    'segment': { label: 'By Segment', color: 'bg-pink-500/20 text-pink-300' },
-  };
-  const cfg = config[target] || config.all_users;
+/* ─── Notification Icon ────────────────────────────────────────────────── */
+const NotificationIcon = () => {
   return (
-    <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full ${cfg.color}`}>
-      {cfg.label}
-    </span>
+    <div className="p-3 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/10 border border-indigo-500/20 text-indigo-400 shrink-0 mt-1 shadow-lg shadow-indigo-500/5">
+      <Bell size={20} className="drop-shadow-md" />
+    </div>
+  );
+};
+
+/* ─── Target Badge ─────────────────────────────────────────────────────── */
+const TargetBadge = ({ target, value }) => {
+  const config = {
+    'broadcast': { label: 'All Users', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/20' },
+    'broadcast-biders': { label: 'All Bidders', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+    'send-to-user': { label: 'Specific User', color: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20' },
+    'send-to-bider': { label: 'Specific Bidder', color: 'text-violet-400', bg: 'bg-violet-500/10', border: 'border-violet-500/20' },
+    'send-to-multiple': { label: 'Multiple Users', color: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/20' },
+    'send-to-biders': { label: 'Multiple Bidders', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
+    'all_users': { label: 'All Users', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/20' },
+    'buyers': { label: 'Buyers Only', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+    'car_model': { label: 'By Car Model', color: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20' },
+    'category': { label: 'By Category', color: 'text-violet-400', bg: 'bg-violet-500/10', border: 'border-violet-500/20' },
+    'segment': { label: 'By Segment', color: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/20' },
+  };
+  const cfg = config[target] || config['broadcast'];
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className={`inline-flex items-center gap-2.5 px-3 py-1.5 rounded-lg border ${cfg.bg} ${cfg.border} w-fit`}>
+        <div className={`w-2 h-2 rounded-full bg-current animate-pulse ${cfg.color} shadow-sm`}></div>
+        <span className={`text-[13px] font-bold tracking-wide ${cfg.color}`}>{cfg.label}</span>
+      </div>
+      
+      {value && value !== 'All' && (
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-white/[0.02] border border-white/5 rounded-lg ml-3 relative">
+          <div className="absolute -left-3 top-1/2 w-3 h-[1px] bg-white/10"></div>
+          <div className="absolute -left-3 -top-2 w-[1px] h-[calc(50%+8px)] bg-white/10"></div>
+          <span className="text-xs font-mono text-white/60 truncate max-w-[160px]" title={value}>
+            {value}
+          </span>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -61,10 +90,9 @@ const NotificationForm = ({ notification, onSubmit, onCancel, loading }) => {
     notification || {
       title: '',
       message: '',
-      targetType: 'all_users',
-      selectedModel: '',
-      selectedCategory: '',
-      selectedSegment: '',
+      targetType: 'broadcast',
+      targetId: '',
+      targetIds: '',
       type: 'info',
       scheduling: 'now',
       scheduledDate: '',
@@ -72,10 +100,6 @@ const NotificationForm = ({ notification, onSubmit, onCancel, loading }) => {
       actionUrl: '',
     }
   );
-
-  const carModels = ['CJ', 'Fortuner', 'Creta', 'XUV500', 'Duster', 'Kwid', 'Nexon', 'Scorpio'];
-  const categories = ['Sedan', 'SUV', 'Hatchback', 'MUV', 'Truck', 'Commercial'];
-  const segments = ['Budget', 'Mid-Range', 'Premium', 'Luxury'];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -147,66 +171,47 @@ const NotificationForm = ({ notification, onSubmit, onCancel, loading }) => {
           onChange={handleChange}
           className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 transition"
         >
-          <option value="all_users">All Users</option>
-          <option value="buyers">Users Who Purchased</option>
-          <option value="car_model">By Car Model</option>
-          <option value="category">By Category</option>
-          <option value="segment">By Price Segment</option>
+          <option value="broadcast">Broadcast to All Users</option>
+          <option value="broadcast-biders">Broadcast to All Bidders</option>
+          <option value="send-to-user">Specific User</option>
+          <option value="send-to-bider">Specific Bidder</option>
+          <option value="send-to-multiple">Multiple Users</option>
+          <option value="send-to-biders">Multiple Bidders</option>
         </select>
       </div>
 
       {/* Conditional Target Fields */}
-      {formData.targetType === 'car_model' && (
+      {(formData.targetType === 'send-to-user' || formData.targetType === 'send-to-bider') && (
         <div>
-          <label className="block text-sm font-medium text-white/80 mb-2">Select Car Model</label>
-          <select
-            name="selectedModel"
-            value={formData.selectedModel}
+          <label className="block text-sm font-medium text-white/80 mb-2">
+            {formData.targetType === 'send-to-user' ? 'User ID' : 'Bidder ID'}
+          </label>
+          <input
+            type="text"
+            name="targetId"
+            value={formData.targetId || ''}
             onChange={handleChange}
+            placeholder="Enter ID..."
             className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 transition"
             required
-          >
-            <option value="">Choose a model...</option>
-            {carModels.map(model => (
-              <option key={model} value={model}>{model}</option>
-            ))}
-          </select>
+          />
         </div>
       )}
 
-      {formData.targetType === 'category' && (
+      {(formData.targetType === 'send-to-multiple' || formData.targetType === 'send-to-biders') && (
         <div>
-          <label className="block text-sm font-medium text-white/80 mb-2">Select Category</label>
-          <select
-            name="selectedCategory"
-            value={formData.selectedCategory}
+          <label className="block text-sm font-medium text-white/80 mb-2">
+            {formData.targetType === 'send-to-multiple' ? 'User IDs (comma separated)' : 'Bidder IDs (comma separated)'}
+          </label>
+          <input
+            type="text"
+            name="targetIds"
+            value={formData.targetIds || ''}
             onChange={handleChange}
+            placeholder="id1, id2, id3..."
             className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 transition"
             required
-          >
-            <option value="">Choose a category...</option>
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {formData.targetType === 'segment' && (
-        <div>
-          <label className="block text-sm font-medium text-white/80 mb-2">Select Segment</label>
-          <select
-            name="selectedSegment"
-            value={formData.selectedSegment}
-            onChange={handleChange}
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 transition"
-            required
-          >
-            <option value="">Choose a segment...</option>
-            {segments.map(seg => (
-              <option key={seg} value={seg}>{seg}</option>
-            ))}
-          </select>
+          />
         </div>
       )}
 
@@ -409,12 +414,12 @@ export default function Notifications() {
   const loadNotifications = async () => {
     try {
       setLoading(true);
-      // Replace with actual API endpoint
+      // Replace with actual API endpoint later
       // const response = await axios.get(`${process.env.VITE_API_URL}/api/admin/notifications`);
       // setNotifications(response.data);
       
       setNotifications(mockNotifications);
-      addToast('Notifications loaded successfully', 'success');
+      // Removed the annoying toast message here
     } catch (error) {
       console.error('Error loading notifications:', error);
       addToast('Failed to load notifications', 'error');
@@ -426,21 +431,52 @@ export default function Notifications() {
   const handleSendNotification = async (formData) => {
     try {
       setLoading(true);
-      // Replace with actual API endpoint
-      // const response = await axios.post(`${process.env.VITE_API_URL}/api/admin/notifications/send`, formData);
+      const token = localStorage.getItem("adminToken");
+      const apiUrl = import.meta.env.VITE_API_URL || '';
       
-      // Mock submission
+      let endpoint = '';
+      let payload = {
+        title: formData.title,
+        body: formData.message,
+        data: formData.actionUrl ? { actionUrl: formData.actionUrl } : {}
+      };
+
+      if (formData.targetType === 'broadcast') {
+        endpoint = '/api/notifications/admin/broadcast';
+      } else if (formData.targetType === 'broadcast-biders') {
+        endpoint = '/api/notifications/admin/broadcast-biders';
+      } else if (formData.targetType === 'send-to-user') {
+        endpoint = '/api/notifications/admin/send-to-user';
+        payload.userId = formData.targetId;
+      } else if (formData.targetType === 'send-to-bider') {
+        endpoint = '/api/notifications/admin/send-to-bider';
+        payload.biderId = formData.targetId;
+      } else if (formData.targetType === 'send-to-multiple') {
+        endpoint = '/api/notifications/admin/send-to-multiple';
+        payload.userIds = formData.targetIds.split(',').map(id => id.trim());
+      } else if (formData.targetType === 'send-to-biders') {
+        endpoint = '/api/notifications/admin/send-to-biders';
+        payload.biderIds = formData.targetIds.split(',').map(id => id.trim());
+      }
+
+      await axios.post(`${apiUrl}${endpoint}`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      // Mock update to UI
       const newNotification = {
-        id: Math.max(...notifications.map(n => n.id), 0) + 1,
+        id: Math.max(...(notifications.map(n => n.id).length ? notifications.map(n => n.id) : [0])) + 1,
         ...formData,
         status: formData.scheduling === 'now' ? 'sent' : formData.scheduling === 'draft' ? 'draft' : 'scheduled',
-        totalRecipients: Math.floor(Math.random() * 5000) + 1000,
-        delivered: formData.scheduling === 'now' ? Math.floor(Math.random() * 4000) + 500 : 0,
-        viewed: formData.scheduling === 'now' ? Math.floor(Math.random() * 3000) + 200 : 0,
-        clicked: formData.scheduling === 'now' ? Math.floor(Math.random() * 1000) + 50 : 0,
+        totalRecipients: formData.targetType.includes('broadcast') ? Math.floor(Math.random() * 5000) + 1000 : 1,
+        delivered: formData.scheduling === 'now' ? 1 : 0,
+        viewed: 0,
+        clicked: 0,
         sendTime: formData.scheduling === 'now' ? new Date().toLocaleString() : null,
         createdAt: new Date().toISOString().split('T')[0],
-        targetValue: formData.selectedModel || formData.selectedCategory || formData.selectedSegment || 'All Users'
+        targetValue: formData.targetId || formData.targetIds || 'All'
       };
       
       setNotifications([newNotification, ...notifications]);
@@ -582,37 +618,63 @@ export default function Notifications() {
                 {filteredNotifications.map(notif => (
                   <tr key={notif.id} className="hover:bg-gray-800/50 transition">
                     <td className="px-6 py-4">
-                      <div>
-                        <p className="text-sm font-medium text-white">{notif.title}</p>
-                        <p className="text-xs text-white/40">{notif.message.substring(0, 40)}...</p>
+                      <div className="flex items-start gap-4">
+                        <NotificationIcon />
+                        <div className="max-w-[260px]">
+                          <p className="text-[17px] font-bold text-white tracking-wide truncate" title={notif.title}>
+                            {notif.title}
+                          </p>
+                          <p className="text-sm text-white/50 mt-1 line-clamp-2 leading-relaxed font-medium" title={notif.message}>
+                            {notif.message}
+                          </p>
+                          {notif.sendTime && (
+                            <div className="flex items-center gap-1.5 mt-2.5 text-[11px] text-white/40 font-semibold uppercase tracking-wider">
+                              <Clock size={12} className="text-white/30" />
+                              <span>{new Date(notif.sendTime).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <TargetBadge target={notif.targetType} />
-                      {notif.targetValue && (
-                        <p className="text-xs text-white/40 mt-1">{notif.targetValue}</p>
-                      )}
+                      <TargetBadge target={notif.targetType} value={notif.targetValue} />
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-white/80 capitalize">{notif.type}</span>
+                      <span className="text-sm text-white/80 capitalize font-medium">{notif.type}</span>
                     </td>
                     <td className="px-6 py-4">
                       <StatusBadge status={notif.status} />
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm">
-                        <p className="text-white/80">{notif.delivered} / {notif.totalRecipients}</p>
-                        <p className="text-xs text-white/40">
-                          {notif.totalRecipients > 0 
-                            ? ((notif.delivered / notif.totalRecipients) * 100).toFixed(1) 
-                            : '0'}%
-                        </p>
+                      <div className="w-full min-w-[120px]">
+                        <div className="flex justify-between items-end mb-1.5">
+                          <span className="text-xs font-semibold text-white/90">
+                            {notif.delivered.toLocaleString()} <span className="text-white/30 font-medium">/ {notif.totalRecipients.toLocaleString()}</span>
+                          </span>
+                          <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                            {notif.totalRecipients > 0 ? ((notif.delivered / notif.totalRecipients) * 100).toFixed(1) : '0'}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-800 rounded-full h-1.5 border border-white/5">
+                          <div 
+                            className="bg-gradient-to-r from-emerald-500 to-emerald-400 h-1.5 rounded-full relative overflow-hidden transition-all duration-500" 
+                            style={{ width: `${notif.totalRecipients > 0 ? (notif.delivered / notif.totalRecipients) * 100 : 0}%` }}
+                          >
+                            <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                          </div>
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm">
-                        <p className="text-white/80">👁️ {notif.viewed}</p>
-                        <p className="text-white/80">🔗 {notif.clicked}</p>
+                      <div className="flex items-center gap-3">
+                        <div className="flex flex-col items-center justify-center bg-blue-500/5 hover:bg-blue-500/10 border border-blue-500/10 rounded-lg p-1.5 min-w-[48px] transition cursor-default group" title="Viewed">
+                          <Eye size={14} className="text-blue-400/70 group-hover:text-blue-400 mb-0.5 transition-colors" />
+                          <span className="text-[10px] font-semibold text-blue-300">{notif.viewed.toLocaleString()}</span>
+                        </div>
+                        <div className="flex flex-col items-center justify-center bg-purple-500/5 hover:bg-purple-500/10 border border-purple-500/10 rounded-lg p-1.5 min-w-[48px] transition cursor-default group" title="Clicked">
+                          <MousePointerClick size={14} className="text-purple-400/70 group-hover:text-purple-400 mb-0.5 transition-colors" />
+                          <span className="text-[10px] font-semibold text-purple-300">{notif.clicked.toLocaleString()}</span>
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
