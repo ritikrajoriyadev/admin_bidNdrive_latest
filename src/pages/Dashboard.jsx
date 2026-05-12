@@ -76,8 +76,19 @@ const ProgressBar = ({ label, value, max, color }) => (
 );
 
 // ── Main Dashboard ────────────────────────────────────────────────
+
+import { useEffect } from 'react';
+
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('week');
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const stats = [
     {
@@ -89,7 +100,7 @@ const Dashboard = () => {
       sparkData: [30, 45, 38, 60, 52, 75, 82],
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          <line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
         </svg>
       ),
     },
@@ -102,9 +113,9 @@ const Dashboard = () => {
       sparkData: [50, 60, 55, 70, 65, 80, 90],
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-        </svg>
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
       ),
     },
     {
@@ -116,7 +127,7 @@ const Dashboard = () => {
       sparkData: [80, 70, 75, 60, 65, 55, 50],
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
       ),
     },
@@ -129,8 +140,8 @@ const Dashboard = () => {
       sparkData: [20, 35, 28, 50, 42, 58, 64],
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-          <line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+          <line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" />
         </svg>
       ),
     },
@@ -155,13 +166,13 @@ const Dashboard = () => {
 
   // Simple bar chart data
   const barData = {
-    day:   [40, 65, 30, 80, 55, 70, 45],
-    week:  [60, 75, 50, 90, 65, 85, 70],
+    day: [40, 65, 30, 80, 55, 70, 45],
+    week: [60, 75, 50, 90, 65, 85, 70],
     month: [55, 80, 45, 95, 70, 60, 88],
-    year:  [70, 85, 60, 75, 90, 65, 80],
+    year: [70, 85, 60, 75, 90, 65, 80],
   };
   const bars = barData[activeTab];
-  const barLabels = { day: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], week: ['W1','W2','W3','W4','W5','W6','W7'], month: ['Jan','Feb','Mar','Apr','May','Jun','Jul'], year: ['2018','2019','2020','2021','2022','2023','2024'] };
+  const barLabels = { day: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], week: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7'], month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'], year: ['2018', '2019', '2020', '2021', '2022', '2023', '2024'] };
 
   return (
     <div className="min-h-screen bg-gray-950 text-white font-sans">
@@ -173,10 +184,23 @@ const Dashboard = () => {
         <div className="absolute -bottom-10 right-24 w-32 h-32 rounded-full bg-white/5 blur-2xl" />
 
         <Greeting name="Admin" />
-
         <div className="relative z-10 hidden sm:flex flex-col items-end gap-1">
-          <span className="text-white/60 text-xs">{new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
-          <span className="text-white text-3xl font-bold">{new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+          <span className="text-white/60 text-xs">
+            {currentTime.toLocaleDateString('en-IN', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric'
+            })}
+          </span>
+
+          <span className="text-white text-3xl font-bold">
+            {currentTime.toLocaleTimeString('en-IN', {
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit'
+            })}
+          </span>
         </div>
       </div>
 
@@ -240,12 +264,12 @@ const Dashboard = () => {
           <div className="mt-6 flex items-center justify-center">
             <div className="relative w-24 h-24">
               <svg viewBox="0 0 36 36" className="w-24 h-24 -rotate-90">
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="3.8"/>
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="url(#grad1)" strokeWidth="3.8" strokeDasharray="80 20" strokeLinecap="round"/>
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="3.8" />
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="url(#grad1)" strokeWidth="3.8" strokeDasharray="80 20" strokeLinecap="round" />
                 <defs>
                   <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#6366f1"/>
-                    <stop offset="100%" stopColor="#a855f7"/>
+                    <stop offset="0%" stopColor="#6366f1" />
+                    <stop offset="100%" stopColor="#a855f7" />
                   </linearGradient>
                 </defs>
               </svg>

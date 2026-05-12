@@ -3,51 +3,41 @@ import axios from 'axios';
 import { useToast } from '../hooks/useToast';
 import { Search, Plus, Trash2, Edit2, Shield, Users, Lock } from 'lucide-react';
 
+/* ─── Constants ──────────────────────────────────────────────────────────── */
+const API_URL = import.meta.env.VITE_API_URL || '';
+
 const statusConfig = {
-  active: { label: 'Active', bg: 'bg-emerald-500/15', text: 'text-emerald-400', dot: 'bg-emerald-400' },
-  inactive: { label: 'Inactive', bg: 'bg-gray-500/15', text: 'text-gray-400', dot: 'bg-gray-400' },
-  suspended: { label: 'Suspended', bg: 'bg-red-500/15', text: 'text-red-400', dot: 'bg-red-400' },
+  active:    { label: 'Active',    bg: 'bg-emerald-500/15', text: 'text-emerald-400', dot: 'bg-emerald-400' },
+  inactive:  { label: 'Inactive',  bg: 'bg-gray-500/15',    text: 'text-gray-400',    dot: 'bg-gray-400'    },
+  suspended: { label: 'Suspended', bg: 'bg-red-500/15',     text: 'text-red-400',     dot: 'bg-red-400'     },
 };
 
-const roleOptions = [
-  { id: 'manager', label: 'Manager', permissions: ['view_dashboard', 'manage_users', 'view_reports'] },
-  { id: 'supervisor', label: 'Supervisor', permissions: ['view_dashboard', 'manage_users', 'manage_cars'] },
-  { id: 'operator', label: 'Operator', permissions: ['view_dashboard', 'manage_cars', 'view_enquiries'] },
-  { id: 'custom', label: 'Custom Role', permissions: [] },
-];
-
-const allPermissions = [
-  { id: 'view_dashboard', label: 'View Dashboard', description: 'Access admin dashboard' },
-  { id: 'manage_users', label: 'Manage Users', description: 'Create, edit, delete users' },
-  { id: 'manage_cars', label: 'Manage Cars', description: 'Add, edit, delete vehicle listings' },
-  { id: 'manage_enquiries', label: 'Manage Enquiries', description: 'Handle customer enquiries' },
-  { id: 'view_reports', label: 'View Reports', description: 'Access analytics and reports' },
-  { id: 'manage_technicians', label: 'Manage Technicians', description: 'Manage technician accounts' },
-  { id: 'manage_roles', label: 'Manage Roles', description: 'Create and assign roles' },
-  { id: 'manage_permissions', label: 'Manage Permissions', description: 'Configure permissions' },
-  { id: 'export_data', label: 'Export Data', description: 'Export reports and data' },
-  { id: 'system_settings', label: 'System Settings', description: 'Configure system settings' },
-];
+/* ─── Helpers ────────────────────────────────────────────────────────────── */
+const getAuthHeaders = () => ({
+  'Content-Type': 'application/json',
+  Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
+});
 
 const normalizeAdmin = (admin = {}) => {
   const firstName = admin.firstName || admin.name?.split(' ')[0] || '';
-  const lastName = admin.lastName || admin.name?.split(' ').slice(1).join(' ') || '';
-
+  const lastName  = admin.lastName  || admin.name?.split(' ').slice(1).join(' ') || '';
   return {
-    id: admin._id || admin.id || '',
+    id:          admin._id || admin.id || '',
     firstName,
     lastName,
-    name: `${firstName} ${lastName}`.trim() || admin.name || 'Unknown',
-    email: admin.email || '',
-    phone: admin.phone || admin.contactNumber || '',
-    role: admin.role || 'operator',
+    name:        `${firstName} ${lastName}`.trim() || admin.name || 'Unknown',
+    email:       admin.email || '',
+    phone:       admin.phone || admin.contactNumber || '',
+    // role may be a populated object or a plain ID string
+    role:        admin.role?._id || admin.role || '',
+    roleName:    admin.role?.name || '',
     permissions: admin.permissions || [],
-    status: admin.status || 'active',
-    createdAt: admin.createdAt ? new Date(admin.createdAt).toLocaleDateString() : '',
+    status:      admin.status || 'active',
+    createdAt:   admin.createdAt ? new Date(admin.createdAt).toLocaleDateString() : '',
   };
 };
 
-/* ─── Stat Card ─────────────────────────────────────────────────────── */
+/* ─── Stat Card ──────────────────────────────────────────────────────────── */
 const StatCard = ({ label, value, icon, accent, sub }) => (
   <div className="relative overflow-hidden rounded-2xl bg-gray-900 border border-white/[0.06] p-5 hover:border-white/[0.1] transition-all duration-300 group">
     <div className={`absolute -top-5 -right-5 w-20 h-20 rounded-full blur-2xl opacity-20 group-hover:opacity-30 transition-opacity duration-300 ${accent}`} />
@@ -62,57 +52,49 @@ const StatCard = ({ label, value, icon, accent, sub }) => (
   </div>
 );
 
-/* ─── Add/Edit SubAdmin Form ─────────────────────────────────────── */
-const SubAdminForm = ({ admin, onClose, onSave }) => {
-  const [formData, setFormData] = useState(admin || {
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    phone: '',
-    role: 'operator',
+/* ─── SubAdmin Form ──────────────────────────────────────────────────────── */
+const SubAdminForm = ({ admin, onClose, onSave, saving, roles }) => {
+  const [formData, setFormData] = useState(() => admin || {
+    firstName:  '',
+    lastName:   '',
+    email:      '',
+    password:   '',
+    phone:      '',
+    role:       '',   // will hold a DB role _id
     permissions: [],
-    status: 'active',
+    status:     'active',
   });
 
+  // When switching to edit a different admin reset the form
   useEffect(() => {
     setFormData(admin || {
-      firstName: '',
-      lastName: '',
-      email: '',
-      password: '',
-      phone: '',
-      role: 'operator',
+      firstName:  '',
+      lastName:   '',
+      email:      '',
+      password:   '',
+      phone:      '',
+      role:       '',
       permissions: [],
-      status: 'active',
+      status:     'active',
     });
   }, [admin]);
 
-  const selectedRole = roleOptions.find(r => r.id === formData.role);
-  const rolePermissions = selectedRole?.permissions || [];
-
-  const handleRoleChange = (newRole) => {
-    const role = roleOptions.find(r => r.id === newRole);
-    setFormData({
-      ...formData,
-      role: newRole,
-      permissions: role?.permissions || [],
-    });
-  };
-
-  const handlePermissionToggle = (permId) => {
-    setFormData({
-      ...formData,
-      permissions: formData.permissions.includes(permId)
-        ? formData.permissions.filter(p => p !== permId)
-        : [...formData.permissions, permId]
-    });
-  };
+  const handlePermissionToggle = (permId) =>
+    setFormData((prev) => ({
+      ...prev,
+      permissions: prev.permissions.includes(permId)
+        ? prev.permissions.filter((p) => p !== permId)
+        : [...prev.permissions, permId],
+    }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onSave(formData);
   };
+
+  // Build a simple permission list from the selected role object (if available)
+  const selectedRole    = roles.find((r) => (r._id || r.id) === formData.role);
+  const rolePermissions = selectedRole?.permissions || [];
 
   return (
     <div className="rounded-2xl bg-gray-900 border border-white/[0.06] p-6">
@@ -123,39 +105,23 @@ const SubAdminForm = ({ admin, onClose, onSave }) => {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Info */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="flex flex-col gap-2">
-            <label className="text-white/60 text-sm font-medium">First Name *</label>
-            <input
-              type="text"
-              required
-              value={formData.firstName}
-              onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-              className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] text-white placeholder-white/20 focus:border-indigo-400/50 focus:outline-none transition-all"
-              placeholder="John"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="text-white/60 text-sm font-medium">Last Name *</label>
-            <input
-              type="text"
-              required
-              value={formData.lastName}
-              onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-              className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] text-white placeholder-white/20 focus:border-indigo-400/50 focus:outline-none transition-all"
-              placeholder="Doe"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="text-white/60 text-sm font-medium">Email *</label>
-            <input
-              type="email"
-              required
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] text-white placeholder-white/20 focus:border-indigo-400/50 focus:outline-none transition-all"
-              placeholder="john@example.com"
-            />
-          </div>
+          {[
+            { label: 'First Name *', key: 'firstName', type: 'text',     ph: 'John',             required: true  },
+            { label: 'Last Name *',  key: 'lastName',  type: 'text',     ph: 'Doe',              required: true  },
+            { label: 'Email *',      key: 'email',     type: 'email',    ph: 'john@example.com', required: true  },
+          ].map(({ label, key, type, ph, required }) => (
+            <div key={key} className="flex flex-col gap-2">
+              <label className="text-white/60 text-sm font-medium">{label}</label>
+              <input
+                type={type}
+                required={required}
+                value={formData[key]}
+                onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+                className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] text-white placeholder-white/20 focus:border-indigo-400/50 focus:outline-none transition-all"
+                placeholder={ph}
+              />
+            </div>
+          ))}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -170,7 +136,9 @@ const SubAdminForm = ({ admin, onClose, onSave }) => {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="text-white/60 text-sm font-medium">Password {admin ? '(leave blank to keep current)' : '*'}</label>
+            <label className="text-white/60 text-sm font-medium">
+              Password {admin ? '(leave blank to keep current)' : '*'}
+            </label>
             <input
               type="password"
               value={formData.password}
@@ -194,60 +162,79 @@ const SubAdminForm = ({ admin, onClose, onSave }) => {
           </div>
         </div>
 
-        {/* Role Selection */}
+        {/* Role Selection — pulled from DB */}
         <div className="flex flex-col gap-3">
-          <label className="text-white/60 text-sm font-medium">Assign Role *</label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {roleOptions.map((role) => (
-              <button
-                key={role.id}
-                type="button"
-                onClick={() => handleRoleChange(role.id)}
-                className={`p-3 rounded-xl border-2 transition-all text-left ${
-                  formData.role === role.id
-                    ? 'bg-indigo-500/15 border-indigo-400/50'
-                    : 'bg-gray-800/50 border-white/[0.08] hover:border-white/[0.12]'
-                }`}
-              >
-                <p className="text-white font-medium text-sm">{role.label}</p>
-                {role.id !== 'custom' && (
-                  <p className="text-white/40 text-xs mt-1">{role.permissions.length} permissions</p>
-                )}
-              </button>
-            ))}
-          </div>
+          <label className="text-white/60 text-sm font-medium">
+            Assign Role *
+            {formData.role && selectedRole && (
+              <span className="ml-2 text-indigo-400 font-semibold">{selectedRole.name}</span>
+            )}
+          </label>
+
+          {roles.length === 0 ? (
+            <p className="text-white/30 text-sm">Loading roles…</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {roles.map((role) => {
+                const rid = role._id || role.id;
+                return (
+                  <button
+                    key={rid}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, role: rid })}
+                    className={`p-3 rounded-xl border-2 transition-all text-left ${
+                      formData.role === rid
+                        ? 'bg-indigo-500/15 border-indigo-400/50'
+                        : 'bg-gray-800/50 border-white/[0.08] hover:border-white/[0.12]'
+                    }`}
+                  >
+                    <p className="text-white font-medium text-sm">{role.name}</p>
+                    {role.description && (
+                      <p className="text-white/40 text-xs mt-0.5 truncate">{role.description}</p>
+                    )}
+                    <p className="text-white/30 text-xs mt-1">
+                      {role.permissions?.length || 0} permissions
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        {/* Permissions */}
-        <div className="flex flex-col gap-3">
-          <label className="text-white/60 text-sm font-medium">Permissions</label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-xl bg-gray-800/30 border border-white/[0.06]">
-            {allPermissions.map((perm) => (
-              <label key={perm.id} className="flex items-start gap-3 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={formData.permissions.includes(perm.id)}
-                  onChange={() => handlePermissionToggle(perm.id)}
-                  className="w-4 h-4 mt-1 rounded bg-gray-800 border border-white/[0.08] checked:bg-indigo-500 checked:border-indigo-400 focus:outline-none cursor-pointer"
-                />
-                <div>
-                  <p className="text-white/80 text-sm font-medium group-hover:text-white transition-colors">
-                    {perm.label}
-                  </p>
-                  <p className="text-white/40 text-xs">{perm.description}</p>
-                </div>
-              </label>
-            ))}
+        {/* Show permissions of the selected role (read-only preview) */}
+        {selectedRole && rolePermissions.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <label className="text-white/60 text-sm font-medium">
+              Permissions included with this role
+            </label>
+            <div className="flex flex-wrap gap-2 p-3 rounded-xl bg-gray-800/30 border border-white/[0.06]">
+              {rolePermissions.map((perm) => {
+                const label = typeof perm === 'object'
+                  ? `${perm.module}${perm.action ? `: ${perm.action}` : ''}`
+                  : perm;
+                const id = typeof perm === 'object' ? (perm._id || perm.id) : perm;
+                return (
+                  <span
+                    key={id}
+                    className="px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 text-xs font-medium"
+                  >
+                    {label}
+                  </span>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Buttons */}
         <div className="flex gap-3 pt-4">
           <button
             type="submit"
-            className="flex-1 px-4 py-2.5 rounded-xl bg-indigo-500 text-white font-medium hover:bg-indigo-600 transition-all"
+            disabled={saving}
+            className="flex-1 px-4 py-2.5 rounded-xl bg-indigo-500 text-white font-medium hover:bg-indigo-600 disabled:opacity-50 transition-all"
           >
-            {admin ? 'Update SubAdmin' : 'Create SubAdmin'}
+            {saving ? 'Saving…' : admin ? 'Update SubAdmin' : 'Create SubAdmin'}
           </button>
           <button
             type="button"
@@ -262,132 +249,201 @@ const SubAdminForm = ({ admin, onClose, onSave }) => {
   );
 };
 
-/* ─── Main Component ─────────────────────────────────────────────────── */
+/* ─── Main Component ─────────────────────────────────────────────────────── */
 export default function SubAdmin() {
   const { addToast } = useToast();
-  const apiUrl = import.meta.env.VITE_API_URL || '';
-  const token = localStorage.getItem('adminToken');
-  const [subAdmins, setSubAdmins] = useState([]);
+
+  const [subAdmins,      setSubAdmins]      = useState([]);
   const [filteredAdmins, setFilteredAdmins] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [loading, setLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState(null);
+  const [roles,          setRoles]          = useState([]);   // DB roles
+  const [searchTerm,     setSearchTerm]     = useState('');
+  const [filterStatus,   setFilterStatus]   = useState('all');
+  const [loading,        setLoading]        = useState(false);
+  const [saving,         setSaving]         = useState(false);
+  const [showForm,       setShowForm]       = useState(false);
+  const [editingId,      setEditingId]      = useState(null);
 
-  // Fetch subadmins
-  useEffect(() => {
-    fetchSubAdmins();
-  }, []);
-
+  /* ── Fetch subadmins ───────────────────────────────────────────────────── */
   const fetchSubAdmins = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${apiUrl}/api/admin/list`, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const rawAdmins = response.data?.data ?? response.data ?? [];
-      const admins = Array.isArray(rawAdmins)
-        ? rawAdmins
-        : rawAdmins.admins ?? rawAdmins.users ?? [];
-
+      const { data } = await axios.get(`${API_URL}/api/admin/list`, { headers: getAuthHeaders() });
+      const raw    = data?.data ?? data ?? [];
+      const admins = Array.isArray(raw) ? raw : raw.admins ?? raw.users ?? [];
       setSubAdmins(admins.map(normalizeAdmin));
-      addToast('SubAdmins loaded successfully', 'success');
     } catch (error) {
-      console.error('Error loading subadmins', error);
-      addToast('Error loading subadmins', 'error');
+      addToast(error?.response?.data?.message || 'Error loading subadmins', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  // Filter subadmins
+  /* ── Fetch DB roles  GET /api/admin/roles-permissions/roles ────────────── */
+  const fetchRoles = async () => {
+    try {
+      const { data } = await axios.get(
+        `${API_URL}/api/admin/roles-permissions/roles`,
+        { headers: getAuthHeaders() }
+      );
+      setRoles(data.data || []);
+    } catch (error) {
+      addToast(error?.response?.data?.message || 'Error loading roles', 'error');
+    }
+  };
+
+  useEffect(() => { fetchSubAdmins(); fetchRoles(); }, []);
+
+  /* ── Filter ────────────────────────────────────────────────────────────── */
   useEffect(() => {
-    let filtered = subAdmins.filter((admin) => {
-      const matchSearch = `${admin.name} ${admin.email}`.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchStatus = filterStatus === 'all' || admin.status === filterStatus;
-      return matchSearch && matchStatus;
-    });
-    setFilteredAdmins(filtered);
+    setFilteredAdmins(
+      subAdmins.filter((admin) => {
+        const matchSearch = `${admin.name} ${admin.email}`.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchStatus = filterStatus === 'all' || admin.status === filterStatus;
+        return matchSearch && matchStatus;
+      })
+    );
   }, [subAdmins, searchTerm, filterStatus]);
 
-  const handleSave = async (formData) => {
-    const payload = {
-      email: formData.email,
-      password: formData.password,
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      phone: formData.phone,
-      role: formData.role,
-    };
+  /* ── Assign role to existing user  PUT /:userId/assign-role ────────────── */
+  const assignRoleToUser = async (userId, roleId) => {
+    const { data } = await axios.put(
+      `${API_URL}/api/admin/roles-permissions/${userId}/assign-role`,
+      { roleId },
+      { headers: getAuthHeaders() }
+    );
+    return data.data; // populated user returned by backend
+  };
 
-    if (editingId) {
-      setSubAdmins(subAdmins.map(admin =>
-        admin.id === editingId ? { ...admin, ...formData, name: `${formData.firstName} ${formData.lastName}`.trim() } : admin
-      ));
-      addToast('SubAdmin updated locally', 'success');
-      resetForm();
-      return;
-    }
-
+  /* ── Create subadmin ───────────────────────────────────────────────────── */
+  const handleCreate = async (formData) => {
+    setSaving(true);
     try {
-      setLoading(true);
-      const response = await axios.post(`${apiUrl}/api/admin/register`, payload, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const payload = {
+        email:     formData.email,
+        password:  formData.password,
+        firstName: formData.firstName,
+        lastName:  formData.lastName,
+        phone:     formData.phone,
+      };
 
-      const createdAdmin = normalizeAdmin(response.data?.data ?? response.data ?? {});
+      // 1. Register the new subadmin
+      const { data } = await axios.post(
+        `${API_URL}/api/admin/register`,
+        payload,
+        { headers: getAuthHeaders() }
+      );
+      let createdAdmin = normalizeAdmin(data?.data ?? data ?? {});
+
+      // 2. If a role was selected, assign it immediately
+      if (formData.role) {
+        try {
+          const updated = await assignRoleToUser(createdAdmin.id, formData.role);
+          createdAdmin = normalizeAdmin(updated);
+        } catch {
+          // Non-fatal — admin is created; role can be assigned later via edit
+          addToast('SubAdmin created but role assignment failed. Edit to retry.', 'error');
+        }
+      }
+
       setSubAdmins((prev) => [createdAdmin, ...prev]);
       addToast('SubAdmin created successfully', 'success');
       resetForm();
     } catch (error) {
-      console.error('Error creating subadmin', error);
-      addToast('Failed to create subadmin', 'error');
+      addToast(error?.response?.data?.message || 'Failed to create subadmin', 'error');
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  const handleEdit = (admin) => {
-    setEditingId(admin.id);
-    setShowForm(true);
+  /* ── Update subadmin ───────────────────────────────────────────────────── */
+  const handleUpdate = async (formData) => {
+    setSaving(true);
+    try {
+      // 1. Update profile fields (name, phone, status, etc.)
+      //    Adjust the endpoint to whatever your backend exposes for PATCH/PUT admin profile.
+      const payload = {
+        firstName: formData.firstName,
+        lastName:  formData.lastName,
+        phone:     formData.phone,
+        status:    formData.status,
+        ...(formData.password ? { password: formData.password } : {}),
+      };
+
+      await axios.put(
+        `${API_URL}/api/admin/${editingId}`,
+        payload,
+        { headers: getAuthHeaders() }
+      );
+
+      // 2. Assign role via the dedicated endpoint  PUT /:userId/assign-role
+      let updatedAdmin = null;
+      if (formData.role) {
+        try {
+          const updated = await assignRoleToUser(editingId, formData.role);
+          updatedAdmin = normalizeAdmin(updated);
+        } catch (err) {
+          addToast(err?.response?.data?.message || 'Role assignment failed', 'error');
+        }
+      }
+
+      // 3. Patch local state
+      setSubAdmins((prev) =>
+        prev.map((a) => {
+          if (a.id !== editingId) return a;
+          if (updatedAdmin) return updatedAdmin;
+          // Fallback: merge form fields locally
+          return {
+            ...a,
+            firstName: formData.firstName,
+            lastName:  formData.lastName,
+            name:      `${formData.firstName} ${formData.lastName}`.trim(),
+            phone:     formData.phone,
+            status:    formData.status,
+            role:      formData.role || a.role,
+            roleName:  roles.find((r) => (r._id || r.id) === formData.role)?.name || a.roleName,
+          };
+        })
+      );
+
+      addToast('SubAdmin updated successfully', 'success');
+      resetForm();
+    } catch (error) {
+      addToast(error?.response?.data?.message || 'Failed to update subadmin', 'error');
+    } finally {
+      setSaving(false);
+    }
   };
 
+  /* ── Delete subadmin ───────────────────────────────────────────────────── */
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this subadmin?')) return;
-
+    if (!window.confirm('Are you sure you want to delete this subadmin?')) return;
     try {
       setLoading(true);
-      await axios.delete(`${apiUrl}/api/admin/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setSubAdmins(subAdmins.filter(admin => admin.id !== id));
+      await axios.delete(`${API_URL}/api/admin/${id}`, { headers: getAuthHeaders() });
+      setSubAdmins((prev) => prev.filter((a) => a.id !== id));
       addToast('SubAdmin deleted successfully', 'success');
     } catch (error) {
-      console.error('Error deleting subadmin', error);
-      addToast('Failed to delete subadmin', 'error');
+      addToast(error?.response?.data?.message || 'Failed to delete subadmin', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const resetForm = () => {
-    setShowForm(false);
-    setEditingId(null);
-  };
+  /* ── Helpers ────────────────────────────────────────────────────────────── */
+  const handleSave = (formData) => editingId ? handleUpdate(formData) : handleCreate(formData);
 
-  const totalAdmins = subAdmins.length;
-  const activeAdmins = subAdmins.filter(a => a.status === 'active').length;
-  const managerCount = subAdmins.filter(a => a.role === 'manager').length;
+  const resetForm = () => { setShowForm(false); setEditingId(null); };
+
+  const handleEdit = (admin) => { setEditingId(admin.id); setShowForm(true); };
+
+  /* ── Derived stats ──────────────────────────────────────────────────────── */
+  const totalAdmins  = subAdmins.length;
+  const activeAdmins = subAdmins.filter((a) => a.status === 'active').length;
+  // Count admins whose role name includes "manager" (case-insensitive) or match by id
+  const managerCount = subAdmins.filter((a) => {
+    const rn = (a.roleName || roles.find((r) => (r._id || r.id) === a.role)?.name || '').toLowerCase();
+    return rn.includes('manager');
+  }).length;
 
   return (
     <div className="flex flex-col gap-6">
@@ -397,39 +453,18 @@ export default function SubAdmin() {
         <p className="text-white/40 text-sm">Create and manage subadmin accounts with roles and permissions</p>
       </div>
 
-      {/* Stats Grid */}
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard
-          label="Total SubAdmins"
-          value={totalAdmins}
-          icon={<Users className="w-4 h-4" />}
-          accent="bg-indigo-500"
-          sub="All"
-        />
-        <StatCard
-          label="Active"
-          value={activeAdmins}
-          icon={<Shield className="w-4 h-4" />}
-          accent="bg-emerald-500"
-          sub="Currently"
-        />
-        <StatCard
-          label="Managers"
-          value={managerCount}
-          icon={<Lock className="w-4 h-4" />}
-          accent="bg-violet-500"
-          sub="Total"
-        />
+        <StatCard label="Total SubAdmins" value={totalAdmins}  icon={<Users className="w-4 h-4" />}  accent="bg-indigo-500"  sub="All"       />
+        <StatCard label="Active"          value={activeAdmins} icon={<Shield className="w-4 h-4" />} accent="bg-emerald-500" sub="Currently" />
+        <StatCard label="Managers"        value={managerCount} icon={<Lock className="w-4 h-4" />}   accent="bg-violet-500"  sub="Total"     />
       </div>
 
-      {/* Add Button */}
+      {/* Create button */}
       <button
         onClick={() => {
-          if (showForm && !editingId) {
-            resetForm();
-          } else {
-            setShowForm(!showForm);
-          }
+          if (showForm && !editingId) { resetForm(); return; }
+          setShowForm(true);
         }}
         className="w-fit flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-500/15 border border-indigo-400/25 text-indigo-300 hover:bg-indigo-500/25 transition-all duration-200 font-medium text-sm"
       >
@@ -440,9 +475,11 @@ export default function SubAdmin() {
       {/* Form */}
       {showForm && (
         <SubAdminForm
-          admin={editingId ? subAdmins.find(a => a.id === editingId) : null}
+          admin={editingId ? subAdmins.find((a) => a.id === editingId) : null}
           onClose={resetForm}
           onSave={handleSave}
+          saving={saving}
+          roles={roles}
         />
       )}
 
@@ -475,48 +512,46 @@ export default function SubAdmin() {
         </div>
       </div>
 
-      {/* SubAdmins Table */}
+      {/* Table */}
       <div className="rounded-2xl bg-gray-900 border border-white/[0.06] overflow-hidden">
         {loading ? (
-          <div className="p-8 flex items-center justify-center text-white/40">
-            Loading subadmins...
-          </div>
+          <div className="p-8 flex items-center justify-center text-white/40">Loading subadmins…</div>
         ) : filteredAdmins.length === 0 ? (
-          <div className="p-8 flex items-center justify-center text-white/40">
-            No subadmins found
-          </div>
+          <div className="p-8 flex items-center justify-center text-white/40">No subadmins found</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-white/[0.06]">
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Name</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Email</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Role</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Permissions</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Joined</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Actions</th>
+                  {['Name', 'Email', 'Role', 'Permissions', 'Status', 'Joined', 'Actions'].map((h) => (
+                    <th key={h} className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.06]">
-                {filteredAdmins.map((admin) => {
-                  const sc = statusConfig[admin.status] || statusConfig.active;
-                  const role = roleOptions.find(r => r.id === admin.role);
+                {filteredAdmins.map((admin, idx) => {
+                  const sc         = statusConfig[admin.status] || statusConfig.active;
+                  const dbRole     = roles.find((r) => (r._id || r.id) === admin.role);
+                  const roleLabel  = admin.roleName || dbRole?.name || admin.role || '—';
+                  const permCount  = dbRole?.permissions?.length ?? admin.permissions?.length ?? 0;
+                  // Fallback key so rows with missing/duplicate id never collide
+                  const rowKey     = admin.id || `${admin.email}-${idx}`;
 
                   return (
-                    <tr key={admin.id} className="hover:bg-white/[0.02] transition-colors duration-150">
+                    <tr key={rowKey} className="hover:bg-white/[0.02] transition-colors duration-150">
                       <td className="px-6 py-4">
                         <p className="text-white font-semibold">{admin.name}</p>
                       </td>
                       <td className="px-6 py-4 text-white/60 text-sm">{admin.email}</td>
                       <td className="px-6 py-4">
                         <span className="px-3 py-1 rounded-full bg-indigo-500/15 text-indigo-400 text-xs font-semibold">
-                          {role?.label}
+                          {roleLabel}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="text-white/60 text-sm">{admin.permissions.length} permissions</span>
+                      <td className="px-6 py-4 text-white/60 text-sm">
+                        {permCount} permission{permCount !== 1 ? 's' : ''}
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-full ${sc.bg} ${sc.text}`}>
@@ -529,13 +564,15 @@ export default function SubAdmin() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleEdit(admin)}
-                            className="p-2 rounded-lg bg-indigo-500/15 text-indigo-400 hover:bg-indigo-500/25 transition-all text-xs font-medium"
+                            className="p-2 rounded-lg bg-indigo-500/15 text-indigo-400 hover:bg-indigo-500/25 transition-all"
+                            title="Edit"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(admin.id)}
-                            className="p-2 rounded-lg bg-red-500/15 text-red-400 hover:bg-red-500/25 transition-all text-xs font-medium"
+                            className="p-2 rounded-lg bg-red-500/15 text-red-400 hover:bg-red-500/25 transition-all"
+                            title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>

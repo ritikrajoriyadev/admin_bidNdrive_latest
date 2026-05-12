@@ -3,15 +3,31 @@ import axios from 'axios';
 import { useToast } from '../hooks/useToast';
 import { Search, Plus, Trash2, Edit2, Lock, Shield } from 'lucide-react';
 
-const categoryConfig = {
-  dashboard: { label: 'Dashboard', bg: 'bg-indigo-500/15', text: 'text-indigo-400' },
-  users: { label: 'Users', bg: 'bg-emerald-500/15', text: 'text-emerald-400' },
-  content: { label: 'Content', bg: 'bg-violet-500/15', text: 'text-violet-400' },
-  reports: { label: 'Reports', bg: 'bg-amber-500/15', text: 'text-amber-400' },
-  settings: { label: 'Settings', bg: 'bg-rose-500/15', text: 'text-rose-400' },
+/* ─── API Helper ─────────────────────────────────────────────────────────── */
+const API_URL = import.meta.env.VITE_API_URL || '';
+const api = axios.create({ baseURL: API_URL });
+const getAuthHeaders = () => ({
+  Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
+});
+
+/* ─── Module/Action config for display ──────────────────────────────────── */
+const moduleColors = {
+  dashboard:   { bg: 'bg-indigo-500/15',  text: 'text-indigo-400'  },
+  users:       { bg: 'bg-emerald-500/15', text: 'text-emerald-400' },
+  cars:        { bg: 'bg-violet-500/15',  text: 'text-violet-400'  },
+  reports:     { bg: 'bg-amber-500/15',   text: 'text-amber-400'   },
+  settings:    { bg: 'bg-rose-500/15',    text: 'text-rose-400'    },
+  technicians: { bg: 'bg-cyan-500/15',    text: 'text-cyan-400'    },
+  enquiries:   { bg: 'bg-pink-500/15',    text: 'text-pink-400'    },
+  roles:       { bg: 'bg-orange-500/15',  text: 'text-orange-400'  },
 };
 
-/* ─── Stat Card ─────────────────────────────────────────────────────── */
+const getModuleStyle = (module = '') => {
+  const key = module.toLowerCase();
+  return moduleColors[key] || { bg: 'bg-gray-500/15', text: 'text-gray-400' };
+};
+
+/* ─── Stat Card ─────────────────────────────────────────────────────────── */
 const StatCard = ({ label, value, icon, accent, sub }) => (
   <div className="relative overflow-hidden rounded-2xl bg-gray-900 border border-white/[0.06] p-5 hover:border-white/[0.1] transition-all duration-300 group">
     <div className={`absolute -top-5 -right-5 w-20 h-20 rounded-full blur-2xl opacity-20 group-hover:opacity-30 transition-opacity duration-300 ${accent}`} />
@@ -26,14 +42,14 @@ const StatCard = ({ label, value, icon, accent, sub }) => (
   </div>
 );
 
-/* ─── Permission Form ─────────────────────────────────────────────── */
-const PermissionForm = ({ permission, onClose, onSave }) => {
-  const [formData, setFormData] = useState(permission || {
-    name: '',
-    slug: '',
-    description: '',
-    category: 'dashboard',
-  });
+/* ─── Permission Form ────────────────────────────────────────────────────── */
+// Backend schema: { module, action, description }
+const PermissionForm = ({ permission, onClose, onSave, saving }) => {
+  const [formData, setFormData] = useState(
+    permission
+      ? { module: permission.module, action: permission.action, description: permission.description || '' }
+      : { module: '', action: '', description: '' }
+  );
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -47,45 +63,70 @@ const PermissionForm = ({ permission, onClose, onSave }) => {
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Info */}
         <div className="space-y-4">
-          <div className="flex flex-col gap-2">
-            <label className="text-white/60 text-sm font-medium">Permission Name *</label>
-            <input
-              type="text"
-              required
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] text-white placeholder-white/20 focus:border-indigo-400/50 focus:outline-none transition-all"
-              placeholder="e.g., View Dashboard"
-            />
-          </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-white/60 text-sm font-medium">Permission Slug *</label>
-            <input
-              type="text"
-              required
-              value={formData.slug}
-              onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s/g, '_') })}
-              className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] text-white placeholder-white/20 focus:border-indigo-400/50 focus:outline-none transition-all"
-              placeholder="e.g., view_dashboard"
-            />
-          </div>
+          {/* Module */}
+         <div className="flex flex-col gap-2">
+  <label className="text-white/60 text-sm font-medium">
+    Module *
+  </label>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-white/60 text-sm font-medium">Category</label>
-            <select
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] text-white focus:border-indigo-400/50 focus:outline-none transition-all"
-            >
-              {Object.entries(categoryConfig).map(([key, value]) => (
-                <option key={key} value={key}>{value.label}</option>
-              ))}
-            </select>
-          </div>
+  <select
+    required
+    value={formData.module}
+    onChange={(e) =>
+      setFormData({ ...formData, module: e.target.value })
+    }
+    className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] text-white focus:border-indigo-400/50 focus:outline-none transition-all"
+  >
+    <option value="">Select Module</option>
 
+    <option value="dashboard">Dashboard</option>
+    <option value="analytics">Analytics</option>
+    <option value="users">Users</option>
+    <option value="enquiries">Enquiries</option>
+    <option value="pdi">PDI</option>
+    <option value="loans">Loans</option>
+    <option value="sell_cars">Sell Cars</option>
+    <option value="car_enquiries">Car Enquiries</option>
+    <option value="auction_cars">Auction Cars</option>
+    <option value="technicians">Technicians</option>
+    <option value="subadmin">SubAdmin</option>
+    <option value="roles">Roles</option>
+    <option value="permissions">Permissions</option>
+    <option value="banner">Banner</option>
+    <option value="notifications">Notifications</option>
+  </select>
+</div>
+
+          {/* Action */}
+          <div className="flex flex-col gap-2">
+  <label className="text-white/60 text-sm font-medium">
+    Action *
+  </label>
+
+  <select
+    required
+    value={formData.action}
+    onChange={(e) =>
+      setFormData({ ...formData, action: e.target.value })
+    }
+    className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] text-white focus:border-indigo-400/50 focus:outline-none transition-all"
+  >
+    <option value="">Select Action</option>
+
+    <option value="create">Create</option>
+    <option value="read">Read</option>
+    <option value="update">Update</option>
+    <option value="delete">Delete</option>
+    {/* <option value="view">View</option> */}
+    {/* <option value="approve">Approve</option>
+    <option value="reject">Reject</option>
+    <option value="export">Export</option> */}
+  </select>
+</div>
+
+          {/* Description */}
           <div className="flex flex-col gap-2">
             <label className="text-white/60 text-sm font-medium">Description</label>
             <textarea
@@ -101,14 +142,13 @@ const PermissionForm = ({ permission, onClose, onSave }) => {
         {/* Buttons */}
         <div className="flex gap-3 pt-4">
           <button
-            type="submit"
-            className="flex-1 px-4 py-2.5 rounded-xl bg-indigo-500 text-white font-medium hover:bg-indigo-600 transition-all"
+            type="submit" disabled={saving}
+            className="flex-1 px-4 py-2.5 rounded-xl bg-indigo-500 text-white font-medium hover:bg-indigo-600 disabled:opacity-50 transition-all"
           >
-            {permission ? 'Update Permission' : 'Create Permission'}
+            {saving ? 'Saving…' : permission ? 'Update Permission' : 'Create Permission'}
           </button>
           <button
-            type="button"
-            onClick={onClose}
+            type="button" onClick={onClose}
             className="flex-1 px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.06] text-white font-medium hover:bg-gray-700 transition-all"
           >
             Cancel
@@ -119,131 +159,128 @@ const PermissionForm = ({ permission, onClose, onSave }) => {
   );
 };
 
-/* ─── Main Component ─────────────────────────────────────────────────── */
+/* ─── Main Component ─────────────────────────────────────────────────────── */
 export default function Permissions() {
   const { addToast } = useToast();
-  const [permissions, setPermissions] = useState([]);
+  const [permissions, setPermissions]               = useState([]);
   const [filteredPermissions, setFilteredPermissions] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState('all');
-  const [loading, setLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState(null);
+  const [searchTerm, setSearchTerm]                 = useState('');
+  const [filterModule, setFilterModule]             = useState('all');
+  const [loading, setLoading]                       = useState(false);
+  const [saving, setSaving]                         = useState(false);
+  const [showForm, setShowForm]                     = useState(false);
+  const [editingPermission, setEditingPermission]   = useState(null);
 
-  // Fetch permissions
-  useEffect(() => {
-    fetchPermissions();
-  }, []);
-
+  // ── Fetch  GET /permissions ──────────────────────────────────────────────
   const fetchPermissions = async () => {
     setLoading(true);
     try {
-      // Mock data - replace with actual API endpoint
-      setPermissions([
-        {
-          id: 1,
-          name: 'View Dashboard',
-          slug: 'view_dashboard',
-          description: 'Access to the main admin dashboard',
-          category: 'dashboard',
-          createdAt: '2025-12-01',
-        },
-        {
-          id: 2,
-          name: 'Create User',
-          slug: 'create_user',
-          description: 'Ability to create new user accounts',
-          category: 'users',
-          createdAt: '2025-12-05',
-        },
-        {
-          id: 3,
-          name: 'Edit User',
-          slug: 'edit_user',
-          description: 'Ability to modify user account details',
-          category: 'users',
-          createdAt: '2025-12-06',
-        },
-        {
-          id: 4,
-          name: 'Delete User',
-          slug: 'delete_user',
-          description: 'Ability to remove user accounts',
-          category: 'users',
-          createdAt: '2025-12-07',
-        },
-        {
-          id: 5,
-          name: 'Manage Content',
-          slug: 'manage_content',
-          description: 'Full access to manage website content',
-          category: 'content',
-          createdAt: '2025-12-10',
-        },
-        {
-          id: 6,
-          name: 'View Reports',
-          slug: 'view_reports',
-          description: 'Access to view analytics and reports',
-          category: 'reports',
-          createdAt: '2025-12-15',
-        },
-      ]);
-      addToast('Permissions loaded successfully', 'success');
+      const { data } = await api.get('/api/admin/roles-permissions/permissions', {
+        headers: getAuthHeaders(),
+      });
+      setPermissions(data.data || []);
     } catch (error) {
-      addToast('Error loading permissions', 'error');
+      addToast(error?.response?.data?.message || 'Error loading permissions', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  // Filter permissions
+  useEffect(() => { fetchPermissions(); }, []);
+
+  // ── Filter ───────────────────────────────────────────────────────────────
+  const uniqueModules = [...new Set(permissions.map((p) => p.module).filter(Boolean))];
+
   useEffect(() => {
-    let filtered = permissions.filter((perm) => {
-      const matchSearch = `${perm.name} ${perm.slug} ${perm.description}`.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchCategory = filterCategory === 'all' || perm.category === filterCategory;
-      return matchSearch && matchCategory;
-    });
-    setFilteredPermissions(filtered);
-  }, [permissions, searchTerm, filterCategory]);
+    setFilteredPermissions(
+      permissions.filter((perm) => {
+        const matchSearch = `${perm.module} ${perm.action} ${perm.description || ''}`
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
+        const matchModule = filterModule === 'all' || perm.module === filterModule;
+        return matchSearch && matchModule;
+      })
+    );
+  }, [permissions, searchTerm, filterModule]);
 
-  const handleSave = (formData) => {
-    if (editingId) {
-      setPermissions(permissions.map(perm =>
-        perm.id === editingId ? { ...perm, ...formData } : perm
-      ));
-      addToast('Permission updated successfully', 'success');
-    } else {
-      const newPermission = {
-        id: Date.now(),
-        ...formData,
-        createdAt: new Date().toISOString().split('T')[0],
-      };
-      setPermissions([...permissions, newPermission]);
+  // ── Create  POST /permissions ────────────────────────────────────────────
+  const handleCreate = async (formData) => {
+    setSaving(true);
+    try {
+      const { data } = await api.post(
+        '/api/admin/roles-permissions/permissions',
+        formData,
+        { headers: getAuthHeaders() }
+      );
+      setPermissions((prev) => [...prev, data.data]);
       addToast('Permission created successfully', 'success');
+      resetForm();
+    } catch (error) {
+      addToast(error?.response?.data?.message || 'Failed to create permission', 'error');
+    } finally {
+      setSaving(false);
     }
-    resetForm();
   };
 
-  const handleEdit = (perm) => {
-    setEditingId(perm.id);
-    setShowForm(true);
+  // ── Update  PUT /permissions/:permissionId ───────────────────────────────
+  const handleUpdate = async (formData) => {
+    setSaving(true);
+    try {
+      const { data } = await api.put(
+        `/api/admin/roles-permissions/permissions/${editingPermission._id}`,
+        formData,
+        { headers: getAuthHeaders() }
+      );
+      setPermissions((prev) =>
+        prev.map((p) => (p._id === editingPermission._id ? data.data : p))
+      );
+      addToast('Permission updated successfully', 'success');
+      resetForm();
+    } catch (error) {
+      addToast(error?.response?.data?.message || 'Failed to update permission', 'error');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDelete = (id) => {
-    if (confirm('Are you sure you want to delete this permission?')) {
-      setPermissions(permissions.filter(perm => perm.id !== id));
+  // ── Delete  DELETE /permissions/:permissionId ────────────────────────────
+  const handleDelete = async (permission) => {
+    if (!window.confirm(`Delete permission "${permission.module}:${permission.action}"? This cannot be undone.`)) return;
+    try {
+      await api.delete(
+        `/api/admin/roles-permissions/permissions/${permission._id}`,
+        { headers: getAuthHeaders() }
+      );
+      setPermissions((prev) => prev.filter((p) => p._id !== permission._id));
       addToast('Permission deleted successfully', 'success');
+    } catch (error) {
+      addToast(error?.response?.data?.message || 'Failed to delete permission', 'error');
     }
   };
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+  const handleSave = (formData) =>
+    editingPermission ? handleUpdate(formData) : handleCreate(formData);
 
   const resetForm = () => {
     setShowForm(false);
-    setEditingId(null);
+    setEditingPermission(null);
   };
 
+  const openEdit = (perm) => {
+    setEditingPermission(perm);
+    setShowForm(true);
+  };
+
+  const openCreate = () => {
+    if (showForm && !editingPermission) { resetForm(); return; }
+    setEditingPermission(null);
+    setShowForm(true);
+  };
+
+  // ── Derived stats ────────────────────────────────────────────────────────
   const totalPermissions = permissions.length;
-  const categories = new Set(permissions.map(p => p.category)).size;
+  const totalModules     = uniqueModules.length;
 
   return (
     <div className="flex flex-col gap-6">
@@ -253,89 +290,70 @@ export default function Permissions() {
         <p className="text-white/40 text-sm">Create and manage system permissions for fine-grained access control</p>
       </div>
 
-      {/* Stats Grid */}
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard
-          label="Total Permissions"
-          value={totalPermissions}
-          icon={<Lock className="w-4 h-4" />}
-          accent="bg-indigo-500"
-          sub="All"
-        />
-        <StatCard
-          label="Categories"
-          value={categories}
-          icon={<Shield className="w-4 h-4" />}
-          accent="bg-emerald-500"
-          sub="Types"
-        />
-        <StatCard
-          label="Active"
-          value={totalPermissions}
-          icon={<Lock className="w-4 h-4" />}
-          accent="bg-violet-500"
-          sub="Enabled"
-        />
+        <StatCard label="Total Permissions" value={totalPermissions} icon={<Lock className="w-4 h-4" />}   accent="bg-indigo-500"  sub="All"     />
+        <StatCard label="Modules"           value={totalModules}     icon={<Shield className="w-4 h-4" />} accent="bg-emerald-500" sub="Groups"  />
+        <StatCard label="Active"            value={totalPermissions} icon={<Lock className="w-4 h-4" />}   accent="bg-violet-500"  sub="Enabled" />
       </div>
 
-      {/* Add Button */}
+      {/* Create button */}
       <button
-        onClick={() => {
-          if (showForm && !editingId) {
-            resetForm();
-          } else {
-            setShowForm(!showForm);
-          }
-        }}
+        onClick={openCreate}
         className="w-fit flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-500/15 border border-indigo-400/25 text-indigo-300 hover:bg-indigo-500/25 transition-all duration-200 font-medium text-sm"
       >
         <Plus className="w-4 h-4" />
-        {showForm && !editingId ? 'Cancel' : 'Create Permission'}
+        {showForm && !editingPermission ? 'Cancel' : 'Create Permission'}
       </button>
 
       {/* Form */}
       {showForm && (
         <PermissionForm
-          permission={editingId ? permissions.find(p => p.id === editingId) : null}
+          permission={editingPermission}
           onClose={resetForm}
           onSave={handleSave}
+          saving={saving}
         />
       )}
 
-      {/* Search & Filter */}
+      {/* Search & Module Filter */}
       <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
           <input
             type="text"
-            placeholder="Search permissions..."
+            placeholder="Search by module, action, or description..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.06] text-white placeholder-white/40 focus:border-indigo-400/50 focus:outline-none transition-all"
           />
         </div>
-        <div className="flex gap-2 flex-wrap">
-          {['all', ...Object.keys(categoryConfig)].map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setFilterCategory(cat)}
-              className={`px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 ${
-                filterCategory === cat
-                  ? 'bg-indigo-500/15 border border-indigo-400/25 text-indigo-300'
-                  : 'bg-gray-800 border border-white/[0.06] text-white/40 hover:text-white/60'
-              }`}
-            >
-              {cat === 'all' ? 'All' : categoryConfig[cat].label}
-            </button>
-          ))}
-        </div>
+
+        {/* Dynamic module filter pills */}
+        {uniqueModules.length > 0 && (
+          <div className="flex gap-2 flex-wrap">
+            {['all', ...uniqueModules].map((mod) => (
+              <button
+                key={mod}
+                onClick={() => setFilterModule(mod)}
+                className={`px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200 capitalize ${
+                  filterModule === mod
+                    ? 'bg-indigo-500/15 border border-indigo-400/25 text-indigo-300'
+                    : 'bg-gray-800 border border-white/[0.06] text-white/40 hover:text-white/60'
+                }`}
+              >
+                {mod === 'all' ? 'All' : mod}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Permissions Table */}
+      {/* Table */}
       <div className="rounded-2xl bg-gray-900 border border-white/[0.06] overflow-hidden">
         {loading ? (
           <div className="p-8 flex items-center justify-center text-white/40">
-            Loading permissions...
+            Loading permissions…
           </div>
         ) : filteredPermissions.length === 0 ? (
           <div className="p-8 flex items-center justify-center text-white/40">
@@ -346,44 +364,59 @@ export default function Permissions() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-white/[0.06]">
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Permission Name</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Slug</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Description</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Created</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Actions</th>
+                  {['Module', 'Action', 'Description', 'Created', 'Actions'].map((h) => (
+                    <th key={h} className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.06]">
                 {filteredPermissions.map((perm) => {
-                  const catConfig = categoryConfig[perm.category] || categoryConfig.dashboard;
-
+                  const style = getModuleStyle(perm.module);
                   return (
-                    <tr key={perm.id} className="hover:bg-white/[0.02] transition-colors duration-150">
+                    <tr key={perm._id} className="hover:bg-white/[0.02] transition-colors duration-150">
+
+                      {/* Module */}
                       <td className="px-6 py-4">
-                        <p className="text-white font-semibold">{perm.name}</p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <p className="text-white/60 text-sm font-mono">{perm.slug}</p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${catConfig.bg} ${catConfig.text}`}>
-                          {catConfig.label}
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${style.bg} ${style.text}`}>
+                          {perm.module}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-white/60 text-sm max-w-xs truncate">{perm.description}</td>
-                      <td className="px-6 py-4 text-white/60 text-sm">{perm.createdAt}</td>
+
+                      {/* Action */}
+                      <td className="px-6 py-4">
+                        <p className="text-white font-semibold font-mono text-sm">{perm.action}</p>
+                      </td>
+
+                      {/* Description */}
+                      <td className="px-6 py-4 text-white/60 text-sm max-w-xs truncate">
+                        {perm.description || <span className="text-white/20 italic">No description</span>}
+                      </td>
+
+                      {/* Created */}
+                      <td className="px-6 py-4 text-white/60 text-sm">
+                        {perm.createdAt
+                          ? new Date(perm.createdAt).toLocaleDateString(undefined, {
+                              year: 'numeric', month: 'short', day: 'numeric',
+                            })
+                          : '—'}
+                      </td>
+
+                      {/* Actions */}
                       <td className="px-6 py-4">
                         <div className="flex gap-2">
                           <button
-                            onClick={() => handleEdit(perm)}
+                            onClick={() => openEdit(perm)}
                             className="p-2 rounded-lg bg-indigo-500/15 text-indigo-400 hover:bg-indigo-500/25 transition-all"
+                            title="Edit"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(perm.id)}
+                            onClick={() => handleDelete(perm)}
                             className="p-2 rounded-lg bg-red-500/15 text-red-400 hover:bg-red-500/25 transition-all"
+                            title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>

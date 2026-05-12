@@ -1,22 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useToast } from '../hooks/useToast';
-import { Search, Plus, Trash2, Edit2, Lock, Users } from 'lucide-react';
+import { Search, Plus, Trash2, Edit2, Lock, Users, ShieldCheck } from 'lucide-react';
 
-const defaultPermissions = [
-  { id: 'view_dashboard', label: 'View Dashboard', description: 'Access admin dashboard' },
-  { id: 'manage_users', label: 'Manage Users', description: 'Create, edit, delete users' },
-  { id: 'manage_cars', label: 'Manage Cars', description: 'Add, edit, delete vehicle listings' },
-  { id: 'manage_enquiries', label: 'Manage Enquiries', description: 'Handle customer enquiries' },
-  { id: 'view_reports', label: 'View Reports', description: 'Access analytics and reports' },
-  { id: 'manage_technicians', label: 'Manage Technicians', description: 'Manage technician accounts' },
-  { id: 'manage_roles', label: 'Manage Roles', description: 'Create and assign roles' },
-  { id: 'manage_permissions', label: 'Manage Permissions', description: 'Configure permissions' },
-  { id: 'export_data', label: 'Export Data', description: 'Export reports and data' },
-  { id: 'system_settings', label: 'System Settings', description: 'Configure system settings' },
-];
+/* ─── API Helper ─────────────────────────────────────────────────────────── */
+const API_URL = import.meta.env.VITE_API_URL || '';
 
-/* ─── Stat Card ─────────────────────────────────────────────────────── */
+const api = axios.create({ baseURL: API_URL });
+
+const getAuthHeaders = () => ({
+  Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
+});
+
+/* ─── Stat Card ─────────────────────────────────────────────────────────── */
 const StatCard = ({ label, value, icon, accent, sub }) => (
   <div className="relative overflow-hidden rounded-2xl bg-gray-900 border border-white/[0.06] p-5 hover:border-white/[0.1] transition-all duration-300 group">
     <div className={`absolute -top-5 -right-5 w-20 h-20 rounded-full blur-2xl opacity-20 group-hover:opacity-30 transition-opacity duration-300 ${accent}`} />
@@ -31,22 +27,26 @@ const StatCard = ({ label, value, icon, accent, sub }) => (
   </div>
 );
 
-/* ─── Role Form ─────────────────────────────────────────────────── */
-const RoleForm = ({ role, onClose, onSave }) => {
-  const [formData, setFormData] = useState(role || {
-    name: '',
-    description: '',
-    permissions: [],
-  });
+/* ─── Role Form ─────────────────────────────────────────────────────────── */
+const RoleForm = ({ role, onClose, onSave, saving, permissions }) => {
+  const [formData, setFormData] = useState(
+    role
+      ? {
+          name: role.name,
+          description: role.description || '',
+          // permissions may be populated objects or plain IDs
+          permissions: (role.permissions || []).map((p) => (typeof p === 'object' ? p._id : p)),
+        }
+      : { name: '', description: '', permissions: [] }
+  );
 
-  const handlePermissionToggle = (permId) => {
-    setFormData({
-      ...formData,
-      permissions: formData.permissions.includes(permId)
-        ? formData.permissions.filter(p => p !== permId)
-        : [...formData.permissions, permId]
-    });
-  };
+  const togglePermission = (permId) =>
+    setFormData((prev) => ({
+      ...prev,
+      permissions: prev.permissions.includes(permId)
+        ? prev.permissions.filter((p) => p !== permId)
+        : [...prev.permissions, permId],
+    }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -65,8 +65,7 @@ const RoleForm = ({ role, onClose, onSave }) => {
           <div className="flex flex-col gap-2">
             <label className="text-white/60 text-sm font-medium">Role Name *</label>
             <input
-              type="text"
-              required
+              type="text" required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] text-white placeholder-white/20 focus:border-indigo-400/50 focus:outline-none transition-all"
@@ -88,19 +87,24 @@ const RoleForm = ({ role, onClose, onSave }) => {
 
         {/* Permissions */}
         <div className="flex flex-col gap-3">
-          <label className="text-white/60 text-sm font-medium">Assign Permissions</label>
+          <label className="text-white/60 text-sm font-medium">
+            Assign Permissions
+            <span className="ml-2 text-indigo-400 font-semibold">
+              ({formData.permissions.length} selected)
+            </span>
+          </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-xl bg-gray-800/30 border border-white/[0.06]">
-            {defaultPermissions.map((perm) => (
-              <label key={perm.id} className="flex items-start gap-3 cursor-pointer group">
+            {permissions.map((perm) => (
+              <label key={perm.id || perm._id} className="flex items-start gap-3 cursor-pointer group">
                 <input
                   type="checkbox"
-                  checked={formData.permissions.includes(perm.id)}
-                  onChange={() => handlePermissionToggle(perm.id)}
+                  checked={formData.permissions.includes(perm.id || perm._id)}
+                  onChange={() => togglePermission(perm.id || perm._id)}
                   className="w-4 h-4 mt-1 rounded bg-gray-800 border border-white/[0.08] checked:bg-indigo-500 checked:border-indigo-400 focus:outline-none cursor-pointer"
                 />
                 <div>
                   <p className="text-white/80 text-sm font-medium group-hover:text-white transition-colors">
-                    {perm.label}
+                    {perm.module}{perm.action && `: ${perm.action}`}
                   </p>
                   <p className="text-white/40 text-xs">{perm.description}</p>
                 </div>
@@ -112,14 +116,13 @@ const RoleForm = ({ role, onClose, onSave }) => {
         {/* Buttons */}
         <div className="flex gap-3 pt-4">
           <button
-            type="submit"
-            className="flex-1 px-4 py-2.5 rounded-xl bg-indigo-500 text-white font-medium hover:bg-indigo-600 transition-all"
+            type="submit" disabled={saving}
+            className="flex-1 px-4 py-2.5 rounded-xl bg-indigo-500 text-white font-medium hover:bg-indigo-600 disabled:opacity-50 transition-all"
           >
-            {role ? 'Update Role' : 'Create Role'}
+            {saving ? 'Saving…' : role ? 'Update Role' : 'Create Role'}
           </button>
           <button
-            type="button"
-            onClick={onClose}
+            type="button" onClick={onClose}
             className="flex-1 px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.06] text-white font-medium hover:bg-gray-700 transition-all"
           >
             Cancel
@@ -130,106 +133,243 @@ const RoleForm = ({ role, onClose, onSave }) => {
   );
 };
 
-/* ─── Main Component ─────────────────────────────────────────────────── */
+/* ─── Permission Pills (inline remove) ──────────────────────────────────── */
+const PermissionPills = ({ role, permissions, onRemove, removing }) => {
+  const populated = (role.permissions || []).map((p) => {
+    if (typeof p === 'object') return p;
+    // match by id from the master permissions list
+    return permissions.find((x) => (x.id || x._id) === p) || { _id: p, module: p };
+  });
+
+  if (populated.length === 0)
+    return <span className="text-white/20 text-xs italic">None</span>;
+
+  return (
+    <div className="flex flex-wrap gap-1.5 mt-2">
+      {populated.map((perm) => {
+        const id = perm.id || perm._id;
+        const isRemoving = removing === id;
+        return (
+          <span
+            key={id}
+            className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 text-xs font-medium"
+          >
+            {perm.module}{perm.action && `:${perm.action}`}
+            <button
+              onClick={() => onRemove(role._id, id)}
+              disabled={isRemoving}
+              title="Remove permission"
+              className="ml-0.5 text-indigo-400/60 hover:text-red-400 transition-colors disabled:opacity-40"
+            >
+              {isRemoving ? '…' : '×'}
+            </button>
+          </span>
+        );
+      })}
+    </div>
+  );
+};
+
+/* ─── Main Component ─────────────────────────────────────────────────────── */
 export default function Roles() {
   const { addToast } = useToast();
-  const [roles, setRoles] = useState([]);
-  const [filteredRoles, setFilteredRoles] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState(null);
+  const [roles, setRoles]                   = useState([]);
+  const [filteredRoles, setFilteredRoles]   = useState([]);
+  const [searchTerm, setSearchTerm]         = useState('');
+  const [loading, setLoading]               = useState(false);
+  const [saving, setSaving]                 = useState(false);
+  const [showForm, setShowForm]             = useState(false);
+  const [editingRole, setEditingRole]       = useState(null);
+  const [permissions, setPermissions]       = useState([]);
+  const [removingPerm, setRemovingPerm]     = useState(null); // permissionId being removed
+  const [expandedRole, setExpandedRole]     = useState(null); // roleId whose pills are visible
 
-  // Fetch roles
-  useEffect(() => {
-    fetchRoles();
-  }, []);
-
+  /* ── Fetch roles ───────────────────────────────────────────────────────── */
   const fetchRoles = async () => {
     setLoading(true);
     try {
-      // Mock data - replace with actual API endpoint
-      setRoles([
-        {
-          id: 1,
-          name: 'Manager',
-          description: 'Full access to user and content management',
-          permissions: ['view_dashboard', 'manage_users', 'manage_cars', 'view_reports', 'manage_roles'],
-          subAdminCount: 5,
-          createdAt: '2025-12-01',
-        },
-        {
-          id: 2,
-          name: 'Supervisor',
-          description: 'Limited access to manage content and view reports',
-          permissions: ['view_dashboard', 'manage_cars', 'view_reports'],
-          subAdminCount: 8,
-          createdAt: '2025-12-15',
-        },
-        {
-          id: 3,
-          name: 'Operator',
-          description: 'Basic access for daily operations',
-          permissions: ['view_dashboard', 'manage_cars', 'manage_enquiries'],
-          subAdminCount: 12,
-          createdAt: '2026-01-10',
-        },
-      ]);
-      addToast('Roles loaded successfully', 'success');
+      const { data } = await api.get('/api/admin/roles-permissions/roles', { headers: getAuthHeaders() });
+      setRoles(data.data || []);
     } catch (error) {
-      addToast('Error loading roles', 'error');
+      addToast(error?.response?.data?.message || 'Error loading roles', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  // Filter roles
-  useEffect(() => {
-    let filtered = roles.filter((role) => {
-      return `${role.name} ${role.description}`.toLowerCase().includes(searchTerm.toLowerCase());
-    });
-    setFilteredRoles(filtered);
-  }, [roles, searchTerm]);
-
-  const handleSave = (formData) => {
-    if (editingId) {
-      setRoles(roles.map(role =>
-        role.id === editingId ? { ...role, ...formData } : role
-      ));
-      addToast('Role updated successfully', 'success');
-    } else {
-      const newRole = {
-        id: Date.now(),
-        ...formData,
-        subAdminCount: 0,
-        createdAt: new Date().toISOString().split('T')[0],
-      };
-      setRoles([...roles, newRole]);
-      addToast('Role created successfully', 'success');
+  /* ── Fetch permissions ─────────────────────────────────────────────────── */
+  const fetchPermissions = async () => {
+    try {
+      const { data } = await api.get('/api/admin/roles-permissions/permissions', { headers: getAuthHeaders() });
+      setPermissions(data.data || []);
+    } catch (error) {
+      addToast(error?.response?.data?.message || 'Error loading permissions', 'error');
     }
-    resetForm();
   };
 
-  const handleEdit = (role) => {
-    setEditingId(role.id);
+  useEffect(() => { fetchRoles(); fetchPermissions(); }, []);
+
+  /* ── Filter ────────────────────────────────────────────────────────────── */
+  useEffect(() => {
+    setFilteredRoles(
+      roles.filter((r) =>
+        `${r.name} ${r.description || ''}`.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+  }, [roles, searchTerm]);
+
+  /* ── Create role ───────────────────────────────────────────────────────── */
+  const handleCreate = async (formData) => {
+    setSaving(true);
+    try {
+      // 1. Create the role (without permissions in body if your route ignores them,
+      //    or keep them — the assignPermissions call below will authoratively set them)
+      const { data } = await api.post(
+        '/api/admin/roles-permissions/roles',
+        { name: formData.name, description: formData.description },
+        { headers: getAuthHeaders() }
+      );
+      const newRole = data.data;
+
+      // 2. If permissions were selected, assign them via the dedicated endpoint
+      let finalRole = newRole;
+      if (formData.permissions.length > 0) {
+        const { data: assigned } = await api.put(
+          `/api/admin/roles-permissions/${newRole._id}/permissions`,
+          { permissions: formData.permissions },
+          { headers: getAuthHeaders() }
+        );
+        finalRole = assigned.data;
+      }
+
+      setRoles((prev) => [...prev, finalRole]);
+      addToast('Role created successfully', 'success');
+      resetForm();
+    } catch (error) {
+      addToast(error?.response?.data?.message || 'Failed to create role', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  /* ── Update role ───────────────────────────────────────────────────────── */
+  const handleUpdate = async (formData) => {
+    setSaving(true);
+    try {
+      // 1. Update name / description
+      const { data } = await api.put(
+        `/api/admin/roles-permissions/roles/${editingRole._id}`,
+        { name: formData.name, description: formData.description },
+        { headers: getAuthHeaders() }
+      );
+      let updatedRole = data.data;
+
+      // 2. Sync permissions via PUT /:roleId/permissions (replaces all)
+      //    Always call this so removing all permissions is also handled.
+      if (formData.permissions.length > 0) {
+        const { data: assigned } = await api.put(
+          `/api/admin/roles-permissions/${editingRole._id}/permissions`,
+          { permissions: formData.permissions },
+          { headers: getAuthHeaders() }
+        );
+        updatedRole = assigned.data;
+      } else {
+        // If all permissions deselected, remove them one by one
+        const existingPerms = (editingRole.permissions || []).map((p) =>
+          typeof p === 'object' ? p._id : p
+        );
+        for (const permId of existingPerms) {
+          await api.delete(
+            `/api/admin/roles-permissions/roles/${editingRole._id}/permissions/${permId}`,
+            { headers: getAuthHeaders() }
+          );
+        }
+        // Refetch to get clean state
+        const { data: fresh } = await api.get('/api/admin/roles-permissions/roles', { headers: getAuthHeaders() });
+        const refreshed = (fresh.data || []).find((r) => r._id === editingRole._id);
+        if (refreshed) updatedRole = refreshed;
+      }
+
+      setRoles((prev) =>
+        prev.map((r) => (r._id === editingRole._id ? updatedRole : r))
+      );
+      addToast('Role updated successfully', 'success');
+      resetForm();
+    } catch (error) {
+      addToast(error?.response?.data?.message || 'Failed to update role', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  /* ── Delete role ───────────────────────────────────────────────────────── */
+  const handleDelete = async (role) => {
+    if (!window.confirm(`Delete role "${role.name}"? This cannot be undone.`)) return;
+    try {
+      await api.delete(`/api/admin/roles-permissions/roles/${role._id}`, { headers: getAuthHeaders() });
+      setRoles((prev) => prev.filter((r) => r._id !== role._id));
+      addToast('Role deleted successfully', 'success');
+    } catch (error) {
+      addToast(error?.response?.data?.message || 'Failed to delete role', 'error');
+    }
+  };
+
+  /* ── Remove single permission from role  DELETE /:roleId/permissions/:permId ── */
+  const handleRemovePermission = async (roleId, permissionId) => {
+    setRemovingPerm(permissionId);
+    try {
+      const { data } = await api.delete(
+        `/api/admin/roles-permissions/${roleId}/permissions/${permissionId}`,
+        { headers: getAuthHeaders() }
+      );
+      // Backend returns updated role — sync local state
+      const updatedRole = data.data;
+      setRoles((prev) =>
+        prev.map((r) => (r._id === roleId ? updatedRole : r))
+      );
+      addToast('Permission removed successfully', 'success');
+    } catch (error) {
+      addToast(error?.response?.data?.message || 'Failed to remove permission', 'error');
+    } finally {
+      setRemovingPerm(null);
+    }
+  };
+
+  /* ── Assign permissions bulk  PUT /:roleId/permissions ───────────────── */
+  // Exposed so you can call it standalone if needed (e.g. a "Manage Permissions" button)
+  const handleAssignPermissions = async (roleId, permissionIds) => {
+    try {
+      const { data } = await api.put(
+        `/api/admin/roles-permissions/${roleId}/permissions`,
+        { permissions: permissionIds },
+        { headers: getAuthHeaders() }
+      );
+      const updatedRole = data.data;
+      setRoles((prev) =>
+        prev.map((r) => (r._id === roleId ? updatedRole : r))
+      );
+      addToast('Permissions assigned successfully', 'success');
+      return updatedRole;
+    } catch (error) {
+      addToast(error?.response?.data?.message || 'Failed to assign permissions', 'error');
+      return null;
+    }
+  };
+
+  /* ── Helpers ────────────────────────────────────────────────────────────── */
+  const handleSave    = (formData) => editingRole ? handleUpdate(formData) : handleCreate(formData);
+  const resetForm     = () => { setShowForm(false); setEditingRole(null); };
+  const openEdit      = (role) => { setEditingRole(role); setShowForm(true); };
+  const openCreate    = () => {
+    if (showForm && !editingRole) { resetForm(); return; }
+    setEditingRole(null);
     setShowForm(true);
   };
 
-  const handleDelete = (id) => {
-    if (confirm('Are you sure you want to delete this role?')) {
-      setRoles(roles.filter(role => role.id !== id));
-      addToast('Role deleted successfully', 'success');
-    }
-  };
-
-  const resetForm = () => {
-    setShowForm(false);
-    setEditingId(null);
-  };
-
-  const totalRoles = roles.length;
-  const avgPermissions = roles.length > 0
-    ? Math.round(roles.reduce((sum, r) => sum + r.permissions.length, 0) / roles.length)
+  /* ── Derived stats ──────────────────────────────────────────────────────── */
+  const totalRoles      = roles.length;
+  const avgPermissions  = roles.length
+    ? Math.round(roles.reduce((s, r) => s + (r.permissions?.length || 0), 0) / roles.length)
     : 0;
 
   return (
@@ -240,57 +380,35 @@ export default function Roles() {
         <p className="text-white/40 text-sm">Create and configure roles with custom permissions</p>
       </div>
 
-      {/* Stats Grid */}
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard
-          label="Total Roles"
-          value={totalRoles}
-          icon={<Lock className="w-4 h-4" />}
-          accent="bg-indigo-500"
-          sub="Active"
-        />
-        <StatCard
-          label="Avg Permissions"
-          value={avgPermissions}
-          icon={<Users className="w-4 h-4" />}
-          accent="bg-emerald-500"
-          sub="Per Role"
-        />
-        <StatCard
-          label="Available"
-          value={defaultPermissions.length}
-          icon={<Lock className="w-4 h-4" />}
-          accent="bg-violet-500"
-          sub="Permissions"
-        />
+        <StatCard label="Total Roles"     value={totalRoles}         icon={<Lock className="w-4 h-4" />}        accent="bg-indigo-500"  sub="Active"      />
+        <StatCard label="Avg Permissions" value={avgPermissions}     icon={<Users className="w-4 h-4" />}       accent="bg-emerald-500" sub="Per Role"    />
+        <StatCard label="Available"       value={permissions.length} icon={<ShieldCheck className="w-4 h-4" />} accent="bg-violet-500"  sub="Permissions" />
       </div>
 
-      {/* Add Button */}
+      {/* Create button */}
       <button
-        onClick={() => {
-          if (showForm && !editingId) {
-            resetForm();
-          } else {
-            setShowForm(!showForm);
-          }
-        }}
+        onClick={openCreate}
         className="w-fit flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-500/15 border border-indigo-400/25 text-indigo-300 hover:bg-indigo-500/25 transition-all duration-200 font-medium text-sm"
       >
         <Plus className="w-4 h-4" />
-        {showForm && !editingId ? 'Cancel' : 'Create Role'}
+        {showForm && !editingRole ? 'Cancel' : 'Create Role'}
       </button>
 
       {/* Form */}
       {showForm && (
         <RoleForm
-          role={editingId ? roles.find(r => r.id === editingId) : null}
+          role={editingRole}
           onClose={resetForm}
+          permissions={permissions}
           onSave={handleSave}
+          saving={saving}
         />
       )}
 
       {/* Search */}
-      <div className="relative flex-1">
+      <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
         <input
           type="text"
@@ -301,62 +419,96 @@ export default function Roles() {
         />
       </div>
 
-      {/* Roles Table */}
+      {/* Table */}
       <div className="rounded-2xl bg-gray-900 border border-white/[0.06] overflow-hidden">
         {loading ? (
-          <div className="p-8 flex items-center justify-center text-white/40">
-            Loading roles...
-          </div>
+          <div className="p-8 flex items-center justify-center text-white/40">Loading roles…</div>
         ) : filteredRoles.length === 0 ? (
-          <div className="p-8 flex items-center justify-center text-white/40">
-            No roles found
-          </div>
+          <div className="p-8 flex items-center justify-center text-white/40">No roles found</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-white/[0.06]">
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Role Name</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Description</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Permissions</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">SubAdmins</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Created</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">Actions</th>
+                  {['Role Name', 'Description', 'Permissions', 'Created', 'Actions'].map((h) => (
+                    <th key={h} className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.06]">
                 {filteredRoles.map((role) => (
-                  <tr key={role.id} className="hover:bg-white/[0.02] transition-colors duration-150">
-                    <td className="px-6 py-4">
-                      <p className="text-white font-semibold">{role.name}</p>
-                    </td>
-                    <td className="px-6 py-4 text-white/60 text-sm max-w-xs truncate">{role.description}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-1 flex-wrap">
-                        <span className="px-2 py-1 rounded-full bg-indigo-500/15 text-indigo-400 text-xs font-semibold">
-                          {role.permissions.length}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-white/60 text-sm">{role.subAdminCount} users</td>
-                    <td className="px-6 py-4 text-white/60 text-sm">{role.createdAt}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-2">
+                  <React.Fragment key={role._id}>
+                    <tr className="hover:bg-white/[0.02] transition-colors duration-150">
+                      {/* Name */}
+                      <td className="px-6 py-4">
+                        <p className="text-white font-semibold">{role.name}</p>
+                      </td>
+
+                      {/* Description */}
+                      <td className="px-6 py-4 text-white/60 text-sm max-w-xs truncate">
+                        {role.description || <span className="text-white/20 italic">No description</span>}
+                      </td>
+
+                      {/* Permissions count + expand toggle */}
+                      <td className="px-6 py-4">
                         <button
-                          onClick={() => handleEdit(role)}
-                          className="p-2 rounded-lg bg-indigo-500/15 text-indigo-400 hover:bg-indigo-500/25 transition-all"
+                          onClick={() => setExpandedRole(expandedRole === role._id ? null : role._id)}
+                          className="px-2 py-1 rounded-full bg-indigo-500/15 text-indigo-400 text-xs font-semibold hover:bg-indigo-500/25 transition-all"
+                          title="Toggle permissions"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          {role.permissions?.length || 0} perms
                         </button>
-                        <button
-                          onClick={() => handleDelete(role.id)}
-                          className="p-2 rounded-lg bg-red-500/15 text-red-400 hover:bg-red-500/25 transition-all"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                      </td>
+
+                      {/* Created */}
+                      <td className="px-6 py-4 text-white/60 text-sm">
+                        {role.createdAt
+                          ? new Date(role.createdAt).toLocaleDateString(undefined, {
+                              year: 'numeric', month: 'short', day: 'numeric',
+                            })
+                          : '—'}
+                      </td>
+
+                      {/* Actions */}
+                      <td className="px-6 py-4">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => openEdit(role)}
+                            className="p-2 rounded-lg bg-indigo-500/15 text-indigo-400 hover:bg-indigo-500/25 transition-all"
+                            title="Edit"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(role)}
+                            className="p-2 rounded-lg bg-red-500/15 text-red-400 hover:bg-red-500/25 transition-all"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+
+                    {/* Expandable permissions row with inline remove buttons */}
+                    {expandedRole === role._id && (
+                      <tr className="bg-white/[0.01]">
+                        <td colSpan={5} className="px-6 py-4">
+                          <p className="text-white/40 text-xs mb-2 uppercase tracking-wider font-semibold">
+                            Permissions — click × to remove individually
+                          </p>
+                          <PermissionPills
+                            role={role}
+                            permissions={permissions}
+                            onRemove={handleRemovePermission}
+                            removing={removingPerm}
+                          />
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>

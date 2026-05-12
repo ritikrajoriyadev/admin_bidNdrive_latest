@@ -217,7 +217,7 @@ export default function AuctionCars() {
   const handleStatusChange = async (enqId, newStatus) => {
     try {
       const token = localStorage.getItem('adminToken');
-      await axios.put(`${import.meta.env.VITE_API_URL}/api/car-enquiries/admin/${enqId}/status`, {
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/enquiries/${enqId}/status`, {
         status: newStatus
       }, {
         headers: {

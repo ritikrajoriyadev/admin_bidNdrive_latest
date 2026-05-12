@@ -3,6 +3,8 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import User from './pages/User';
 import Enquiries from './pages/Enquiries';
+
+import EnquiriesDetails from './pages/EnquiriesDetails';
 import Technicians from './pages/Technicians';
 import Profile from './pages/Profile';
 import Layout from './components/Layout';
@@ -22,167 +24,181 @@ import AuctionCars from './pages/AuctionCars';
 import ProtectedRoute from './components/ProtectedRoute';
 import { ToastProvider } from './context/ToastContext';
 import ToastContainer from './components/ToastContainer';
+import { PermissionsProvider } from './context/PermissionsContext';
 import './App.css';
 
 function App() {
   return (
     <ToastProvider>
-      <Router>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Login />} />
+      <PermissionsProvider>
+        <Router>
 
-          {/* Protected Routes */}
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <Layout><Dashboard /></Layout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/user" 
-            element={
-              <ProtectedRoute>
-                <Layout><User /></Layout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/enquiries" 
-            element={
-              <ProtectedRoute>
-                <Layout><Enquiries /></Layout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/pdi" 
-            element={
-              <ProtectedRoute>
-                <Layout><Pdi /></Layout>
-              </ProtectedRoute>
-            } 
-          />
-           <Route 
-            path="/loans" 
-            element={
-              <ProtectedRoute>
-                <Layout><Loans /></Layout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/technicians" 
-            element={
-              <ProtectedRoute>
-                <Layout><Technicians /></Layout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/profile" 
-            element={
-              <ProtectedRoute>
-                <Layout><Profile /></Layout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/analytics" 
-            element={
-              <ProtectedRoute>
-                <Layout><Analytics /></Layout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/sell-cars" 
-            element={
-              <ProtectedRoute>
-                <Layout><SellCars /></Layout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/sell-car-enquiries" 
-            element={
-              <ProtectedRoute>
-                <Layout><SellCarEnquiries /></Layout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/auction-cars" 
-            element={
-              <ProtectedRoute>
-                <Layout><AuctionCars /></Layout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/subadmin" 
-            element={
-              <ProtectedRoute>
-                <Layout><SubAdmin /></Layout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/roles" 
-            element={
-              <ProtectedRoute>
-                <Layout><Roles /></Layout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/permissions" 
-            element={
-              <ProtectedRoute>
-                <Layout><Permissions /></Layout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/banners" 
-            element={
-              <ProtectedRoute>
-                <Layout><Banners /></Layout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/notifications" 
-            element={
-              <ProtectedRoute>
-                <Layout><Notifications /></Layout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/settings" 
-            element={
-              <ProtectedRoute>
-                <Layout><Settings /></Layout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/ads-popups" 
-            element={
-              <ProtectedRoute>
-                <Layout><AdsPopups /></Layout>
-              </ProtectedRoute>
-            } 
-          />
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Login />} />
 
-          {/* Fallback Route */}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-        <ToastContainer />
-      </Router>
+            {/* Protected Routes */}
+
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Layout><Dashboard /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/user"
+              element={
+                <ProtectedRoute>
+                  <Layout><User /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/enquiries"
+              element={
+                <ProtectedRoute>
+                  <Layout><Enquiries /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/enquiries-details"
+              element={
+                <ProtectedRoute>
+                  <Layout><EnquiriesDetails /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pdi"
+              element={
+                <ProtectedRoute>
+                  <Layout><Pdi /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/loans"
+              element={
+                <ProtectedRoute>
+                  <Layout><Loans /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/technicians"
+              element={
+                <ProtectedRoute>
+                  <Layout><Technicians /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Layout><Profile /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analytics"
+              element={
+                <ProtectedRoute>
+                  <Layout><Analytics /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/sell-cars"
+              element={
+                <ProtectedRoute>
+                  <Layout><SellCars /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/sell-car-enquiries"
+              element={
+                <ProtectedRoute>
+                  <Layout><SellCarEnquiries /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/auction-cars"
+              element={
+                <ProtectedRoute>
+                  <Layout><AuctionCars /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/subadmin"
+              element={
+                <ProtectedRoute>
+                  <Layout><SubAdmin /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/roles"
+              element={
+                <ProtectedRoute>
+                  <Layout><Roles /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/permissions"
+              element={
+                <ProtectedRoute>
+                  <Layout><Permissions /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/banners"
+              element={
+                <ProtectedRoute>
+                  <Layout><Banners /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/notifications"
+              element={
+                <ProtectedRoute>
+                  <Layout><Notifications /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Layout><Settings /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/ads-popups"
+              element={
+                <ProtectedRoute>
+                  <Layout><AdsPopups /></Layout>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Fallback Route */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+
+          <ToastContainer />
+        </Router>
+      </PermissionsProvider>
     </ToastProvider>
   );
 }

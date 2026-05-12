@@ -4,16 +4,24 @@ import {
   User, Mail, Phone, Shield, Calendar, 
   Edit2, LogOut 
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const token = localStorage.getItem("adminToken");
 
   useEffect(() => {
     fetchProfile();
   }, []);
+   const handleLogout = () => {
+    // clear token if needed
+    localStorage.removeItem("adminToken");
+
+    navigate("/");
+  };
 
   const fetchProfile = async () => {
     try {
@@ -147,8 +155,8 @@ const Profile = () => {
             <button className="flex-1 py-3 px-6 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl font-medium transition-all active:scale-95">
               Change Password
             </button>
-            <button className="flex-1 py-3 px-6 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-2xl font-medium transition-all active:scale-95 flex items-center justify-center gap-2">
-              <LogOut size={18} />
+            <button  onClick ={handleLogout}className="flex-1 py-3 px-6 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-2xl font-medium transition-all active:scale-95 flex items-center justify-center gap-2">
+              <LogOut  size={18} />
               Logout
             </button>
           </div>

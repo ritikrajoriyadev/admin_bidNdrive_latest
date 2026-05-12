@@ -34,9 +34,11 @@ export default function AdminLogin() {
 
       const accessToken = res.data.data.accessToken;
       const refreshToken = res.data.data.refreshToken;
+      const role = res.data.data.role;
 
       localStorage.setItem("adminToken", accessToken);
       localStorage.setItem("adminRefreshToken", refreshToken);
+      localStorage.setItem("role", role); // Store role for potential future use
 
       if (rememberMe) {
         localStorage.setItem("adminEmail", email);
