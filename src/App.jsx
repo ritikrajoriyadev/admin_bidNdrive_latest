@@ -1,3 +1,5 @@
+import WinnerList from './pages/WinnerList';
+import SalesTeams from './pages/salesteam';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -25,6 +27,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { ToastProvider } from './context/ToastContext';
 import ToastContainer from './components/ToastContainer';
 import { PermissionsProvider } from './context/PermissionsContext';
+import Telecaller from './pages/Telecaller';
+import Bidders from './pages/Adminbidermanagement ';
+
 import './App.css';
 
 function App() {
@@ -52,6 +57,38 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Layout><User /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/telecaller"
+              element={
+                <ProtectedRoute>
+                  <Layout><Telecaller /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+  path="/auction-winners"
+  element={
+    <ProtectedRoute>
+      <Layout><WinnerList /></Layout>
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/sales-team"
+  element={
+    <ProtectedRoute>
+      <Layout><SalesTeams /></Layout>
+    </ProtectedRoute>
+  }
+/>
+            <Route
+              path="/bidders"
+              element={
+                <ProtectedRoute>
+                  <Layout><Bidders /></Layout>
                 </ProtectedRoute>
               }
             />
@@ -129,6 +166,14 @@ function App() {
             />
             <Route
               path="/auction-cars"
+              element={
+                <ProtectedRoute>
+                  <Layout><AuctionCars /></Layout>
+                </ProtectedRoute>
+              }
+            />
+             <Route
+              path="/bnb-tnb"
               element={
                 <ProtectedRoute>
                   <Layout><AuctionCars /></Layout>

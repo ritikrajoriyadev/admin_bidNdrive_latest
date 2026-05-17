@@ -10,31 +10,38 @@ export const PermissionsProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
-    useEffect(() => {
-        const token = localStorage.getItem('adminToken');
-        const role = localStorage.getItem('role');
+ useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    const role = localStorage.getItem('role');
 
-        // ✅ Superadmin bypass — skip API, grant full access
-        if (role === SUPER_ADMIN_ROLE) {
-            setIsSuperAdmin(true);
-            setLoading(false);
-            return;
-        }
+    if (!token) {
+        setPermissions([]);
+        setIsSuperAdmin(false);
+        setLoading(false);
+        return;
+    }
 
-        if (!token) {
-            setLoading(false);
-            return;
-        }
+    if (role === SUPER_ADMIN_ROLE) {
+        setIsSuperAdmin(true);
+        setPermissions([]);
+        setLoading(false);
+        return;
+    }
 
-        setLoading(true);
-        fetchAdminPermissions(token)
-            .then(setPermissions)
-            .catch((err) => {
-                console.error('Failed to fetch permissions:', err);
-                setPermissions([]);
-            })
-            .finally(() => setLoading(false));
-    }, []);
+    setLoading(true);
+
+    fetchAdminPermissions(token)
+        .then((data) => {
+            setPermissions(data);
+            setIsSuperAdmin(false);
+        })
+        .catch((err) => {
+            console.error('Failed to fetch permissions:', err);
+            setPermissions([]);
+        })
+        .finally(() => setLoading(false));
+
+}, []);
 
     return (
         <PermissionsContext.Provider value={{ permissions, loading, isSuperAdmin }}>

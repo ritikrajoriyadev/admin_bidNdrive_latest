@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useToast } from '../hooks/useToast';
 import EnquiryDetailPage from './Enquirydetailpage';
 
 const statusConfig = {
-  new:         { label: 'New',         bg: 'bg-indigo-500/15', text: 'text-indigo-400', dot: 'bg-indigo-400' },
-  open:        { label: 'Open',        bg: 'bg-amber-500/15',  text: 'text-amber-400',  dot: 'bg-amber-400'  },
-  pending:     { label: 'Pending',     bg: 'bg-violet-500/15', text: 'text-violet-400', dot: 'bg-violet-400' },
-  assigned:    { label: 'Assigned',    bg: 'bg-blue-500/15',   text: 'text-blue-400',   dot: 'bg-blue-400'   },
-  resolved:    { label: 'Resolved',    bg: 'bg-emerald-500/15',text: 'text-emerald-400',dot: 'bg-emerald-400'},
-  closed:      { label: 'Closed',      bg: 'bg-gray-500/15',   text: 'text-gray-400',   dot: 'bg-gray-400'   },
-  'in-progress':{ label: 'In Progress',bg: 'bg-sky-500/15',   text: 'text-sky-400',    dot: 'bg-sky-400'    },
-  completed:   { label: 'Completed',   bg: 'bg-teal-500/15',   text: 'text-teal-400',   dot: 'bg-teal-400'   },
+  new:          { label: 'New',         bg: 'bg-indigo-500/15', text: 'text-indigo-400', dot: 'bg-indigo-400' },
+  open:         { label: 'Open',        bg: 'bg-amber-500/15',  text: 'text-amber-400',  dot: 'bg-amber-400'  },
+  pending:      { label: 'Pending',     bg: 'bg-violet-500/15', text: 'text-violet-400', dot: 'bg-violet-400' },
+  assigned:     { label: 'Assigned',    bg: 'bg-blue-500/15',   text: 'text-blue-400',   dot: 'bg-blue-400'   },
+  resolved:     { label: 'Resolved',    bg: 'bg-emerald-500/15',text: 'text-emerald-400',dot: 'bg-emerald-400'},
+  closed:       { label: 'Closed',      bg: 'bg-gray-500/15',   text: 'text-gray-400',   dot: 'bg-gray-400'   },
+  'in-progress':{ label: 'In Progress', bg: 'bg-sky-500/15',    text: 'text-sky-400',    dot: 'bg-sky-400'    },
+  completed:    { label: 'Completed',   bg: 'bg-teal-500/15',   text: 'text-teal-400',   dot: 'bg-teal-400'   },
 };
 
 const priorityConfig = {
@@ -27,10 +27,8 @@ const avatarGradients = [
   'from-rose-500 to-pink-500',     'from-teal-500 to-cyan-500',
 ];
 
-/* ─── Completed statuses ──────────────────────────────────────────────────── */
 const COMPLETED_STATUSES = new Set(['resolved', 'closed', 'completed']);
 
-/* ─── Normalize ──────────────────────────────────────────────────────────── */
 const normalizeEnquiry = (raw, idx) => ({
   id:            raw._id || raw.id || `idx-${idx}`,
   name:          [raw.userId?.firstName, raw.userId?.lastName].filter(Boolean).join(' ') || 'Unknown',
@@ -45,6 +43,7 @@ const normalizeEnquiry = (raw, idx) => ({
   estimatedCost: raw.estimatedCost || 0,
   actualCost:    raw.actualCost || 0,
   enquiryId:     raw.enquiryId || raw._id || raw.id || `idx-${idx}`,
+  auctionStarted: raw.auctionStarted || false,
 });
 
 /* ─── Stat Card ──────────────────────────────────────────────────────────── */
@@ -60,51 +59,292 @@ const StatCard = ({ label, value, icon, accent, sub }) => (
   </div>
 );
 
+/* ─── Pagination Component ───────────────────────────────────────────────── */
+const Pagination = ({ pagination, onPageChange }) => {
+  if (!pagination || pagination.pages <= 1) return null;
+
+  const { page, pages, total, limit } = pagination;
+  const from = (page - 1) * limit + 1;
+  const to   = Math.min(page * limit, total);
+
+  // Build page number array with ellipsis logic
+  const getPageNumbers = () => {
+    const delta = 1; // pages on each side of current
+    const range = [];
+    const rangeWithDots = [];
+
+    for (
+      let i = Math.max(2, page - delta);
+      i <= Math.min(pages - 1, page + delta);
+      i++
+    ) {
+      range.push(i);
+    }
+
+    if (page - delta > 2) range.unshift('...');
+    if (page + delta < pages - 1) range.push('...');
+
+    range.unshift(1);
+    if (pages > 1) range.push(pages);
+
+    // dedupe
+    let prev = null;
+    for (const r of range) {
+      if (r === prev) continue;
+      rangeWithDots.push(r);
+      prev = r;
+    }
+    return rangeWithDots;
+  };
+
+  const pageNumbers = getPageNumbers();
+
+  return (
+    <div className="px-5 py-3 border-t border-white/[0.05] flex flex-col sm:flex-row items-center justify-between gap-3 bg-white/[0.01]">
+      {/* Info */}
+      <span className="text-white/25 text-xs order-2 sm:order-1">
+        Showing <span className="text-white/45 font-medium">{from}–{to}</span> of{' '}
+        <span className="text-white/45 font-medium">{total}</span> completed enquiries
+      </span>
+
+      {/* Controls */}
+      <div className="flex items-center gap-1 order-1 sm:order-2">
+        {/* Prev */}
+        <button
+          onClick={() => onPageChange(page - 1)}
+          disabled={page === 1}
+          className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.05] text-white/40 hover:bg-white/[0.09] hover:text-white/70 disabled:opacity-25 disabled:cursor-not-allowed transition-all"
+          title="Previous page"
+        >
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
+
+        {/* Page numbers */}
+        {pageNumbers.map((p, i) =>
+          p === '...' ? (
+            <span key={`dots-${i}`} className="w-8 h-8 flex items-center justify-center text-white/20 text-xs select-none">
+              ···
+            </span>
+          ) : (
+            <button
+              key={p}
+              onClick={() => onPageChange(p)}
+              className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all ${
+                p === page
+                  ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/30'
+                  : 'bg-white/[0.05] text-white/40 hover:bg-white/[0.09] hover:text-white/70'
+              }`}
+            >
+              {p}
+            </button>
+          )
+        )}
+
+        {/* Next */}
+        <button
+          onClick={() => onPageChange(page + 1)}
+          disabled={page === pages}
+          className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.05] text-white/40 hover:bg-white/[0.09] hover:text-white/70 disabled:opacity-25 disabled:cursor-not-allowed transition-all"
+          title="Next page"
+        >
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+/* ─── Start Auction Confirm Modal ────────────────────────────────────────── */
+const StartAuctionModal = ({ enquiry, onClose, onConfirm, loading }) => {
+  if (!enquiry) return null;
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-gray-900 border border-white/[0.1] rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="w-12 h-12 rounded-2xl bg-teal-500/15 flex items-center justify-center mb-4 mx-auto">
+          <svg className="w-6 h-6 text-teal-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.845v6.31a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+          </svg>
+        </div>
+
+        <h3 className="text-white font-bold text-lg text-center mb-1">Start Auction</h3>
+        <p className="text-white/40 text-sm text-center mb-1">
+          You're about to start an auction for:
+        </p>
+        <p className="text-teal-400 text-sm font-semibold text-center mb-5 truncate px-2">
+          {enquiry.subject}
+        </p>
+
+        <div className="bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 mb-5 space-y-1.5">
+          <div className="flex justify-between text-xs">
+            <span className="text-white/35">Enquiry ID</span>
+            <span className="text-white/60 font-medium">#{enquiry.enquiryId}</span>
+          </div>
+          <div className="flex justify-between text-xs">
+            <span className="text-white/35">Customer</span>
+            <span className="text-white/60 font-medium">{enquiry.name}</span>
+          </div>
+          <div className="flex justify-between text-xs">
+            <span className="text-white/35">Status</span>
+            <span className="text-teal-400 font-medium capitalize">{enquiry.status}</span>
+          </div>
+        </div>
+
+        <p className="text-white/25 text-xs text-center mb-5">
+          This action will notify all eligible bidders. It cannot be undone.
+        </p>
+
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="flex-1 px-4 py-2.5 rounded-xl bg-white/[0.05] text-white/60 text-sm font-semibold hover:bg-white/[0.08] transition-colors disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="flex-1 px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-white text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Starting…
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+                Start Auction
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /* ─── Main Component ─────────────────────────────────────────────────────── */
 const EnquiriesDetails = () => {
-  const [enquiries,    setEnquiries]    = useState([]);
-  const [loading,      setLoading]      = useState(true);
-  const [search,       setSearch]       = useState('');
-  const [filterStatus, setFilter]       = useState('all');
-  /* Instead of a drawer, navigate to a detail page */
-  const [selectedId,   setSelectedId]   = useState(null);
+  const [enquiries,      setEnquiries]      = useState([]);
+  const [loading,        setLoading]        = useState(true);
+  const [search,         setSearch]         = useState('');
+  const [filterStatus,   setFilter]         = useState('all');
+  const [selectedId,     setSelectedId]     = useState(null);
+  const [auctionModal,   setAuctionModal]   = useState(null);
+  const [auctionLoading, setAuctionLoading] = useState(false);
+  const [auctionStarted, setAuctionStarted] = useState(new Set());
+
+  // ── Pagination state ──────────────────────────────────────────────────────
+  const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 10, pages: 1 });
+
   const toast = useToast();
 
   const token      = () => localStorage.getItem('adminToken');
   const authHeader = () => ({ Authorization: `Bearer ${token()}` });
 
   /* ── Fetch ──────────────────────────────────────────────────────────────── */
-  const fetchEnquiries = async () => {
+  const fetchEnquiries = useCallback(async (page = 1) => {
     setLoading(true);
     try {
-      const res     = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/enquiries`, {
-        headers: { 'Content-Type': 'application/json', ...authHeader() },
-      });
-      const rawList = res.data?.data ?? res.data ?? [];
-      const list    = Array.isArray(rawList) ? rawList : [];
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/admin/enquiries/completed`,
+        {
+          headers: { 'Content-Type': 'application/json', ...authHeader() },
+          // Pass page + limit as query params; adjust param names to match your API
+          params: {
+            page,
+            limit: pagination.limit,
+            ...(filterStatus !== 'all' && { status: filterStatus }),
+            ...(search && { search }),
+          },
+        }
+      );
 
-      /* ── FILTER: keep only completed enquiries ── */
-      const completed = list.filter(r => COMPLETED_STATUSES.has(r.status));
+      const rawList        = res.data?.data ?? res.data ?? [];
+      const rawPagination  = res.data?.pagination ?? null;
+
+      const list = Array.isArray(rawList) ? rawList : [];
+
+      // If the API doesn't filter server-side by completed statuses, keep client guard
+      const completed = rawPagination
+        ? list                                              // trust server filtering
+        : list.filter(r => COMPLETED_STATUSES.has(r.status));
+
       setEnquiries(completed.map(normalizeEnquiry));
+
+      if (rawPagination) {
+        setPagination(rawPagination);
+      }
     } catch (err) {
       console.error('fetchEnquiries error', err);
       toast.error?.('Failed to fetch enquiries');
     } finally {
       setLoading(false);
     }
+  }, [filterStatus, search, pagination.limit]);
+
+  // Re-fetch when filter or search changes — reset to page 1
+  useEffect(() => {
+    fetchEnquiries(1);
+  }, [filterStatus, search]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > pagination.pages) return;
+    setPagination(prev => ({ ...prev, page: newPage }));
+    fetchEnquiries(newPage);
+    // Scroll table back to top smoothly
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  useEffect(() => { fetchEnquiries(); }, []);
+  /* ── Start Auction ──────────────────────────────────────────────────────── */
+  const handleStartAuction = async () => {
+    if (!auctionModal) return;
+    setAuctionLoading(true);
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/admin/enquiries/${auctionModal.id}/start-auction`,
+        {},
+        { headers: { 'Content-Type': 'application/json', ...authHeader() } }
+      );
+      setAuctionStarted(prev => new Set([...prev, auctionModal.id]));
+      toast.success?.('Auction started successfully!');
+      setAuctionModal(null);
+    } catch (err) {
+      console.error('Start auction error', err);
+      const msg = err.response?.data?.message || 'Failed to start auction';
+      toast.error?.(msg);
+    } finally {
+      setAuctionLoading(false);
+    }
+  };
 
-  /* ── Counts ─────────────────────────────────────────────────────────────── */
+  /* ── Counts (use pagination.total for "all" so it reflects server count) ── */
   const counts = {
-    all:      enquiries.length,
-    resolved: enquiries.filter(e => e.status === 'resolved').length,
-    closed:   enquiries.filter(e => e.status === 'closed').length,
-    completed:enquiries.filter(e => e.status === 'completed').length,
+    all:       pagination.total,
+    resolved:  enquiries.filter(e => e.status === 'resolved').length,
+    closed:    enquiries.filter(e => e.status === 'closed').length,
+    completed: enquiries.filter(e => e.status === 'completed').length,
   };
 
-  /* ── Filtered list ───────────────────────────────────────────────────────── */
+  /* ── Client-side filter (only for current page rows) ─────────────────────
+     Note: if your API accepts search/status params (recommended), the
+     server handles filtering and `filtered` === `enquiries` here.          */
   const filtered = enquiries.filter(e => {
     const hay         = `${e.name} ${e.subject} ${e.id} ${e.email} ${e.enquiryId}`.toLowerCase();
     const matchSearch = !search || hay.includes(search.toLowerCase());
@@ -119,7 +359,6 @@ const EnquiriesDetails = () => {
     { key: 'completed', label: 'Completed'      },
   ];
 
-  /* ── If detail page is open, render it full-screen ──────────────────────── */
   if (selectedId) {
     return (
       <EnquiryDetailPage
@@ -184,10 +423,10 @@ const EnquiriesDetails = () => {
       {/* Table */}
       <div className="rounded-2xl bg-gray-900 border border-white/[0.06] overflow-hidden">
         <div className="overflow-x-auto">
-          <div className="min-w-[700px]">
+          <div className="min-w-[780px]">
             {/* Headers */}
-            <div className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr_80px] gap-4 px-5 py-3 border-b border-white/[0.05] bg-white/[0.02]">
-              {['Sender', 'Subject', 'Priority', 'Status', 'Cost', 'Action'].map(h => (
+            <div className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr_180px] gap-4 px-5 py-3 border-b border-white/[0.05] bg-white/[0.02]">
+              {['Sender', 'Subject', 'Priority', 'Status', 'Cost', 'Actions'].map(h => (
                 <span key={h} className="text-white/25 text-[10px] font-bold tracking-widest uppercase">{h}</span>
               ))}
             </div>
@@ -196,7 +435,7 @@ const EnquiriesDetails = () => {
             {loading && (
               <div className="divide-y divide-white/[0.04]">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr_80px] gap-4 px-5 py-4 items-center animate-pulse">
+                  <div key={i} className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr_180px] gap-4 px-5 py-4 items-center animate-pulse">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-white/10 flex-shrink-0" />
                       <div className="space-y-1.5 flex-1">
@@ -211,7 +450,10 @@ const EnquiriesDetails = () => {
                     <div className="h-5 bg-white/10 rounded-full w-16" />
                     <div className="h-5 bg-white/10 rounded-full w-20" />
                     <div className="h-5 bg-white/10 rounded w-20" />
-                    <div className="w-8 h-8 bg-white/10 rounded-lg" />
+                    <div className="flex gap-2">
+                      <div className="h-7 bg-white/10 rounded-lg w-24" />
+                      <div className="h-7 bg-white/10 rounded-lg w-10" />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -244,12 +486,12 @@ const EnquiriesDetails = () => {
               const sc   = statusConfig[enq.status] || { label: enq.status, bg: 'bg-gray-500/15', text: 'text-gray-400', dot: 'bg-gray-400' };
               const pc   = priorityConfig[enq.priority] || { label: enq.priority, bg: 'bg-gray-500/10', text: 'text-gray-400', border: 'border-gray-500/20' };
               const grad = avatarGradients[idx % avatarGradients.length];
+              const hasAuctionStarted = auctionStarted.has(enq.id) || enq.auctionStarted;
 
               return (
                 <div
                   key={enq.id}
-                  onClick={() => setSelectedId(enq.id)}
-                  className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr_80px] gap-4 px-5 py-4 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.025] transition-colors duration-150 cursor-pointer items-center group"
+                  className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr_180px] gap-4 px-5 py-4 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.025] transition-colors duration-150 items-center group"
                 >
                   {/* Sender */}
                   <div className="flex items-center gap-3 min-w-0">
@@ -263,8 +505,8 @@ const EnquiriesDetails = () => {
                   </div>
 
                   {/* Subject */}
-                  <div className="min-w-0">
-                    <p className="text-white/70 text-sm truncate">{enq.subject}</p>
+                  <div className="min-w-0 cursor-pointer" onClick={() => setSelectedId(enq.id)}>
+                    <p className="text-white/70 text-sm truncate hover:text-teal-400 transition-colors">{enq.subject}</p>
                     <p className="text-white/25 text-xs mt-0.5">{enq.date}</p>
                   </div>
 
@@ -294,16 +536,34 @@ const EnquiriesDetails = () => {
                     )}
                   </div>
 
-                  {/* View button */}
-                  <div className="flex justify-end" onClick={e => e.stopPropagation()}>
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 justify-end">
+                    {hasAuctionStarted ? (
+                      <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-[11px] font-semibold">
+                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Auction Live
+                      </span>
+                    ) : (
+                      <button
+                        onClick={e => { e.stopPropagation(); setAuctionModal(enq); }}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-teal-500/10 text-teal-400 hover:bg-teal-500/20 text-[11px] font-semibold transition-all"
+                        title="Start Auction"
+                      >
+                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polygon points="5 3 19 12 5 21 5 3" />
+                        </svg>
+                        Start Auction
+                      </button>
+                    )}
                     <button
                       onClick={() => setSelectedId(enq.id)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-500/10 text-teal-400 hover:bg-teal-500/20 text-xs font-semibold transition-all group-hover:bg-teal-500/15"
-                      title="View Full Details"
+                      className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.05] text-white/40 hover:bg-white/[0.08] hover:text-white/70 transition-all"
+                      title="View Details"
                     >
-                      View
                       <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                       </svg>
                     </button>
                   </div>
@@ -311,18 +571,24 @@ const EnquiriesDetails = () => {
               );
             })}
 
-            {/* Footer */}
+            {/* ── Pagination footer ─────────────────────────────────────────── */}
             {!loading && filtered.length > 0 && (
-              <div className="px-5 py-3 border-t border-white/[0.05] flex items-center justify-between bg-white/[0.01]">
-                <span className="text-white/25 text-xs">
-                  Showing {filtered.length} of {enquiries.length} completed enquiries
-                  {filterStatus !== 'all' && ` · filtered by "${filterStatus}"`}
-                </span>
-              </div>
+              <Pagination
+                pagination={pagination}
+                onPageChange={handlePageChange}
+              />
             )}
           </div>
         </div>
       </div>
+
+      {/* Start Auction Modal */}
+      <StartAuctionModal
+        enquiry={auctionModal}
+        onClose={() => !auctionLoading && setAuctionModal(null)}
+        onConfirm={handleStartAuction}
+        loading={auctionLoading}
+      />
     </div>
   );
 };
