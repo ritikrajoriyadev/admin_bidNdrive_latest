@@ -39,8 +39,18 @@ const navItems = [
     ),
   },
   {
-    id: 'enquiries',
-    label: 'Enquiries',
+    id: 'new_enquiries',
+    label: 'new-enquiries',
+    path: '/telecaller',
+    icon: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'assigned_enquiries',
+    label: 'Assigned Enquiries',
     path: '/enquiries',
     // badge: 4,
     icon: (
@@ -50,7 +60,7 @@ const navItems = [
     ),
   },
   {
-    id: 'enquiries-details',
+    id: 'enquiries_details',
     label: 'QC',
     path: '/enquiries-details',
     // badge: 4,
@@ -83,7 +93,7 @@ const navItems = [
     ),
   },
   {
-    id: 'sell-cars',
+    id: 'sell_cars',
     label: 'Sell Cars',
     path: '/sell-cars',
     icon: (
@@ -94,7 +104,7 @@ const navItems = [
     ),
   },
   {
-    id: 'sell-car-enquiries',
+    id: 'sell_car_enquiries',
     label: 'Car Enquiries',
     path: '/sell-car-enquiries',
     icon: (
@@ -107,7 +117,7 @@ const navItems = [
     ),
   },
   {
-    id: 'auction-cars',
+    id: 'auction_cars',
     label: 'Auction Cars',
     path: '/auction-cars',
     icon: (
@@ -119,9 +129,10 @@ const navItems = [
       </svg>
     ),
   },
-    {
-    id: 'BNB /TNB',
-    label: 'BNB / TNB',
+
+  {
+    id: 'bnb_tnb',
+    label: 'ReAution',
     path: '/bnb-tnb',
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -132,8 +143,21 @@ const navItems = [
       </svg>
     ),
   },
-   {
-    id: 'winner-bids',
+  {
+    id: 'RA_assigned_enquiries',
+    label: 'RA Assigned Enquiries',
+    path: '/ra-assigned-enquiries',
+    icon: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        <circle cx="12" cy="11" r="1" />
+        <circle cx="8" cy="11" r="1" />
+        <circle cx="16" cy="11" r="1" />
+      </svg>
+    ),
+  },
+  {
+    id: 'winner_bids',
     label: 'Winner Bids',
     path: '/auction-winners',
     icon: (
@@ -146,7 +170,7 @@ const navItems = [
     ),
   },
   {
-    id: 'Sales Team',
+    id: 'sales_team',
     label: 'Sales Team',
     path: '/sales-team',
     icon: (
@@ -168,16 +192,7 @@ const navItems = [
       </svg>
     ),
   },
-    {
-    id: 'telecaller',
-    label: 'Telecaller',
-    path: '/telecaller',
-    icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-      </svg>
-    ),
-  },
+
   {
     id: 'bidders',
     label: 'Bidders',
@@ -192,6 +207,19 @@ const navItems = [
     id: 'subadmin',
     label: 'SubAdmin',
     path: '/subadmin',
+    icon: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+  },
+  {
+    id: 'retail-associate',
+    label: 'Retail Associate',
+    path: '/retail-associate',
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -280,7 +308,7 @@ const NavItem = ({ item, open }) => (
         border transition-all duration-200 overflow-hidden whitespace-nowrap
         ${isActive
           ? 'bg-indigo-500/15 border-indigo-400/25 text-indigo-300'
-          : 'border-transparent text-white/40 hover:text-white/75 hover:bg-white/5'}
+          : 'border-transparent indigo-500/40 hover:indigo-500/75 hover:bg-white/5'}
       `}
     >
       {({ isActive }) => (
@@ -302,7 +330,7 @@ const NavItem = ({ item, open }) => (
 
           {/* Badge */}
           {item.badge && (
-            <span className={`ml-auto text-[10px] font-bold text-white px-1.5 py-0.5 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 min-w-[20px] flex items-center justify-center transition-all duration-200 ${open ? 'opacity-100 scale-100 delay-100' : 'opacity-0 scale-75'}`}>
+            <span className={`ml-auto text-[10px] font-bold indigo-500 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 min-w-[20px] flex items-center justify-center transition-all duration-200 ${open ? 'opacity-100 scale-100 delay-100' : 'opacity-0 scale-75'}`}>
               {item.badge}
             </span>
           )}
@@ -312,7 +340,7 @@ const NavItem = ({ item, open }) => (
 
     {/* Tooltip — visible only when sidebar is collapsed */}
     {!open && (
-      <div className="absolute left-[calc(100%+10px)] top-1/2 -translate-y-1/2 bg-gray-900 text-violet-300 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-indigo-500/30 shadow-xl shadow-black/40 whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-[999]">
+      <div className="absolute left-[calc(100%+10px)] top-1/2 -translate-y-1/2 bg-white text-violet-300 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-indigo-500/30 shadow-xl shadow-black/40 whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-[999]">
         <span className="absolute -left-[5px] top-1/2 -translate-y-1/2 border-t-[5px] border-b-[5px] border-r-[5px] border-t-transparent border-b-transparent border-r-indigo-500/30" />
         {item.label}
       </div>
@@ -322,7 +350,7 @@ const NavItem = ({ item, open }) => (
 
 const Sidebar = ({ onCloseMobile }) => {
   const [open, setOpen] = useState(false);
-  const { permissions, loading,isSuperAdmin } = usePermissions();
+  const { permissions, loading, isSuperAdmin } = usePermissions();
 
   // Helper to check if user has permission for a module
   const hasModulePermission = (module) => {
@@ -345,15 +373,15 @@ const Sidebar = ({ onCloseMobile }) => {
   // Optionally, show loading state
   if (loading) {
     return (
-      <div className="fixed left-0 top-0 h-screen w-[68px] z-50 flex items-center justify-center bg-gray-950 border-r border-white/5">
-        <span className="text-white/40 text-xs animate-pulse">Loading...</span>
+      <div className="fixed left-0 top-0 h-screen w-[68px] z-50 flex items-center justify-center bg-white border-r border-white/5">
+        <span className="indigo-500/40 text-xs animate-pulse">Loading...</span>
       </div>
     );
   }
 
   return (
     <div
-      className={`fixed left-0 top-0 h-screen z-50 flex flex-col bg-gray-950 border-r border-white/5 transition-all duration-300 ease-in-out overflow-hidden ${open ? 'w-60 shadow-2xl shadow-black/50' : 'w-[68px]'}`}
+      className={`fixed left-0 top-0 h-screen z-50 flex flex-col bg-white border-r border-white/5 transition-all duration-300 ease-in-out overflow-hidden ${open ? 'w-60 shadow-2xl shadow-black/50' : 'w-[68px]'}`}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
     >
@@ -369,15 +397,15 @@ const Sidebar = ({ onCloseMobile }) => {
             </svg>
           </div>
           <div className={`flex flex-col overflow-hidden whitespace-nowrap transition-all duration-200 ${open ? 'opacity-100 translate-x-0 delay-75' : 'opacity-0 -translate-x-2'}`}>
-            <span className="text-white text-[15px] font-bold tracking-tight leading-tight">AdminPanel</span>
-            <span className="text-white/30 text-[10px] font-medium tracking-widest uppercase">Control Suite</span>
+            <span className="indigo-500 text-[15px] font-bold tracking-tight leading-tight">AdminPanel</span>
+            <span className="indigo-500/30 text-[10px] font-medium tracking-widest uppercase">Control Suite</span>
           </div>
         </div>
         {/* Mobile close button */}
         {onCloseMobile && (
           <button
             onClick={onCloseMobile}
-            className="md:hidden w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-white/40 hover:text-white/70 flex-shrink-0"
+            className="md:hidden w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center indigo-500/40 hover:indigo-500/70 flex-shrink-0"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -390,7 +418,7 @@ const Sidebar = ({ onCloseMobile }) => {
       <nav className="flex-1 flex flex-col gap-0.5 px-2.5 py-3 overflow-y-auto sidebar-scroll">
 
         {/* Main Menu label */}
-        <p className={`text-white/20 text-[9.5px] font-bold tracking-widest uppercase px-2 whitespace-nowrap transition-all duration-300 overflow-hidden ${open ? 'max-h-8 opacity-100 pb-1 pt-2' : 'max-h-0 opacity-0 py-0'}`}>
+        <p className={`indigo-500/20 text-[9.5px] font-bold tracking-widest uppercase px-2 whitespace-nowrap transition-all duration-300 overflow-hidden ${open ? 'max-h-8 opacity-100 pb-1 pt-2' : 'max-h-0 opacity-0 py-0'}`}>
           Main Menu
         </p>
 
@@ -402,7 +430,7 @@ const Sidebar = ({ onCloseMobile }) => {
         <div className="h-px bg-white/5 my-2 flex-shrink-0" />
 
         {/* System label */}
-        <p className={`text-white/20 text-[9.5px] font-bold tracking-widest uppercase px-2 whitespace-nowrap transition-all duration-300 overflow-hidden ${open ? 'max-h-8 opacity-100 pb-1 pt-2' : 'max-h-0 opacity-0 py-0'}`}>
+        <p className={`indigo-500/20 text-[9.5px] font-bold tracking-widest uppercase px-2 whitespace-nowrap transition-all duration-300 overflow-hidden ${open ? 'max-h-8 opacity-100 pb-1 pt-2' : 'max-h-0 opacity-0 py-0'}`}>
           System
         </p>
 
@@ -418,14 +446,14 @@ const Sidebar = ({ onCloseMobile }) => {
           className="flex items-center gap-2.5 p-2.5 rounded-xl overflow-hidden whitespace-nowrap bg-white/[0.03] border border-white/5 hover:bg-white/[0.06] hover:border-indigo-400/20 transition-all duration-200"
         >
           <div className="relative flex-shrink-0">
-            <div className="w-[34px] h-[34px] rounded-[9px] bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-indigo-500/30">
+            <div className="w-[34px] h-[34px] rounded-[9px] bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center indigo-500 text-sm font-bold shadow-lg shadow-indigo-500/30">
               A
             </div>
             <span className="absolute -bottom-px -right-px w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-gray-950" />
           </div>
           <div className={`flex flex-col overflow-hidden transition-all duration-200 ${open ? 'opacity-100 translate-x-0 delay-75' : 'opacity-0 -translate-x-2'}`}>
             <span className="text-slate-200 text-[13px] font-semibold leading-tight">Admin User</span>
-            <span className="text-white/30 text-[11px]">Super Admin</span>
+            <span className="indigo-500/30 text-[11px]">Super Admin</span>
           </div>
         </NavLink>
       </div>

@@ -4,58 +4,58 @@ import { useToast } from '../hooks/useToast';
 import EnquiryDetailPage from './Enquirydetailpage';
 
 const statusConfig = {
-  new:          { label: 'New',         bg: 'bg-indigo-500/15', text: 'text-indigo-400', dot: 'bg-indigo-400' },
-  open:         { label: 'Open',        bg: 'bg-amber-500/15',  text: 'text-amber-400',  dot: 'bg-amber-400'  },
-  pending:      { label: 'Pending',     bg: 'bg-violet-500/15', text: 'text-violet-400', dot: 'bg-violet-400' },
-  assigned:     { label: 'Assigned',    bg: 'bg-blue-500/15',   text: 'text-blue-400',   dot: 'bg-blue-400'   },
-  resolved:     { label: 'Resolved',    bg: 'bg-emerald-500/15',text: 'text-emerald-400',dot: 'bg-emerald-400'},
-  closed:       { label: 'Closed',      bg: 'bg-gray-500/15',   text: 'text-gray-400',   dot: 'bg-gray-400'   },
-  'in-progress':{ label: 'In Progress', bg: 'bg-sky-500/15',    text: 'text-sky-400',    dot: 'bg-sky-400'    },
-  completed:    { label: 'Completed',   bg: 'bg-teal-500/15',   text: 'text-teal-400',   dot: 'bg-teal-400'   },
+  new: { label: 'New', bg: 'bg-indigo-500/15', text: 'text-indigo-400', dot: 'bg-indigo-400' },
+  open: { label: 'Open', bg: 'bg-amber-500/15', text: 'text-amber-400', dot: 'bg-amber-400' },
+  pending: { label: 'Pending', bg: 'bg-violet-500/15', text: 'text-violet-400', dot: 'bg-violet-400' },
+  assigned: { label: 'Assigned', bg: 'bg-blue-500/15', text: 'text-blue-400', dot: 'bg-blue-400' },
+  resolved: { label: 'Resolved', bg: 'bg-emerald-500/15', text: 'text-emerald-400', dot: 'bg-emerald-400' },
+  closed: { label: 'Closed', bg: 'bg-gray-500/15', text: 'text-gray-400', dot: 'bg-gray-400' },
+  'in-progress': { label: 'In Progress', bg: 'bg-sky-500/15', text: 'text-sky-400', dot: 'bg-sky-400' },
+  completed: { label: 'Completed', bg: 'bg-teal-500/15', text: 'text-teal-400', dot: 'bg-teal-400' },
 };
 
 const priorityConfig = {
-  high:   { label: 'High',   bg: 'bg-rose-500/10',    text: 'text-rose-400',    border: 'border-rose-500/20'    },
-  medium: { label: 'Medium', bg: 'bg-amber-500/10',   text: 'text-amber-400',   border: 'border-amber-500/20'   },
-  low:    { label: 'Low',    bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20' },
+  high: { label: 'High', bg: 'bg-rose-500/10', text: 'text-rose-400', border: 'border-rose-500/20' },
+  medium: { label: 'Medium', bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/20' },
+  low: { label: 'Low', bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20' },
 };
 
 const avatarGradients = [
   'from-indigo-500 to-violet-500', 'from-pink-500 to-rose-500',
-  'from-amber-500 to-orange-500',  'from-emerald-500 to-teal-500',
-  'from-sky-500 to-blue-500',      'from-violet-500 to-purple-500',
-  'from-rose-500 to-pink-500',     'from-teal-500 to-cyan-500',
+  'from-amber-500 to-orange-500', 'from-emerald-500 to-teal-500',
+  'from-sky-500 to-blue-500', 'from-violet-500 to-purple-500',
+  'from-rose-500 to-pink-500', 'from-teal-500 to-cyan-500',
 ];
 
 const COMPLETED_STATUSES = new Set(['resolved', 'closed', 'completed']);
 
 const normalizeEnquiry = (raw, idx) => ({
-  id:            raw._id || raw.id || `idx-${idx}`,
-  name:          [raw.userId?.firstName, raw.userId?.lastName].filter(Boolean).join(' ') || 'Unknown',
-  email:         raw.userId?.email || 'N/A',
-  phone:         raw.contactNumber || raw.userId?.phone || '—',
-  subject:       raw.title || raw.description || 'No subject',
-  message:       raw.description || '',
-  status:        raw.status || 'new',
-  priority:      raw.priority || 'medium',
-  date:          raw.createdAt ? new Date(raw.createdAt).toLocaleDateString() : '—',
-  avatar:        `${raw.userId?.firstName?.[0] || 'U'}${raw.userId?.lastName?.[0] || ''}`.toUpperCase(),
+  id: raw._id || raw.id || `idx-${idx}`,
+  name: [raw.userId?.firstName, raw.userId?.lastName].filter(Boolean).join(' ') || 'Unknown',
+  email: raw.userId?.email || 'N/A',
+  phone: raw.contactNumber || raw.userId?.phone || '—',
+  subject: raw.title || raw.description || 'No subject',
+  message: raw.description || '',
+  status: raw.status || 'new',
+  priority: raw.priority || 'medium',
+  date: raw.createdAt ? new Date(raw.createdAt).toLocaleDateString() : '—',
+  avatar: `${raw.userId?.firstName?.[0] || 'U'}${raw.userId?.lastName?.[0] || ''}`.toUpperCase(),
   estimatedCost: raw.estimatedCost || 0,
-  actualCost:    raw.actualCost || 0,
-  enquiryId:     raw.enquiryId || raw._id || raw.id || `idx-${idx}`,
+  actualCost: raw.actualCost || 0,
+  enquiryId: raw.enquiryId || raw._id || raw.id || `idx-${idx}`,
   auctionStarted: raw.auctionStarted || false,
 });
 
 /* ─── Stat Card ──────────────────────────────────────────────────────────── */
 const StatCard = ({ label, value, icon, accent, sub }) => (
-  <div className="relative overflow-hidden rounded-2xl bg-gray-900 border border-white/[0.06] p-5 hover:border-white/[0.1] transition-all duration-300 group">
+  <div className="relative overflow-hidden rounded-2xl bg-white border border-white/[0.06] p-5 hover:border-white/[0.1] transition-all duration-300 group">
     <div className={`absolute -top-5 -right-5 w-20 h-20 rounded-full blur-2xl opacity-20 group-hover:opacity-30 transition-opacity duration-300 ${accent}`} />
     <div className="flex items-center justify-between mb-3">
       <span className={`w-9 h-9 rounded-xl flex items-center justify-center ${accent} bg-opacity-20`}>{icon}</span>
-      <span className="text-white/20 text-xs font-medium">{sub}</span>
+      <span className="indigo-500/20 text-xs font-medium">{sub}</span>
     </div>
-    <p className="text-white text-2xl font-bold tracking-tight">{value}</p>
-    <p className="text-white/35 text-xs font-medium mt-0.5 tracking-wide uppercase">{label}</p>
+    <p className="indigo-500 text-2xl font-bold tracking-tight">{value}</p>
+    <p className="indigo-500/35 text-xs font-medium mt-0.5 tracking-wide uppercase">{label}</p>
   </div>
 );
 
@@ -65,7 +65,7 @@ const Pagination = ({ pagination, onPageChange }) => {
 
   const { page, pages, total, limit } = pagination;
   const from = (page - 1) * limit + 1;
-  const to   = Math.min(page * limit, total);
+  const to = Math.min(page * limit, total);
 
   // Build page number array with ellipsis logic
   const getPageNumbers = () => {
@@ -102,9 +102,9 @@ const Pagination = ({ pagination, onPageChange }) => {
   return (
     <div className="px-5 py-3 border-t border-white/[0.05] flex flex-col sm:flex-row items-center justify-between gap-3 bg-white/[0.01]">
       {/* Info */}
-      <span className="text-white/25 text-xs order-2 sm:order-1">
-        Showing <span className="text-white/45 font-medium">{from}–{to}</span> of{' '}
-        <span className="text-white/45 font-medium">{total}</span> completed enquiries
+      <span className="indigo-500/25 text-xs order-2 sm:order-1">
+        Showing <span className="indigo-500/45 font-medium">{from}–{to}</span> of{' '}
+        <span className="indigo-500/45 font-medium">{total}</span> completed enquiries
       </span>
 
       {/* Controls */}
@@ -113,7 +113,7 @@ const Pagination = ({ pagination, onPageChange }) => {
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={page === 1}
-          className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.05] text-white/40 hover:bg-white/[0.09] hover:text-white/70 disabled:opacity-25 disabled:cursor-not-allowed transition-all"
+          className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.05] indigo-500/40 hover:bg-white/[0.09] hover:indigo-500/70 disabled:opacity-25 disabled:cursor-not-allowed transition-all"
           title="Previous page"
         >
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -124,18 +124,17 @@ const Pagination = ({ pagination, onPageChange }) => {
         {/* Page numbers */}
         {pageNumbers.map((p, i) =>
           p === '...' ? (
-            <span key={`dots-${i}`} className="w-8 h-8 flex items-center justify-center text-white/20 text-xs select-none">
+            <span key={`dots-${i}`} className="w-8 h-8 flex items-center justify-center indigo-500/20 text-xs select-none">
               ···
             </span>
           ) : (
             <button
               key={p}
               onClick={() => onPageChange(p)}
-              className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all ${
-                p === page
-                  ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/30'
-                  : 'bg-white/[0.05] text-white/40 hover:bg-white/[0.09] hover:text-white/70'
-              }`}
+              className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all ${p === page
+                ? 'bg-teal-500 indigo-500 shadow-lg shadow-teal-500/30'
+                : 'bg-white/[0.05] indigo-500/40 hover:bg-white/[0.09] hover:indigo-500/70'
+                }`}
             >
               {p}
             </button>
@@ -146,7 +145,7 @@ const Pagination = ({ pagination, onPageChange }) => {
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={page === pages}
-          className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.05] text-white/40 hover:bg-white/[0.09] hover:text-white/70 disabled:opacity-25 disabled:cursor-not-allowed transition-all"
+          className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.05] indigo-500/40 hover:bg-white/[0.09] hover:indigo-500/70 disabled:opacity-25 disabled:cursor-not-allowed transition-all"
           title="Next page"
         >
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -163,21 +162,21 @@ const StartAuctionModal = ({ enquiry, onClose, onConfirm, loading }) => {
   if (!enquiry) return null;
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center indigo-500/60 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="bg-gray-900 border border-white/[0.1] rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl"
+        className="bg-white border border-white/[0.1] rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
         <div className="w-12 h-12 rounded-2xl bg-teal-500/15 flex items-center justify-center mb-4 mx-auto">
           <svg className="w-6 h-6 text-teal-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.845v6.31a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.845v6.31a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
           </svg>
         </div>
 
-        <h3 className="text-white font-bold text-lg text-center mb-1">Start Auction</h3>
-        <p className="text-white/40 text-sm text-center mb-1">
+        <h3 className="indigo-500 font-bold text-lg text-center mb-1">Start Auction</h3>
+        <p className="indigo-500/40 text-sm text-center mb-1">
           You're about to start an auction for:
         </p>
         <p className="text-teal-400 text-sm font-semibold text-center mb-5 truncate px-2">
@@ -186,20 +185,20 @@ const StartAuctionModal = ({ enquiry, onClose, onConfirm, loading }) => {
 
         <div className="bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 mb-5 space-y-1.5">
           <div className="flex justify-between text-xs">
-            <span className="text-white/35">Enquiry ID</span>
-            <span className="text-white/60 font-medium">#{enquiry.enquiryId}</span>
+            <span className="indigo-500/35">Enquiry ID</span>
+            <span className="indigo-500/60 font-medium">#{enquiry.enquiryId}</span>
           </div>
           <div className="flex justify-between text-xs">
-            <span className="text-white/35">Customer</span>
-            <span className="text-white/60 font-medium">{enquiry.name}</span>
+            <span className="indigo-500/35">Customer</span>
+            <span className="indigo-500/60 font-medium">{enquiry.name}</span>
           </div>
           <div className="flex justify-between text-xs">
-            <span className="text-white/35">Status</span>
+            <span className="indigo-500/35">Status</span>
             <span className="text-teal-400 font-medium capitalize">{enquiry.status}</span>
           </div>
         </div>
 
-        <p className="text-white/25 text-xs text-center mb-5">
+        <p className="indigo-500/25 text-xs text-center mb-5">
           This action will notify all eligible bidders. It cannot be undone.
         </p>
 
@@ -207,14 +206,14 @@ const StartAuctionModal = ({ enquiry, onClose, onConfirm, loading }) => {
           <button
             onClick={onClose}
             disabled={loading}
-            className="flex-1 px-4 py-2.5 rounded-xl bg-white/[0.05] text-white/60 text-sm font-semibold hover:bg-white/[0.08] transition-colors disabled:opacity-50"
+            className="flex-1 px-4 py-2.5 rounded-xl bg-white/[0.05] indigo-500/60 text-sm font-semibold hover:bg-white/[0.08] transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="flex-1 px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-white text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 indigo-500 text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -241,12 +240,12 @@ const StartAuctionModal = ({ enquiry, onClose, onConfirm, loading }) => {
 
 /* ─── Main Component ─────────────────────────────────────────────────────── */
 const EnquiriesDetails = () => {
-  const [enquiries,      setEnquiries]      = useState([]);
-  const [loading,        setLoading]        = useState(true);
-  const [search,         setSearch]         = useState('');
-  const [filterStatus,   setFilter]         = useState('all');
-  const [selectedId,     setSelectedId]     = useState(null);
-  const [auctionModal,   setAuctionModal]   = useState(null);
+  const [enquiries, setEnquiries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [filterStatus, setFilter] = useState('all');
+  const [selectedId, setSelectedId] = useState(null);
+  const [auctionModal, setAuctionModal] = useState(null);
   const [auctionLoading, setAuctionLoading] = useState(false);
   const [auctionStarted, setAuctionStarted] = useState(new Set());
 
@@ -255,7 +254,7 @@ const EnquiriesDetails = () => {
 
   const toast = useToast();
 
-  const token      = () => localStorage.getItem('adminToken');
+  const token = () => localStorage.getItem('adminToken');
   const authHeader = () => ({ Authorization: `Bearer ${token()}` });
 
   /* ── Fetch ──────────────────────────────────────────────────────────────── */
@@ -276,8 +275,8 @@ const EnquiriesDetails = () => {
         }
       );
 
-      const rawList        = res.data?.data ?? res.data ?? [];
-      const rawPagination  = res.data?.pagination ?? null;
+      const rawList = res.data?.data ?? res.data ?? [];
+      const rawPagination = res.data?.pagination ?? null;
 
       const list = Array.isArray(rawList) ? rawList : [];
 
@@ -336,9 +335,9 @@ const EnquiriesDetails = () => {
 
   /* ── Counts (use pagination.total for "all" so it reflects server count) ── */
   const counts = {
-    all:       pagination.total,
-    resolved:  enquiries.filter(e => e.status === 'resolved').length,
-    closed:    enquiries.filter(e => e.status === 'closed').length,
+    all: pagination.total,
+    resolved: enquiries.filter(e => e.status === 'resolved').length,
+    closed: enquiries.filter(e => e.status === 'closed').length,
     completed: enquiries.filter(e => e.status === 'completed').length,
   };
 
@@ -346,17 +345,17 @@ const EnquiriesDetails = () => {
      Note: if your API accepts search/status params (recommended), the
      server handles filtering and `filtered` === `enquiries` here.          */
   const filtered = enquiries.filter(e => {
-    const hay         = `${e.name} ${e.subject} ${e.id} ${e.email} ${e.enquiryId}`.toLowerCase();
+    const hay = `${e.name} ${e.subject} ${e.id} ${e.email} ${e.enquiryId}`.toLowerCase();
     const matchSearch = !search || hay.includes(search.toLowerCase());
     const matchStatus = filterStatus === 'all' || e.status === filterStatus;
     return matchSearch && matchStatus;
   });
 
   const filterTabs = [
-    { key: 'all',       label: 'All Completed' },
-    { key: 'resolved',  label: 'Resolved'      },
-    { key: 'closed',    label: 'Closed'         },
-    { key: 'completed', label: 'Completed'      },
+    { key: 'all', label: 'All Completed' },
+    { key: 'resolved', label: 'Resolved' },
+    { key: 'closed', label: 'Closed' },
+    { key: 'completed', label: 'Completed' },
   ];
 
   if (selectedId) {
@@ -372,20 +371,20 @@ const EnquiriesDetails = () => {
     <div className="w-full">
       {/* Page Title */}
       <div className="mb-6">
-        <h1 className="text-white text-xl font-bold">Completed Enquiries</h1>
-        <p className="text-white/35 text-sm mt-0.5">All resolved, closed and completed enquiries</p>
+        <h1 className="indigo-500 text-xl font-bold">Completed Enquiries</h1>
+        <p className="indigo-500/35 text-sm mt-0.5">All resolved, closed and completed enquiries</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-        <StatCard label="Total Completed" value={counts.all}       sub="All time" accent="bg-teal-500"
+        <StatCard label="Total Completed" value={counts.all} sub="All time" accent="bg-teal-500"
           icon={<svg className="w-4 h-4 text-teal-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12" /></svg>} />
-        <StatCard label="Resolved"        value={counts.resolved}  sub="Fixed"    accent="bg-emerald-500"
-          icon={<svg className="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>} />
-        <StatCard label="Closed"          value={counts.closed}    sub="Archived" accent="bg-gray-500"
-          icon={<svg className="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>} />
-        <StatCard label="Completed"       value={counts.completed} sub="Done"     accent="bg-indigo-500"
-          icon={<svg className="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>} />
+        <StatCard label="Resolved" value={counts.resolved} sub="Fixed" accent="bg-emerald-500"
+          icon={<svg className="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>} />
+        <StatCard label="Closed" value={counts.closed} sub="Archived" accent="bg-gray-500"
+          icon={<svg className="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /><line x1="3" y1="9" x2="21" y2="9" /></svg>} />
+        <StatCard label="Completed" value={counts.completed} sub="Done" accent="bg-indigo-500"
+          icon={<svg className="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>} />
       </div>
 
       {/* Filter tabs + search */}
@@ -396,12 +395,11 @@ const EnquiriesDetails = () => {
               <button
                 key={tab.key}
                 onClick={() => setFilter(tab.key)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 whitespace-nowrap ${
-                  filterStatus === tab.key ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/30' : 'text-white/35 hover:text-white/60'
-                }`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 whitespace-nowrap ${filterStatus === tab.key ? 'bg-teal-500 indigo-500 shadow-lg shadow-teal-500/30' : 'indigo-500/35 hover:indigo-500/60'
+                  }`}
               >
                 {tab.label}
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${filterStatus === tab.key ? 'bg-white/20 text-white' : 'bg-white/[0.08] text-white/40'}`}>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${filterStatus === tab.key ? 'bg-white/20 indigo-500' : 'bg-white/[0.08] indigo-500/40'}`}>
                   {counts[tab.key] ?? 0}
                 </span>
               </button>
@@ -409,25 +407,25 @@ const EnquiriesDetails = () => {
           </div>
         </div>
         <div className="relative w-full sm:w-64">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 indigo-500/25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
           <input
             type="text" placeholder="Search enquiries…" value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full bg-white/[0.04] border border-white/[0.07] rounded-xl pl-9 pr-4 py-2 text-white/70 text-sm placeholder-white/20 outline-none focus:border-teal-500/50 focus:bg-white/[0.06] transition-all duration-200"
+            className="w-full bg-white/[0.04] border indigo-500 rounded-xl pl-9 pr-4 py-2 indigo-500/70 text-sm indigo-500 outline-none focus:border-teal-500/50 focus:bg-white/[0.06] transition-all duration-200"
           />
         </div>
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl bg-gray-900 border border-white/[0.06] overflow-hidden">
+      <div className="rounded-2xl bg-white border border-white/[0.06] overflow-hidden">
         <div className="overflow-x-auto">
           <div className="min-w-[780px]">
             {/* Headers */}
             <div className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr_180px] gap-4 px-5 py-3 border-b border-white/[0.05] bg-white/[0.02]">
               {['Sender', 'Subject', 'Priority', 'Status', 'Cost', 'Actions'].map(h => (
-                <span key={h} className="text-white/25 text-[10px] font-bold tracking-widest uppercase">{h}</span>
+                <span key={h} className="indigo-500/25 text-[10px] font-bold tracking-widest uppercase">{h}</span>
               ))}
             </div>
 
@@ -463,12 +461,12 @@ const EnquiriesDetails = () => {
             {!loading && filtered.length === 0 && (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <div className="w-12 h-12 rounded-xl bg-white/[0.04] flex items-center justify-center mb-3">
-                  <svg className="w-5 h-5 text-white/20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg className="w-5 h-5 indigo-500/20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 </div>
-                <p className="text-white/30 text-sm font-medium">No completed enquiries found</p>
-                <p className="text-white/15 text-xs mt-1">
+                <p className="indigo-500/30 text-sm font-medium">No completed enquiries found</p>
+                <p className="indigo-500/15 text-xs mt-1">
                   {filterStatus !== 'all'
                     ? `No "${filterStatus}" enquiries${search ? ' matching your search' : ''}`
                     : 'No completed enquiries yet'}
@@ -483,8 +481,8 @@ const EnquiriesDetails = () => {
 
             {/* Rows */}
             {!loading && filtered.map((enq, idx) => {
-              const sc   = statusConfig[enq.status] || { label: enq.status, bg: 'bg-gray-500/15', text: 'text-gray-400', dot: 'bg-gray-400' };
-              const pc   = priorityConfig[enq.priority] || { label: enq.priority, bg: 'bg-gray-500/10', text: 'text-gray-400', border: 'border-gray-500/20' };
+              const sc = statusConfig[enq.status] || { label: enq.status, bg: 'bg-gray-500/15', text: 'text-gray-400', dot: 'bg-gray-400' };
+              const pc = priorityConfig[enq.priority] || { label: enq.priority, bg: 'bg-gray-500/10', text: 'text-gray-400', border: 'border-gray-500/20' };
               const grad = avatarGradients[idx % avatarGradients.length];
               const hasAuctionStarted = auctionStarted.has(enq.id) || enq.auctionStarted;
 
@@ -495,19 +493,19 @@ const EnquiriesDetails = () => {
                 >
                   {/* Sender */}
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
+                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center indigo-500 text-xs font-bold flex-shrink-0`}>
                       {enq.avatar}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-white/85 text-sm font-medium truncate">{enq.name}</p>
-                      <p className="text-white/30 text-xs truncate">{enq.email}</p>
+                      <p className="indigo-500/85 text-sm font-medium truncate">{enq.name}</p>
+                      <p className="indigo-500/30 text-xs truncate">{enq.email}</p>
                     </div>
                   </div>
 
                   {/* Subject */}
                   <div className="min-w-0 cursor-pointer" onClick={() => setSelectedId(enq.id)}>
-                    <p className="text-white/70 text-sm truncate hover:text-teal-400 transition-colors">{enq.subject}</p>
-                    <p className="text-white/25 text-xs mt-0.5">{enq.date}</p>
+                    <p className="indigo-500/70 text-sm truncate hover:text-teal-400 transition-colors">{enq.subject}</p>
+                    <p className="indigo-500/25 text-xs mt-0.5">{enq.date}</p>
                   </div>
 
                   {/* Priority */}
@@ -532,7 +530,7 @@ const EnquiriesDetails = () => {
                     ) : enq.estimatedCost > 0 ? (
                       <p className="text-amber-400/70 text-xs">Est. ₹{enq.estimatedCost.toLocaleString()}</p>
                     ) : (
-                      <p className="text-white/20 text-xs">—</p>
+                      <p className="indigo-500/20 text-xs">—</p>
                     )}
                   </div>
 
@@ -559,11 +557,11 @@ const EnquiriesDetails = () => {
                     )}
                     <button
                       onClick={() => setSelectedId(enq.id)}
-                      className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.05] text-white/40 hover:bg-white/[0.08] hover:text-white/70 transition-all"
+                      className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.05] indigo-500/40 hover:bg-white/[0.08] hover:indigo-500/70 transition-all"
                       title="View Details"
                     >
                       <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
                       </svg>
                     </button>
                   </div>

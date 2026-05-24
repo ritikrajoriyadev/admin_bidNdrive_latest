@@ -15,6 +15,10 @@ export default function AdminLogin() {
 
   const Navigate = useNavigate();
 
+  if (localStorage.getItem("adminToken")) {
+    Navigate("/dashboard");
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -88,26 +92,26 @@ export default function AdminLogin() {
         className="relative z-10 w-full max-w-md px-4"
       >
         {/* Card Container */}
-        <div className="rounded-3xl bg-gray-900/40 backdrop-blur-2xl border border-white/[0.08] shadow-2xl overflow-hidden">
-          
+        <div className="rounded-3xl bg-white/40 backdrop-blur-2xl border border-white/[0.08] shadow-2xl overflow-hidden">
+
           {/* Header Section */}
           <div className="relative p-8 bg-gradient-to-b from-indigo-500/10 to-transparent border-b border-white/[0.08]">
             <motion.div custom={0} variants={itemVariants} className="flex flex-col items-center gap-3 mb-2">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
               <div className="text-center">
-                <h1 className="text-3xl font-bold text-white">Admin Panel</h1>
-                <p className="text-white/40 text-sm mt-1">BidNDrive Management</p>
+                <h1 className="text-3xl font-bold indigo-500">Admin Panel</h1>
+                <p className="indigo-500/40 text-sm mt-1">BidNDrive Management</p>
               </div>
             </motion.div>
           </div>
 
           {/* Form Section */}
           <div className="p-8">
-            
+
             {/* Error Message */}
             {error && (
               <motion.div
@@ -139,16 +143,16 @@ export default function AdminLogin() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Email Field */}
               <motion.div custom={1} variants={itemVariants} className="flex flex-col gap-2">
-                <label className="text-white/60 text-sm font-medium">Email Address</label>
+                <label className="indigo-500/60 text-sm font-medium">Email Address</label>
                 <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 group-focus-within:text-indigo-400 transition-colors" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 indigo-500/30 group-focus-within:text-indigo-400 transition-colors" />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={loading}
                     required
-                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-gray-800/50 border border-white/[0.08] text-white placeholder-white/20 focus:border-indigo-400/50 focus:bg-gray-800/80 focus:outline-none transition-all duration-200 disabled:opacity-50"
+                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-gray-800/50 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:bg-gray-800/80 focus:outline-none transition-all duration-200 disabled:opacity-50"
                     placeholder="admin@example.com"
                   />
                 </div>
@@ -156,23 +160,23 @@ export default function AdminLogin() {
 
               {/* Password Field */}
               <motion.div custom={2} variants={itemVariants} className="flex flex-col gap-2">
-                <label className="text-white/60 text-sm font-medium">Password</label>
+                <label className="indigo-500/60 text-sm font-medium">Password</label>
                 <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 group-focus-within:text-indigo-400 transition-colors" />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 indigo-500/30 group-focus-within:text-indigo-400 transition-colors" />
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={loading}
                     required
-                    className="w-full pl-12 pr-12 py-3 rounded-xl bg-gray-800/50 border border-white/[0.08] text-white placeholder-white/20 focus:border-indigo-400/50 focus:bg-gray-800/80 focus:outline-none transition-all duration-200 disabled:opacity-50"
+                    className="w-full pl-12 pr-12 py-3 rounded-xl bg-gray-800/50 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:bg-gray-800/80 focus:outline-none transition-all duration-200 disabled:opacity-50"
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={loading}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors disabled:opacity-50"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 indigo-500/30 hover:indigo-500/60 transition-colors disabled:opacity-50"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -189,12 +193,12 @@ export default function AdminLogin() {
                     disabled={loading}
                     className="w-4 h-4 rounded bg-gray-800 border border-white/[0.08] checked:bg-indigo-500 checked:border-indigo-400 focus:outline-none cursor-pointer disabled:opacity-50"
                   />
-                  <span className="text-white/40 text-sm group-hover:text-white/60 transition-colors">Remember me</span>
+                  <span className="indigo-500/40 text-sm group-hover:indigo-500/60 transition-colors">Remember me</span>
                 </label>
                 <button
                   type="button"
                   disabled={loading}
-                  className="text-white/40 hover:text-indigo-400 text-sm font-medium transition-colors disabled:opacity-50"
+                  className="indigo-500/40 hover:text-indigo-400 text-sm font-medium transition-colors disabled:opacity-50"
                 >
                   Forgot password?
                 </button>
@@ -206,7 +210,7 @@ export default function AdminLogin() {
                 variants={itemVariants}
                 type="submit"
                 disabled={loading || success}
-                className="w-full py-3 mt-6 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 text-white font-semibold hover:shadow-lg hover:shadow-indigo-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+                className="w-full py-3 mt-6 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 indigo-500 font-semibold hover:shadow-lg hover:shadow-indigo-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -225,13 +229,13 @@ export default function AdminLogin() {
                 <div className="w-full border-t border-white/[0.08]" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gray-900/40 text-white/40">Need help?</span>
+                <span className="px-2 bg-white/40 indigo-500/40">Need help?</span>
               </div>
             </motion.div>
 
             {/* Contact Info */}
             <motion.div custom={6} variants={itemVariants} className="text-center">
-              <p className="text-white/40 text-sm">
+              <p className="indigo-500/40 text-sm">
                 Contact support at{" "}
                 <a href="mailto:support@bidndrive.com" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
                   support@bidndrive.com
@@ -241,15 +245,15 @@ export default function AdminLogin() {
           </div>
 
           {/* Footer */}
-          <div className="px-8 py-4 border-t border-white/[0.08] bg-black/20">
-            <p className="text-center text-xs text-white/30">
+          <div className="px-8 py-4 border-t border-white/[0.08] indigo-500/20">
+            <p className="text-center text-xs indigo-500/30">
               © 2026 BidNDrive • All rights reserved
             </p>
           </div>
         </div>
 
         {/* Security Notice */}
-        <motion.div custom={7} variants={itemVariants} className="mt-6 flex items-center justify-center gap-2 text-xs text-white/40">
+        <motion.div custom={7} variants={itemVariants} className="mt-6 flex items-center justify-center gap-2 text-xs indigo-500/40">
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
           </svg>

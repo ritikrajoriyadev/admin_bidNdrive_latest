@@ -20,16 +20,16 @@ const Sparkline = ({ data, color }) => {
 
 // ── Stat Card ─────────────────────────────────────────────────────
 const StatCard = ({ title, value, change, positive, icon, sparkData, accent }) => (
-  <div className={`relative overflow-hidden rounded-2xl bg-gray-900 border border-white/[0.06] p-5 flex flex-col gap-4 hover:border-white/[0.12] transition-all duration-300 group`}>
+  <div className={`relative overflow-hidden rounded-2xl bg-white border border-white/[0.06] p-5 flex flex-col gap-4 hover:border-white/[0.12] transition-all duration-300 group`}>
     {/* Glow blob */}
     <div className={`absolute -top-6 -right-6 w-24 h-24 rounded-full blur-2xl opacity-20 group-hover:opacity-30 transition-opacity duration-300 ${accent}`} />
 
     <div className="flex items-start justify-between">
       <div>
-        <p className="text-white/40 text-xs font-medium tracking-widest uppercase">{title}</p>
-        <p className="text-white text-2xl font-bold mt-1 tracking-tight">{value}</p>
+        <p className="indigo-500/40 text-xs font-medium tracking-widest uppercase">{title}</p>
+        <p className="indigo-500 text-2xl font-bold mt-1 tracking-tight">{value}</p>
       </div>
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white/80 ${accent} bg-opacity-20`}>
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center indigo-500/80 ${accent} bg-opacity-20`}>
         {icon}
       </div>
     </div>
@@ -46,14 +46,14 @@ const StatCard = ({ title, value, change, positive, icon, sparkData, accent }) =
 // ── Recent Activity Item ──────────────────────────────────────────
 const ActivityItem = ({ avatar, name, action, time, tag, tagColor }) => (
   <div className="flex items-center gap-3 py-3 border-b border-white/[0.05] last:border-0 hover:bg-white/[0.02] -mx-4 px-4 rounded-lg transition-colors duration-150 cursor-pointer">
-    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center indigo-500 text-xs font-bold flex-shrink-0">
       {avatar}
     </div>
     <div className="flex-1 min-w-0">
-      <p className="text-white/80 text-sm font-medium truncate">
-        <span className="text-white font-semibold">{name}</span> {action}
+      <p className="indigo-500/80 text-sm font-medium truncate">
+        <span className="indigo-500 font-semibold">{name}</span> {action}
       </p>
-      <p className="text-white/30 text-xs mt-0.5">{time}</p>
+      <p className="indigo-500/30 text-xs mt-0.5">{time}</p>
     </div>
     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${tagColor}`}>{tag}</span>
   </div>
@@ -63,8 +63,8 @@ const ActivityItem = ({ avatar, name, action, time, tag, tagColor }) => (
 const ProgressBar = ({ label, value, max, color }) => (
   <div className="flex flex-col gap-1.5">
     <div className="flex justify-between items-center">
-      <span className="text-white/60 text-xs font-medium">{label}</span>
-      <span className="text-white/40 text-xs">{Math.round((value / max) * 100)}%</span>
+      <span className="indigo-500/60 text-xs font-medium">{label}</span>
+      <span className="indigo-500/40 text-xs">{Math.round((value / max) * 100)}%</span>
     </div>
     <div className="h-1.5 bg-white/[0.07] rounded-full overflow-hidden">
       <div
@@ -115,7 +115,7 @@ const Dashboard = () => {
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
           <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-      </svg>
+        </svg>
       ),
     },
     {
@@ -175,7 +175,7 @@ const Dashboard = () => {
   const barLabels = { day: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], week: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7'], month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'], year: ['2018', '2019', '2020', '2021', '2022', '2023', '2024'] };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white font-sans">
+    <div className="min-h-screen bg-white indigo-500 font-sans">
 
       {/* ── Welcome Banner ── */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-700 p-6 mb-6 flex items-center justify-between">
@@ -185,7 +185,7 @@ const Dashboard = () => {
 
         <Greeting name="Admin" />
         <div className="relative z-10 hidden sm:flex flex-col items-end gap-1">
-          <span className="text-white/60 text-xs">
+          <span className="indigo-500/60 text-xs">
             {currentTime.toLocaleDateString('en-IN', {
               weekday: 'long',
               day: 'numeric',
@@ -194,7 +194,7 @@ const Dashboard = () => {
             })}
           </span>
 
-          <span className="text-white text-3xl font-bold">
+          <span className="indigo-500 text-3xl font-bold">
             {currentTime.toLocaleTimeString('en-IN', {
               hour: '2-digit',
               minute: '2-digit',
@@ -213,18 +213,18 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-4">
 
         {/* Bar Chart */}
-        <div className="xl:col-span-2 rounded-2xl bg-gray-900 border border-white/[0.06] p-5">
+        <div className="xl:col-span-2 rounded-2xl bg-white border border-white/[0.06] p-5">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="text-white font-semibold text-base">Revenue Overview</h3>
-              <p className="text-white/30 text-xs mt-0.5">Performance across selected period</p>
+              <h3 className="indigo-500 font-semibold text-base">Revenue Overview</h3>
+              <p className="indigo-500/30 text-xs mt-0.5">Performance across selected period</p>
             </div>
             <div className="flex gap-1 bg-white/[0.05] rounded-lg p-1">
               {tabs.map(t => (
                 <button
                   key={t}
                   onClick={() => setActiveTab(t)}
-                  className={`px-3 py-1 rounded-md text-xs font-semibold capitalize transition-all duration-200 ${activeTab === t ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'text-white/40 hover:text-white/70'}`}
+                  className={`px-3 py-1 rounded-md text-xs font-semibold capitalize transition-all duration-200 ${activeTab === t ? 'bg-indigo-500 indigo-500 shadow-lg shadow-indigo-500/30' : 'indigo-500/40 hover:indigo-500/70'}`}
                 >
                   {t}
                 </button>
@@ -240,20 +240,20 @@ const Dashboard = () => {
                   className="w-full rounded-t-lg bg-gradient-to-t from-indigo-600 to-violet-400 transition-all duration-500 hover:from-indigo-500 hover:to-violet-300 cursor-pointer relative group"
                   style={{ height: `${val}%` }}
                 >
-                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-gray-800 indigo-500 text-[10px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                     {val}%
                   </div>
                 </div>
-                <span className="text-white/25 text-[9px] font-medium">{barLabels[activeTab][i]}</span>
+                <span className="indigo-500/25 text-[9px] font-medium">{barLabels[activeTab][i]}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Top Products */}
-        <div className="rounded-2xl bg-gray-900 border border-white/[0.06] p-5">
-          <h3 className="text-white font-semibold text-base mb-1">Top Products</h3>
-          <p className="text-white/30 text-xs mb-5">Sales distribution this month</p>
+        <div className="rounded-2xl bg-white border border-white/[0.06] p-5">
+          <h3 className="indigo-500 font-semibold text-base mb-1">Top Products</h3>
+          <p className="indigo-500/30 text-xs mb-5">Sales distribution this month</p>
           <div className="flex flex-col gap-4">
             {topProducts.map((p) => (
               <ProgressBar key={p.name} label={p.name} value={p.sales} max={p.max} color={p.color} />
@@ -274,8 +274,8 @@ const Dashboard = () => {
                 </defs>
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-white text-lg font-bold">80%</span>
-                <span className="text-white/30 text-[9px]">Target</span>
+                <span className="indigo-500 text-lg font-bold">80%</span>
+                <span className="indigo-500/30 text-[9px]">Target</span>
               </div>
             </div>
           </div>
@@ -286,11 +286,11 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
 
         {/* Recent Activity */}
-        <div className="xl:col-span-2 rounded-2xl bg-gray-900 border border-white/[0.06] p-5">
+        <div className="xl:col-span-2 rounded-2xl bg-white border border-white/[0.06] p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-white font-semibold text-base">Recent Activity</h3>
-              <p className="text-white/30 text-xs mt-0.5">Latest actions across the platform</p>
+              <h3 className="indigo-500 font-semibold text-base">Recent Activity</h3>
+              <p className="indigo-500/30 text-xs mt-0.5">Latest actions across the platform</p>
             </div>
             <button className="text-indigo-400 text-xs font-semibold hover:text-indigo-300 transition-colors">View all →</button>
           </div>
@@ -300,10 +300,10 @@ const Dashboard = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className="rounded-2xl bg-gray-900 border border-white/[0.06] p-5 flex flex-col gap-4">
+        <div className="rounded-2xl bg-white border border-white/[0.06] p-5 flex flex-col gap-4">
           <div>
-            <h3 className="text-white font-semibold text-base">Quick Stats</h3>
-            <p className="text-white/30 text-xs mt-0.5">Platform snapshot</p>
+            <h3 className="indigo-500 font-semibold text-base">Quick Stats</h3>
+            <p className="indigo-500/30 text-xs mt-0.5">Platform snapshot</p>
           </div>
 
           {[
@@ -316,14 +316,14 @@ const Dashboard = () => {
             <div key={item.label} className="flex items-center justify-between py-2.5 border-b border-white/[0.05] last:border-0">
               <div className="flex items-center gap-2.5">
                 <span className="text-base">{item.icon}</span>
-                <span className="text-white/50 text-sm">{item.label}</span>
+                <span className="indigo-500/50 text-sm">{item.label}</span>
               </div>
               <span className={`text-sm font-bold ${item.color}`}>{item.value}</span>
             </div>
           ))}
 
           {/* CTA */}
-          <button className="mt-auto w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 text-white text-sm font-semibold hover:from-indigo-400 hover:to-violet-400 transition-all duration-200 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40">
+          <button className="mt-auto w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 indigo-500 text-sm font-semibold hover:from-indigo-400 hover:to-violet-400 transition-all duration-200 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40">
             Generate Report →
           </button>
         </div>

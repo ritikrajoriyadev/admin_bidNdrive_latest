@@ -7,24 +7,24 @@ import {
 
 /* ─── Stat Card ─────────────────────────────────────────────────────────── */
 const StatCard = ({ label, value, icon, accentClass, change }) => (
-  <div className="relative overflow-hidden rounded-2xl bg-gray-900 border border-white/6 p-5 hover:border-white/10 transition-all duration-300">
+  <div className="relative overflow-hidden rounded-2xl bg-white border border-white/6 p-5 hover:border-white/10 transition-all duration-300">
     <div className={`absolute -top-6 -right-6 w-24 h-24 rounded-full blur-2xl opacity-15 ${accentClass}`} />
     <div className="flex items-center justify-between mb-4">
-      <span className="w-9 h-9 rounded-xl bg-white/6 flex items-center justify-center text-white/60">{icon}</span>
+      <span className="w-9 h-9 rounded-xl bg-white/6 flex items-center justify-center indigo-500/60">{icon}</span>
       <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">{change}</span>
     </div>
-    <p className="text-white text-2xl font-bold tracking-tight">{value}</p>
-    <p className="text-white/40 text-xs font-medium mt-1 uppercase tracking-widest">{label}</p>
+    <p className="indigo-500 text-2xl font-bold tracking-tight">{value}</p>
+    <p className="indigo-500/40 text-xs font-medium mt-1 uppercase tracking-widest">{label}</p>
   </div>
 );
 
 /* ─── Status Badge ───────────────────────────────────────────────────────── */
 const StatusBadge = ({ status }) => {
   const cfg = {
-    active:    { bg: 'bg-emerald-500/15', text: 'text-emerald-400', dot: 'bg-emerald-400' },
-    inactive:  { bg: 'bg-gray-500/15',    text: 'text-gray-400',    dot: 'bg-gray-400'    },
-    scheduled: { bg: 'bg-blue-500/15',    text: 'text-blue-400',    dot: 'bg-blue-400'    },
-    archived:  { bg: 'bg-red-500/15',     text: 'text-red-400',     dot: 'bg-red-400'     },
+    active: { bg: 'bg-emerald-500/15', text: 'text-emerald-400', dot: 'bg-emerald-400' },
+    inactive: { bg: 'bg-gray-500/15', text: 'text-gray-400', dot: 'bg-gray-400' },
+    scheduled: { bg: 'bg-blue-500/15', text: 'text-blue-400', dot: 'bg-blue-400' },
+    archived: { bg: 'bg-red-500/15', text: 'text-red-400', dot: 'bg-red-400' },
   }[status] || { bg: 'bg-gray-500/15', text: 'text-gray-400', dot: 'bg-gray-400' };
   return (
     <span className={`inline-flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-0.5 rounded-full ${cfg.bg} ${cfg.text}`}>
@@ -37,11 +37,11 @@ const StatusBadge = ({ status }) => {
 /* ─── Type Badge ─────────────────────────────────────────────────────────── */
 const TypeBadge = ({ type }) => {
   const cfg = {
-    popup:   { bg: 'bg-violet-500/15', text: 'text-violet-300' },
-    banner:  { bg: 'bg-blue-500/15',   text: 'text-blue-300'   },
-    overlay: { bg: 'bg-rose-500/15',   text: 'text-rose-300'   },
-    inline:  { bg: 'bg-amber-500/15',  text: 'text-amber-300'  },
-    sticky:  { bg: 'bg-cyan-500/15',   text: 'text-cyan-300'   },
+    popup: { bg: 'bg-violet-500/15', text: 'text-violet-300' },
+    banner: { bg: 'bg-blue-500/15', text: 'text-blue-300' },
+    overlay: { bg: 'bg-rose-500/15', text: 'text-rose-300' },
+    inline: { bg: 'bg-amber-500/15', text: 'text-amber-300' },
+    sticky: { bg: 'bg-cyan-500/15', text: 'text-cyan-300' },
   }[type] || { bg: 'bg-gray-500/15', text: 'text-gray-300' };
   return (
     <span className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full capitalize ${cfg.bg} ${cfg.text}`}>
@@ -54,33 +54,33 @@ const TypeBadge = ({ type }) => {
 const PreviewModal = ({ item, onClose }) => {
   if (!item) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center indigo-500/70 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="relative bg-gray-900 border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl shadow-black/60 overflow-hidden"
+        className="relative bg-white border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl shadow-black/60 overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Modal header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/6">
           <div className="flex items-center gap-2">
             <Eye size={16} className="text-indigo-400" />
-            <p className="text-sm font-semibold text-white">Preview — {item.title}</p>
+            <p className="text-sm font-semibold indigo-500">Preview — {item.title}</p>
           </div>
-          <button onClick={onClose} className="text-white/40 hover:text-white transition"><X size={18} /></button>
+          <button onClick={onClose} className="indigo-500/40 hover:indigo-500 transition"><X size={18} /></button>
         </div>
 
         {/* Simulated device frame */}
         <div className="p-5">
-          <div className="rounded-xl bg-gray-950 border border-white/6 overflow-hidden">
+          <div className="rounded-xl bg-white border border-white/6 overflow-hidden">
             {/* Browser chrome */}
             <div className="flex items-center gap-1.5 px-3 py-2 bg-gray-800 border-b border-white/6">
               <span className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
               <span className="w-2.5 h-2.5 rounded-full bg-amber-500/70" />
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
-              <span className="flex-1 mx-3 h-5 rounded bg-gray-700 text-[10px] text-white/30 px-2 flex items-center">bidndrive.com</span>
+              <span className="flex-1 mx-3 h-5 rounded bg-gray-700 text-[10px] indigo-500/30 px-2 flex items-center">bidndrive.com</span>
             </div>
 
             {/* Page simulation */}
-            <div className="relative h-56 bg-gray-900 flex items-center justify-center">
+            <div className="relative h-56 bg-white flex items-center justify-center">
               {/* Fake page content */}
               <div className="absolute inset-0 p-4 space-y-2 opacity-20">
                 <div className="h-3 bg-white/20 rounded w-3/4" />
@@ -95,10 +95,10 @@ const PreviewModal = ({ item, onClose }) => {
                   {item.image && (
                     <img src={item.image} alt={item.title} className="w-full h-24 object-cover rounded-lg mb-3" />
                   )}
-                  <p className="text-white text-sm font-bold">{item.title}</p>
-                  <p className="text-white/50 text-xs mt-1">{item.description}</p>
+                  <p className="indigo-500 text-sm font-bold">{item.title}</p>
+                  <p className="indigo-500/50 text-xs mt-1">{item.description}</p>
                   {item.ctaLabel && (
-                    <button className="mt-3 w-full py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold">
+                    <button className="mt-3 w-full py-1.5 rounded-lg bg-indigo-600 indigo-500 text-xs font-semibold">
                       {item.ctaLabel}
                     </button>
                   )}
@@ -106,11 +106,11 @@ const PreviewModal = ({ item, onClose }) => {
               ) : item.type === 'sticky' ? (
                 <div className="absolute bottom-0 inset-x-0 z-10 bg-indigo-900/90 border-t border-indigo-500/30 px-4 py-2.5 flex items-center justify-between">
                   <div>
-                    <p className="text-white text-xs font-bold">{item.title}</p>
-                    <p className="text-white/50 text-[10px]">{item.description}</p>
+                    <p className="indigo-500 text-xs font-bold">{item.title}</p>
+                    <p className="indigo-500/50 text-[10px]">{item.description}</p>
                   </div>
                   {item.ctaLabel && (
-                    <button className="px-3 py-1 rounded-lg bg-indigo-500 text-white text-[10px] font-semibold shrink-0 ml-3">
+                    <button className="px-3 py-1 rounded-lg bg-indigo-500 indigo-500 text-[10px] font-semibold shrink-0 ml-3">
                       {item.ctaLabel}
                     </button>
                   )}
@@ -122,7 +122,7 @@ const PreviewModal = ({ item, onClose }) => {
                   ) : (
                     <div className="w-full h-24 rounded-xl bg-indigo-600/20 border border-indigo-500/20 flex flex-col items-center justify-center gap-1">
                       <Megaphone size={22} className="text-indigo-400" />
-                      <p className="text-white text-xs font-bold">{item.title}</p>
+                      <p className="indigo-500 text-xs font-bold">{item.title}</p>
                     </div>
                   )}
                 </div>
@@ -138,8 +138,8 @@ const PreviewModal = ({ item, onClose }) => {
               { label: 'Status', value: item.status },
             ].map(({ label, value }) => (
               <div key={label} className="bg-gray-800 rounded-xl px-3 py-2 text-center">
-                <p className="text-white/40 text-[10px] uppercase tracking-widest">{label}</p>
-                <p className="text-white text-xs font-semibold mt-0.5 capitalize">{value}</p>
+                <p className="indigo-500/40 text-[10px] uppercase tracking-widest">{label}</p>
+                <p className="indigo-500 text-xs font-semibold mt-0.5 capitalize">{value}</p>
               </div>
             ))}
           </div>
@@ -174,12 +174,12 @@ const AdForm = ({ item, onSubmit, onCancel, loading }) => {
 
   const Field = ({ label, children }) => (
     <div>
-      <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-1.5">{label}</label>
+      <label className="block text-xs font-semibold indigo-500/50 uppercase tracking-wider mb-1.5">{label}</label>
       {children}
     </div>
   );
 
-  const inp = 'w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white text-sm placeholder-white/25 focus:outline-none focus:border-indigo-500/50 transition';
+  const inp = 'w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 text-sm placeholder-white/25 focus:outline-none focus:border-indigo-500/50 transition';
 
   return (
     <form onSubmit={e => { e.preventDefault(); onSubmit(form); }} className="space-y-5">
@@ -204,7 +204,7 @@ const AdForm = ({ item, onSubmit, onCancel, loading }) => {
 
       {/* Image Upload */}
       <Field label="Creative Image (optional)">
-        <label htmlFor="adImage" className="flex items-center gap-3 px-4 py-3 bg-gray-800 border-2 border-dashed border-indigo-500/25 rounded-lg cursor-pointer hover:border-indigo-500/50 transition text-white/50 hover:text-white/70">
+        <label htmlFor="adImage" className="flex items-center gap-3 px-4 py-3 bg-gray-800 border-2 border-dashed border-indigo-500/25 rounded-lg cursor-pointer hover:border-indigo-500/50 transition indigo-500/50 hover:indigo-500/70">
           <Upload size={18} />
           <span className="text-sm">Click to upload — PNG, JPG up to 5 MB</span>
           <input id="adImage" type="file" accept="image/*" onChange={handleImage} className="hidden" />
@@ -245,7 +245,7 @@ const AdForm = ({ item, onSubmit, onCancel, loading }) => {
         </Field>
         <Field label="Priority">
           <select name="priority" value={form.priority} onChange={handle} className={inp}>
-            {['1','2','3','4','5'].map(p => <option key={p} value={p}>Priority {p}</option>)}
+            {['1', '2', '3', '4', '5'].map(p => <option key={p} value={p}>Priority {p}</option>)}
           </select>
         </Field>
       </div>
@@ -284,11 +284,11 @@ const AdForm = ({ item, onSubmit, onCancel, loading }) => {
       </div>
 
       <div className="flex gap-3 pt-2">
-        <button type="submit" disabled={loading} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition">
+        <button type="submit" disabled={loading} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 indigo-500 text-sm font-semibold rounded-lg transition">
           <Megaphone size={16} />
           {loading ? 'Saving...' : item ? 'Update' : 'Create'}
         </button>
-        <button type="button" onClick={onCancel} className="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold rounded-lg transition">
+        <button type="button" onClick={onCancel} className="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 indigo-500 text-sm font-semibold rounded-lg transition">
           Cancel
         </button>
       </div>
@@ -410,19 +410,19 @@ export default function AdsPopups() {
     ));
   };
 
-  const totalActive  = items.filter(i => i.status === 'active').length;
-  const totalPopups  = items.filter(i => i.type === 'popup' || i.type === 'overlay').length;
-  const totalViews   = items.reduce((s, i) => s + i.views, 0);
-  const totalClicks  = items.reduce((s, i) => s + i.clicks, 0);
-  const avgCTR       = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(2) : '0.00';
+  const totalActive = items.filter(i => i.status === 'active').length;
+  const totalPopups = items.filter(i => i.type === 'popup' || i.type === 'overlay').length;
+  const totalViews = items.reduce((s, i) => s + i.views, 0);
+  const totalClicks = items.reduce((s, i) => s + i.clicks, 0);
+  const avgCTR = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(2) : '0.00';
 
   const tabs = [
-    { id: 'all',     label: 'All' },
-    { id: 'popup',   label: 'Popups' },
+    { id: 'all', label: 'All' },
+    { id: 'popup', label: 'Popups' },
     { id: 'overlay', label: 'Overlays' },
-    { id: 'sticky',  label: 'Sticky Bar' },
-    { id: 'banner',  label: 'Banners' },
-    { id: 'inline',  label: 'Inline Ads' },
+    { id: 'sticky', label: 'Sticky Bar' },
+    { id: 'banner', label: 'Banners' },
+    { id: 'inline', label: 'Inline Ads' },
   ];
 
   return (
@@ -432,12 +432,12 @@ export default function AdsPopups() {
         {/* ── Header ── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-1">Ads & Popups</h1>
-            <p className="text-white/50">Manage promotional popups, sticky bars, overlays and inline ads</p>
+            <h1 className="text-3xl font-bold indigo-500 mb-1">Ads & Popups</h1>
+            <p className="indigo-500/50">Manage promotional popups, sticky bars, overlays and inline ads</p>
           </div>
           <button
             onClick={() => { setEditingId(null); setShowForm(v => !v); }}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white rounded-xl font-semibold text-sm transition shadow-lg shadow-indigo-500/20"
+            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 indigo-500 rounded-xl font-semibold text-sm transition shadow-lg shadow-indigo-500/20"
           >
             <Plus size={18} /> New Ad / Popup
           </button>
@@ -445,16 +445,16 @@ export default function AdsPopups() {
 
         {/* ── Stats ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Total Items"    value={items.length}              icon={<LayoutTemplate size={18}/>} accentClass="bg-indigo-600"  change={`${totalActive} active`} />
-          <StatCard label="Popups"         value={totalPopups}               icon={<MousePointerClick size={18}/>} accentClass="bg-violet-600" change="modal / overlay" />
-          <StatCard label="Total Views"    value={totalViews.toLocaleString()} icon={<Eye size={18}/>}         accentClass="bg-blue-600"   change="+8.4%" />
-          <StatCard label="Avg CTR"        value={`${avgCTR}%`}              icon={<Megaphone size={18}/>}    accentClass="bg-emerald-600" change={`${totalClicks.toLocaleString()} clicks`} />
+          <StatCard label="Total Items" value={items.length} icon={<LayoutTemplate size={18} />} accentClass="bg-indigo-600" change={`${totalActive} active`} />
+          <StatCard label="Popups" value={totalPopups} icon={<MousePointerClick size={18} />} accentClass="bg-violet-600" change="modal / overlay" />
+          <StatCard label="Total Views" value={totalViews.toLocaleString()} icon={<Eye size={18} />} accentClass="bg-blue-600" change="+8.4%" />
+          <StatCard label="Avg CTR" value={`${avgCTR}%`} icon={<Megaphone size={18} />} accentClass="bg-emerald-600" change={`${totalClicks.toLocaleString()} clicks`} />
         </div>
 
         {/* ── Create / Edit Form ── */}
         {showForm && (
-          <div className="bg-gray-900 border border-white/6 rounded-2xl p-6">
-            <h2 className="text-lg font-bold text-white mb-5">
+          <div className="bg-white border border-white/6 rounded-2xl p-6">
+            <h2 className="text-lg font-bold indigo-500 mb-5">
               {editingId ? 'Edit Ad / Popup' : 'Create New Ad / Popup'}
             </h2>
             <AdForm
@@ -472,11 +472,10 @@ export default function AdsPopups() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${
-                activeTab === tab.id
-                  ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-                  : 'text-white/40 hover:text-white/70 hover:bg-white/5 border border-transparent'
-              }`}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${activeTab === tab.id
+                ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                : 'indigo-500/40 hover:indigo-500/70 hover:bg-white/5 border border-transparent'
+                }`}
             >
               {tab.label}
               <span className="ml-1.5 text-[10px] opacity-60">
@@ -489,18 +488,18 @@ export default function AdsPopups() {
         {/* ── Search & Filter ── */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" size={18} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 indigo-500/30" size={18} />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search by title or description..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-800 border border-white/10 text-white text-sm placeholder-white/25 focus:outline-none focus:border-indigo-500/50 transition"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-800 border border-white/10 indigo-500 text-sm placeholder-white/25 focus:outline-none focus:border-indigo-500/50 transition"
             />
           </div>
           <select
             value={filterStatus}
             onChange={e => setFilterStatus(e.target.value)}
-            className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/10 text-white text-sm focus:outline-none focus:border-indigo-500/50 transition"
+            className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/10 indigo-500 text-sm focus:outline-none focus:border-indigo-500/50 transition"
           >
             <option value="all">All Status</option>
             <option value="active">Active</option>
@@ -512,16 +511,16 @@ export default function AdsPopups() {
 
         {/* ── Card Grid View ── */}
         {filtered.length === 0 ? (
-          <div className="bg-gray-900 border border-white/6 rounded-2xl flex flex-col items-center justify-center py-20 gap-3">
-            <Megaphone size={44} className="text-white/15" />
-            <p className="text-white/40 text-sm">No ads or popups found</p>
+          <div className="bg-white border border-white/6 rounded-2xl flex flex-col items-center justify-center py-20 gap-3">
+            <Megaphone size={44} className="indigo-500/15" />
+            <p className="indigo-500/40 text-sm">No ads or popups found</p>
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {filtered.map(item => {
               const ctr = item.views > 0 ? ((item.clicks / item.views) * 100).toFixed(1) : '0.0';
               return (
-                <div key={item.id} className="group bg-gray-900 border border-white/6 rounded-2xl overflow-hidden hover:border-indigo-500/25 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300">
+                <div key={item.id} className="group bg-white border border-white/6 rounded-2xl overflow-hidden hover:border-indigo-500/25 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300">
                   {/* Creative thumbnail */}
                   <div className="relative h-36 bg-gray-800 overflow-hidden">
                     {item.image ? (
@@ -539,10 +538,10 @@ export default function AdsPopups() {
                       <StatusBadge status={item.status} />
                     </div>
                     {/* Hover actions */}
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
+                    <div className="absolute inset-0 indigo-500/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
                       <button
                         onClick={() => setPreviewItem(item)}
-                        className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition"
+                        className="p-2 rounded-lg bg-white/10 hover:bg-white/20 indigo-500 transition"
                         title="Preview"
                       >
                         <Eye size={16} />
@@ -568,17 +567,16 @@ export default function AdsPopups() {
                   <div className="p-4 space-y-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-white truncate">{item.title}</p>
-                        <p className="text-xs text-white/40 mt-0.5 line-clamp-1">{item.description}</p>
+                        <p className="text-sm font-semibold indigo-500 truncate">{item.title}</p>
+                        <p className="text-xs indigo-500/40 mt-0.5 line-clamp-1">{item.description}</p>
                       </div>
                       {/* Quick status toggle */}
                       <button
                         onClick={() => toggleStatus(item.id)}
-                        className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border transition ${
-                          item.status === 'active'
-                            ? 'bg-emerald-500/15 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/25'
-                            : 'bg-gray-700/50 border-white/10 text-white/30 hover:text-white/60'
-                        }`}
+                        className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border transition ${item.status === 'active'
+                          ? 'bg-emerald-500/15 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/25'
+                          : 'bg-gray-700/50 border-white/10 indigo-500/30 hover:indigo-500/60'
+                          }`}
                         title={item.status === 'active' ? 'Deactivate' : 'Activate'}
                       >
                         {item.status === 'active' ? <Eye size={14} /> : <EyeOff size={14} />}
@@ -588,25 +586,25 @@ export default function AdsPopups() {
                     {/* Metrics row */}
                     <div className="grid grid-cols-3 gap-2">
                       {[
-                        { label: 'Views',  value: item.views.toLocaleString()  },
+                        { label: 'Views', value: item.views.toLocaleString() },
                         { label: 'Clicks', value: item.clicks.toLocaleString() },
-                        { label: 'CTR',    value: `${ctr}%`                    },
+                        { label: 'CTR', value: `${ctr}%` },
                       ].map(({ label, value }) => (
                         <div key={label} className="bg-gray-800/60 rounded-lg px-2 py-1.5 text-center">
-                          <p className="text-white/35 text-[9px] uppercase tracking-widest">{label}</p>
-                          <p className="text-white text-xs font-bold mt-0.5">{value}</p>
+                          <p className="indigo-500/35 text-[9px] uppercase tracking-widest">{label}</p>
+                          <p className="indigo-500 text-xs font-bold mt-0.5">{value}</p>
                         </div>
                       ))}
                     </div>
 
                     {/* Footer */}
                     <div className="flex items-center justify-between pt-1 border-t border-white/5">
-                      <div className="flex items-center gap-1 text-white/30 text-[10px]">
+                      <div className="flex items-center gap-1 indigo-500/30 text-[10px]">
                         <Calendar size={10} />
                         {item.startDate || '—'}
                         {item.endDate ? ` → ${item.endDate}` : ''}
                       </div>
-                      <span className="text-[10px] text-white/25 capitalize">
+                      <span className="text-[10px] indigo-500/25 capitalize">
                         P{item.priority} · {item.placement}
                       </span>
                     </div>

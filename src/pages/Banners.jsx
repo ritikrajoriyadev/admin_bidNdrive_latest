@@ -5,18 +5,18 @@ import { Search, Plus, Trash2, Edit2, Image, Calendar, Eye, EyeOff, Upload } fro
 
 /* ─── Stat Card ─────────────────────────────────────────────────────────── */
 const StatCard = ({ label, value, icon, accentClass, change }) => (
-  <div className="relative overflow-hidden rounded-2xl bg-gray-900 border border-white/[0.06] p-5 hover:border-white/[0.12] transition-all duration-300">
+  <div className="relative overflow-hidden rounded-2xl bg-white border border-white/[0.06] p-5 hover:border-white/[0.12] transition-all duration-300">
     <div className={`absolute -top-6 -right-6 w-24 h-24 rounded-full blur-2xl opacity-15 ${accentClass}`} />
     <div className="flex items-center justify-between mb-4">
-      <span className="w-9 h-9 rounded-xl bg-white/[0.06] flex items-center justify-center text-white/60">
+      <span className="w-9 h-9 rounded-xl bg-white/[0.06] flex items-center justify-center indigo-500/60">
         {icon}
       </span>
       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400`}>
         {change}
       </span>
     </div>
-    <p className="text-white text-2xl font-bold tracking-tight">{value}</p>
-    <p className="text-white/40 text-xs font-medium mt-1 uppercase tracking-widest">{label}</p>
+    <p className="indigo-500 text-2xl font-bold tracking-tight">{value}</p>
+    <p className="indigo-500/40 text-xs font-medium mt-1 uppercase tracking-widest">{label}</p>
   </div>
 );
 
@@ -88,14 +88,14 @@ const BannerForm = ({ banner, onSubmit, onCancel, loading }) => {
       <div className="grid md:grid-cols-2 gap-4">
         {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-white/80 mb-2">Banner Title</label>
+          <label className="block text-sm font-medium indigo-500/80 mb-2">Banner Title</label>
           <input
             type="text"
             name="title"
             value={formData.title}
             onChange={handleChange}
             placeholder="e.g., Summer Sale 2024"
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
+            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
             required
           />
         </div>
@@ -106,32 +106,32 @@ const BannerForm = ({ banner, onSubmit, onCancel, loading }) => {
 
       {/* Description */}
       <div>
-        <label className="block text-sm font-medium text-white/80 mb-2">Description</label>
+        <label className="block text-sm font-medium indigo-500/80 mb-2">Description</label>
         <textarea
           name="description"
           value={formData.description}
           onChange={handleChange}
           placeholder="Banner description or call-to-action text"
           rows="3"
-          className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition resize-none"
+          className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition resize-none"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-white/80 mb-2">Target Link</label>
+        <label className="block text-sm font-medium indigo-500/80 mb-2">Target Link</label>
         <input
           type="url"
           name="link"
           value={formData.link}
           onChange={handleChange}
           placeholder="https://example.com"
-          className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
+          className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
         />
       </div>
 
       {/* Image Upload */}
       <div>
-        <label className="block text-sm font-medium text-white/80 mb-2">Banner Image</label>
+        <label className="block text-sm font-medium indigo-500/80 mb-2">Banner Image</label>
         <div className="relative">
           <input
             type="file"
@@ -142,12 +142,12 @@ const BannerForm = ({ banner, onSubmit, onCancel, loading }) => {
           />
           <label
             htmlFor="imageInput"
-            className="w-full px-4 py-3 bg-gray-800 border-2 border-dashed border-indigo-500/30 rounded-lg cursor-pointer hover:border-indigo-500/50 transition flex items-center gap-3 text-white/60 hover:text-white/80"
+            className="w-full px-4 py-3 bg-gray-800 border-2 border-dashed border-indigo-500/30 rounded-lg cursor-pointer hover:border-indigo-500/50 transition flex items-center gap-3 indigo-500/60 hover:indigo-500/80"
           >
             <Upload size={20} />
             <div>
               <p className="font-medium">Click to upload or drag and drop</p>
-              <p className="text-xs text-white/40">PNG, JPG, GIF up to 5MB</p>
+              <p className="text-xs indigo-500/40">PNG, JPG, GIF up to 5MB</p>
             </div>
           </label>
         </div>
@@ -163,12 +163,12 @@ const BannerForm = ({ banner, onSubmit, onCancel, loading }) => {
       <div className="grid md:grid-cols-2 gap-4">
         {/* Status */}
         <div>
-          <label className="block text-sm font-medium text-white/80 mb-2">Status</label>
+          <label className="block text-sm font-medium indigo-500/80 mb-2">Status</label>
           <select
             name="status"
             value={formData.status}
             onChange={handleChange}
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 transition"
+            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
           >
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
@@ -179,14 +179,14 @@ const BannerForm = ({ banner, onSubmit, onCancel, loading }) => {
 
         {/* Display Order */}
         <div>
-          <label className="block text-sm font-medium text-white/80 mb-2">Display Order</label>
+          <label className="block text-sm font-medium indigo-500/80 mb-2">Display Order</label>
           <input
             type="number"
             name="displayOrder"
             value={formData.displayOrder}
             onChange={handleChange}
             min="1"
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 transition"
+            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
           />
         </div>
       </div>
@@ -194,25 +194,25 @@ const BannerForm = ({ banner, onSubmit, onCancel, loading }) => {
       <div className="grid md:grid-cols-2 gap-4">
         {/* Start Date */}
         <div>
-          <label className="block text-sm font-medium text-white/80 mb-2">Start Date</label>
+          <label className="block text-sm font-medium indigo-500/80 mb-2">Start Date</label>
           <input
             type="date"
             name="startDate"
             value={formData.startDate}
             onChange={handleChange}
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 transition"
+            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
           />
         </div>
 
         {/* End Date */}
         <div>
-          <label className="block text-sm font-medium text-white/80 mb-2">End Date</label>
+          <label className="block text-sm font-medium indigo-500/80 mb-2">End Date</label>
           <input
             type="date"
             name="endDate"
             value={formData.endDate}
             onChange={handleChange}
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 transition"
+            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
           />
         </div>
       </div>
@@ -222,14 +222,14 @@ const BannerForm = ({ banner, onSubmit, onCancel, loading }) => {
         <button
           type="submit"
           disabled={loading}
-          className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg font-medium transition"
+          className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 indigo-500 rounded-lg font-medium transition"
         >
           {loading ? 'Uploading...' : banner ? 'Update Banner' : 'Upload Banner'}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg font-medium transition"
+          className="px-4 py-2 bg-gray-800 hover:bg-gray-700 indigo-500 rounded-lg font-medium transition"
         >
           Cancel
         </button>
@@ -383,29 +383,29 @@ export default function Banners() {
   };
 
   const handleDeleteBanner = async (id) => {
- if (window.confirm('Are you sure you want to delete this banner?')) {
-  try {
-    const token = localStorage.getItem("adminToken"); // ya jahan tum store karte ho
+    if (window.confirm('Are you sure you want to delete this banner?')) {
+      try {
+        const token = localStorage.getItem("adminToken"); // ya jahan tum store karte ho
 
-    await axios.delete(
-      `${apiUrl}/api/banners/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
+        await axios.delete(
+          `${apiUrl}/api/banners/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json"
+            }
+          }
+        );
+
+        // update UI
+        setBanners(prev => prev.filter(b => b.id !== id));
+        addToast('Banner deleted successfully', 'success');
+
+      } catch (error) {
+        console.error('Error deleting banner:', error);
+        addToast('Failed to delete banner', 'error');
       }
-    );
-
-    // update UI
-    setBanners(prev => prev.filter(b => b.id !== id));
-    addToast('Banner deleted successfully', 'success');
-
-  } catch (error) {
-    console.error('Error deleting banner:', error);
-    addToast('Failed to delete banner', 'error');
-  }
-}
+    }
   };
 
   const activeBanners = banners.filter(b => b.status === 'active').length;
@@ -418,15 +418,15 @@ export default function Banners() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-1">Banners</h1>
-            <p className="text-white/60">Manage promotional banners and advertisements</p>
+            <h1 className="text-3xl font-bold indigo-500 mb-1">Banners</h1>
+            <p className="indigo-500/60">Manage promotional banners and advertisements</p>
           </div>
           <button
             onClick={() => {
               setEditingId(null);
               setShowForm(!showForm);
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white rounded-lg font-medium transition"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 indigo-500 rounded-lg font-medium transition"
           >
             <Plus size={20} />
             Upload Banner
@@ -443,8 +443,8 @@ export default function Banners() {
 
         {/* Form */}
         {showForm && (
-          <div className="bg-gray-900 border border-white/[0.06] rounded-2xl p-6">
-            <h2 className="text-xl font-bold text-white mb-6">
+          <div className="bg-white border border-white/[0.06] rounded-2xl p-6">
+            <h2 className="text-xl font-bold indigo-500 mb-6">
               {editingId ? 'Edit Banner' : 'Upload New Banner'}
             </h2>
             <BannerForm
@@ -462,20 +462,20 @@ export default function Banners() {
         {/* Search & Filters */}
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" size={20} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 indigo-500/40" size={20} />
             <input
               type="text"
               placeholder="Search banners by title or description..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-gray-800 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
             />
           </div>
 
           <select
             value={filterPlacement}
             onChange={(e) => setFilterPlacement(e.target.value)}
-            className="px-4 py-2.5 rounded-lg bg-gray-800 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 transition"
+            className="px-4 py-2.5 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
           >
             <option value="all">All Placements</option>
             <option value="homepage">Homepage</option>
@@ -488,7 +488,7 @@ export default function Banners() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2.5 rounded-lg bg-gray-800 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 transition"
+            className="px-4 py-2.5 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
           >
             <option value="all">All Status</option>
             <option value="active">Active</option>
@@ -499,18 +499,18 @@ export default function Banners() {
         </div>
 
         {/* Banners Table */}
-        <div className="bg-gray-900 border border-white/[0.06] rounded-2xl overflow-hidden">
+        <div className="bg-white border border-white/[0.06] rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-800/50 border-b border-white/[0.06]">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/60 uppercase tracking-wider">Banner</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold indigo-500/60 uppercase tracking-wider">Banner</th>
 
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/60 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/60 uppercase tracking-wider">Views</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/60 uppercase tracking-wider">Clicks</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/60 uppercase tracking-wider">CTR</th>
-                  <th className="px-6 py-4 text-right text-xs font-semibold text-white/60 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold indigo-500/60 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold indigo-500/60 uppercase tracking-wider">Views</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold indigo-500/60 uppercase tracking-wider">Clicks</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold indigo-500/60 uppercase tracking-wider">CTR</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold indigo-500/60 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.06]">
@@ -520,8 +520,8 @@ export default function Banners() {
                       <div className="flex items-center gap-3">
                         <img src={banner?.image?.url || banner?.image} alt={banner.title} className="w-12 h-12 rounded-lg object-cover border border-white/10" />
                         <div>
-                          <p className="text-sm font-medium text-white">{banner.title}</p>
-                          <p className="text-xs text-white/40">{banner.description.substring(0, 40)}...</p>
+                          <p className="text-sm font-medium indigo-500">{banner.title}</p>
+                          <p className="text-xs indigo-500/40">{banner.description.substring(0, 40)}...</p>
                         </div>
                       </div>
                     </td>
@@ -530,13 +530,13 @@ export default function Banners() {
                       <StatusBadge status={banner.status} />
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-white/80">{(banner.views ?? 0).toLocaleString()}</span>
+                      <span className="text-sm indigo-500/80">{(banner.views ?? 0).toLocaleString()}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-white/80">{(banner.clicks ?? 0).toLocaleString()}</span>
+                      <span className="text-sm indigo-500/80">{(banner.clicks ?? 0).toLocaleString()}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-white/80">{banner.views > 0 ? ((banner.clicks ?? 0) / banner.views * 100).toFixed(2) : '0'}%</span>
+                      <span className="text-sm indigo-500/80">{banner.views > 0 ? ((banner.clicks ?? 0) / banner.views * 100).toFixed(2) : '0'}%</span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -567,8 +567,8 @@ export default function Banners() {
 
           {filteredBanners.length === 0 && (
             <div className="text-center py-16">
-              <Image className="mx-auto mb-4 text-white/20" size={48} />
-              <p className="text-white/60">No banners found</p>
+              <Image className="mx-auto mb-4 indigo-500/20" size={48} />
+              <p className="indigo-500/60">No banners found</p>
             </div>
           )}
         </div>

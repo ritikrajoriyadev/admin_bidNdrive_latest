@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useToast } from '../hooks/useToast';
 import { Search, MessageSquare, User, Phone, Mail, Calendar, DollarSign, Car, RefreshCw, Trophy, X, AlertTriangle } from 'lucide-react';
+import EnquiryDetailPage from './Enquirydetailpage';
 
 const REFRESH_INTERVAL = 10_000;
 
@@ -20,6 +21,42 @@ const avatarColors = [
   'from-indigo-500 to-violet-500', 'from-pink-500 to-rose-500',
   'from-amber-500 to-orange-500', 'from-emerald-500 to-teal-500',
   'from-sky-500 to-blue-500', 'from-violet-500 to-purple-500',
+];
+
+const auctionTypes = [
+  {
+    key: 'live_auction',
+    label: 'Live Auction',
+    desc: 'Real-time bidding, highest bid wins',
+    icon: '🔴',
+    badge: 'Live',
+    dot: true,
+    activeCard: 'border-rose-500/50 bg-rose-500/10',
+    badgeCls: 'bg-rose-500/15 text-rose-400',
+    bar: 'bg-rose-500',
+  },
+  {
+    key: 'bnb',
+    label: 'BNB',
+    desc: 'Buy now, negotiate & buy',
+    icon: '🤝',
+    badge: 'BNB',
+    dot: false,
+    activeCard: 'border-indigo-500/50 bg-indigo-500/10',
+    badgeCls: 'bg-indigo-500/15 text-indigo-400',
+    bar: 'bg-indigo-500',
+  },
+  {
+    key: 'click_buy',
+    label: 'Click & Buy',
+    desc: 'Fixed price, instant purchase',
+    icon: '⚡',
+    badge: 'Fixed',
+    dot: false,
+    activeCard: 'border-emerald-500/50 bg-emerald-500/10',
+    badgeCls: 'bg-emerald-500/15 text-emerald-400',
+    bar: 'bg-emerald-500',
+  },
 ];
 
 /* ─── Normalize ──────────────────────────────────────────────────────────── */
@@ -66,7 +103,6 @@ const normalize = (auction) => {
     customerPhone: user.phone || 'N/A',
     description: enq.description || '',
     priority: enq.priority || 'medium',
-    // ✅ FIX 1: remainingTime now included from API response
     remainingTime: auction.remainingTime || null,
     remainingTimestamp: auction.remainingTimestamp || 0,
   };
@@ -74,14 +110,14 @@ const normalize = (auction) => {
 
 /* ─── Stat Card ──────────────────────────────────────────────────────────── */
 const StatCard = ({ label, value, icon, accent, sub }) => (
-  <div className="relative overflow-hidden rounded-2xl bg-gray-900 border border-white/[0.06] p-5 hover:border-white/[0.1] transition-all duration-300 group">
+  <div className="relative overflow-hidden rounded-2xl bg-white border border-white/[0.06] p-5 hover:border-white/[0.1] transition-all duration-300 group">
     <div className={`absolute -top-5 -right-5 w-20 h-20 rounded-full blur-2xl opacity-20 group-hover:opacity-30 transition-opacity duration-300 ${accent}`} />
     <div className="flex items-center justify-between mb-3">
-      <span className={`w-9 h-9 rounded-xl flex items-center justify-center ${accent} bg-opacity-20 text-white/60`}>{icon}</span>
-      <span className="text-white/20 text-xs font-medium">{sub}</span>
+      <span className={`w-9 h-9 rounded-xl flex items-center justify-center ${accent} bg-opacity-20 indigo-500/60`}>{icon}</span>
+      <span className="indigo-500/20 text-xs font-medium">{sub}</span>
     </div>
-    <p className="text-white text-2xl font-bold tracking-tight">{value}</p>
-    <p className="text-white/35 text-xs font-medium mt-0.5 tracking-wide uppercase">{label}</p>
+    <p className="indigo-500 text-2xl font-bold tracking-tight">{value}</p>
+    <p className="indigo-500/35 text-xs font-medium mt-0.5 tracking-wide uppercase">{label}</p>
   </div>
 );
 
@@ -106,27 +142,27 @@ const Pagination = ({ pagination, onPageChange }) => {
 
   return (
     <div className="px-6 py-3 border-t border-white/[0.05] flex flex-col sm:flex-row items-center justify-between gap-3 bg-white/[0.01]">
-      <span className="text-white/25 text-xs order-2 sm:order-1">
-        Showing <span className="text-white/45 font-medium">{from}–{to}</span> of{' '}
-        <span className="text-white/45 font-medium">{total}</span> auctions
+      <span className="indigo-500/25 text-xs order-2 sm:order-1">
+        Showing <span className="indigo-500/45 font-medium">{from}–{to}</span> of{' '}
+        <span className="indigo-500/45 font-medium">{total}</span> auctions
       </span>
       <div className="flex items-center gap-1 order-1 sm:order-2">
         <button onClick={() => onPageChange(page - 1)} disabled={page === 1}
-          className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/[0.05] text-white/40 hover:bg-white/[0.09] hover:text-white/70 disabled:opacity-25 disabled:cursor-not-allowed transition-all">
+          className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/[0.05] indigo-500/40 hover:bg-white/[0.09] hover:indigo-500/70 disabled:opacity-25 disabled:cursor-not-allowed transition-all">
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg>
         </button>
         {getPages().map((p, i) =>
           p === '...' ? (
-            <span key={`d${i}`} className="w-8 h-8 flex items-center justify-center text-white/20 text-xs">···</span>
+            <span key={`d${i}`} className="w-8 h-8 flex items-center justify-center indigo-500/20 text-xs">···</span>
           ) : (
             <button key={p} onClick={() => onPageChange(p)}
-              className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all ${p === page ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'bg-white/[0.05] text-white/40 hover:bg-white/[0.09] hover:text-white/70'}`}>
+              className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all ${p === page ? 'bg-indigo-500 indigo-500 shadow-lg shadow-indigo-500/30' : 'bg-white/[0.05] indigo-500/40 hover:bg-white/[0.09] hover:indigo-500/70'}`}>
               {p}
             </button>
           )
         )}
         <button onClick={() => onPageChange(page + 1)} disabled={page === pages}
-          className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/[0.05] text-white/40 hover:bg-white/[0.09] hover:text-white/70 disabled:opacity-25 disabled:cursor-not-allowed transition-all">
+          className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/[0.05] indigo-500/40 hover:bg-white/[0.09] hover:indigo-500/70 disabled:opacity-25 disabled:cursor-not-allowed transition-all">
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
         </button>
       </div>
@@ -141,13 +177,13 @@ const CloseAuctionModal = ({ auction, selectedBidId, onClose, onConfirm, loading
   const isNotTop = selectedBid && selectedBid.amount !== auction.topBid;
 
   return (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-gray-900 border border-white/[0.1] rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[300] flex items-center justify-center indigo-500/70 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white border border-white/[0.1] rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="w-12 h-12 rounded-2xl bg-rose-500/15 flex items-center justify-center mb-4 mx-auto">
           <AlertTriangle className="w-6 h-6 text-rose-400" />
         </div>
-        <h3 className="text-white font-bold text-lg text-center mb-1">Close Auction?</h3>
-        <p className="text-white/40 text-sm text-center mb-4">
+        <h3 className="indigo-500 font-bold text-lg text-center mb-1">Close Auction?</h3>
+        <p className="indigo-500/40 text-sm text-center mb-4">
           {selectedBid ? 'Confirm the winning bid below.' : 'The highest bid will be set as winner automatically.'}
           {' '}This cannot be undone.
         </p>
@@ -155,11 +191,11 @@ const CloseAuctionModal = ({ auction, selectedBidId, onClose, onConfirm, loading
         {selectedBid && (
           <div className="bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-3 mb-4 space-y-1.5">
             <div className="flex justify-between text-xs">
-              <span className="text-white/35">Winner</span>
-              <span className="text-white/70 font-semibold">{selectedBid.bider?.firstName} {selectedBid.bider?.lastName}</span>
+              <span className="indigo-500/35">Winner</span>
+              <span className="indigo-500/70 font-semibold">{selectedBid.bider?.firstName} {selectedBid.bider?.lastName}</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-white/35">Winning Bid</span>
+              <span className="indigo-500/35">Winning Bid</span>
               <span className="text-emerald-400 font-bold">₹{selectedBid.amount.toLocaleString()}</span>
             </div>
             {isNotTop && (
@@ -173,11 +209,11 @@ const CloseAuctionModal = ({ auction, selectedBidId, onClose, onConfirm, loading
 
         <div className="flex gap-3">
           <button onClick={onClose} disabled={loading}
-            className="flex-1 px-4 py-2.5 rounded-xl bg-white/[0.05] text-white/60 text-sm font-semibold hover:bg-white/[0.08] transition-colors disabled:opacity-50">
+            className="flex-1 px-4 py-2.5 rounded-xl bg-white/[0.05] indigo-500/60 text-sm font-semibold hover:bg-white/[0.08] transition-colors disabled:opacity-50">
             Cancel
           </button>
           <button onClick={onConfirm} disabled={loading}
-            className="flex-1 px-4 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white text-sm font-semibold transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+            className="flex-1 px-4 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 indigo-500 text-sm font-semibold transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
             {loading ? (
               <><svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Closing…</>
             ) : (
@@ -219,20 +255,20 @@ const DetailDrawer = ({ auction, onClose, onCloseAuction }) => {
   return (
     <>
       <div className="fixed inset-0 z-[200] flex justify-end" onClick={onClose}>
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-        <div className="relative w-full max-w-lg h-full bg-gray-900 border-l border-white/[0.07] flex flex-col shadow-2xl"
+        <div className="absolute inset-0 indigo-500/60 backdrop-blur-sm" />
+        <div className="relative w-full max-w-lg h-full bg-white border-l indigo-500 flex flex-col shadow-2xl"
           onClick={e => e.stopPropagation()}>
 
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] flex-shrink-0">
             <div className="min-w-0">
-              <p className="text-white/30 text-xs font-mono">{auction.enquiryId}</p>
-              <h3 className="text-white font-semibold text-base mt-0.5 truncate">
+              <p className="indigo-500/30 text-xs font-mono">{auction.enquiryId}</p>
+              <h3 className="indigo-500 font-semibold text-base mt-0.5 truncate">
                 {auction.carYear} {auction.carMake} {auction.carModel}
               </h3>
             </div>
             <button onClick={onClose}
-              className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/40 hover:text-white/70 transition-all flex-shrink-0 ml-3">
+              className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center indigo-500/40 hover:indigo-500/70 transition-all flex-shrink-0 ml-3">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -253,17 +289,17 @@ const DetailDrawer = ({ auction, onClose, onCloseAuction }) => {
                 <Trophy className="w-5 h-5 text-amber-400 flex-shrink-0" />
                 <div>
                   <p className="text-amber-400 text-[10px] font-bold uppercase tracking-wider">Auction Winner</p>
-                  <p className="text-white font-semibold text-sm mt-0.5">
+                  <p className="indigo-500 font-semibold text-sm mt-0.5">
                     {auction.winner.firstName} {auction.winner.lastName}
                   </p>
-                  <p className="text-white/40 text-xs">{auction.winner.email} · {auction.winner.phone}</p>
+                  <p className="indigo-500/40 text-xs">{auction.winner.email} · {auction.winner.phone}</p>
                 </div>
               </div>
             )}
 
             {/* Car Info grid */}
             <div className="rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 border border-indigo-500/20 p-4">
-              <p className="text-white/40 text-xs font-bold mb-3 uppercase tracking-wider">Car Information</p>
+              <p className="indigo-500/40 text-xs font-bold mb-3 uppercase tracking-wider">Car Information</p>
               <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                 {[
                   ['Make', auction.carMake],
@@ -278,8 +314,8 @@ const DetailDrawer = ({ auction, onClose, onCloseAuction }) => {
                   ['City', auction.city],
                 ].map(([k, v]) => (
                   <div key={k}>
-                    <p className="text-white/25 text-[10px] uppercase tracking-wider">{k}</p>
-                    <p className="text-white/80 text-xs font-medium capitalize mt-0.5">{v}</p>
+                    <p className="indigo-500/25 text-[10px] uppercase tracking-wider">{k}</p>
+                    <p className="indigo-500/80 text-xs font-medium capitalize mt-0.5">{v}</p>
                   </div>
                 ))}
               </div>
@@ -287,40 +323,40 @@ const DetailDrawer = ({ auction, onClose, onCloseAuction }) => {
 
             {/* Pricing row */}
             <div className="rounded-xl bg-emerald-500/5 border border-emerald-500/15 p-4">
-              <p className="text-white/40 text-xs font-bold mb-3 uppercase tracking-wider">Pricing</p>
+              <p className="indigo-500/40 text-xs font-bold mb-3 uppercase tracking-wider">Pricing</p>
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <p className="text-white/25 text-[10px] uppercase tracking-wider">Expected</p>
-                  <p className="text-white font-bold text-base mt-0.5">₹{auction.expectedPrice.toLocaleString()}</p>
+                  <p className="indigo-500/25 text-[10px] uppercase tracking-wider">Expected</p>
+                  <p className="indigo-500 font-bold text-base mt-0.5">₹{auction.expectedPrice.toLocaleString()}</p>
                 </div>
                 <div className="flex-1">
-                  <p className="text-white/25 text-[10px] uppercase tracking-wider">Top Bid</p>
-                  <p className={`font-bold text-base mt-0.5 ${auction.topBid > 0 ? 'text-rose-400' : 'text-white/20'}`}>
+                  <p className="indigo-500/25 text-[10px] uppercase tracking-wider">Top Bid</p>
+                  <p className={`font-bold text-base mt-0.5 ${auction.topBid > 0 ? 'text-rose-400' : 'indigo-500/20'}`}>
                     {auction.topBid > 0 ? `₹${auction.topBid.toLocaleString()}` : 'None'}
                   </p>
                 </div>
                 <div className="flex-1">
-                  <p className="text-white/25 text-[10px] uppercase tracking-wider">Total Bids</p>
+                  <p className="indigo-500/25 text-[10px] uppercase tracking-wider">Total Bids</p>
                   <p className="text-indigo-400 font-bold text-base mt-0.5">{auction.bidsCount}</p>
                 </div>
               </div>
             </div>
 
-            {/* ── Bidders List ─────────────────────────────────────────── */}
+            {/* Bidders List */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <p className="text-white/40 text-xs font-bold uppercase tracking-wider">
+                <p className="indigo-500/40 text-xs font-bold uppercase tracking-wider">
                   Bidders ({sortedBids.length})
                 </p>
                 {canClose && sortedBids.length > 0 && (
-                  <p className="text-white/20 text-[10px]">Tap a bid to select as winner</p>
+                  <p className="indigo-500/20 text-[10px]">Tap a bid to select as winner</p>
                 )}
               </div>
 
               {sortedBids.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-white/[0.08] py-8 flex flex-col items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-white/15" />
-                  <p className="text-white/25 text-sm">No bids placed yet</p>
+                  <DollarSign className="w-5 h-5 indigo-500/15" />
+                  <p className="indigo-500/25 text-sm">No bids placed yet</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -344,41 +380,40 @@ const DetailDrawer = ({ auction, onClose, onCloseAuction }) => {
                           }`}>
 
                         {isTop && (
-                          <span className="absolute -top-2 right-3 text-[9px] font-bold bg-rose-500 text-white px-2 py-0.5 rounded-full">
+                          <span className="absolute -top-2 right-3 text-[9px] font-bold bg-rose-500 indigo-500 px-2 py-0.5 rounded-full">
                             HIGHEST
                           </span>
                         )}
 
                         <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
+                          <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center indigo-500 text-xs font-bold flex-shrink-0`}>
                             {initials}
                           </div>
 
                           <div className="flex-1 min-w-0">
-                            <p className="text-white/85 text-sm font-semibold truncate">
+                            <p className="indigo-500/85 text-sm font-semibold truncate">
                               {bid.bider?.firstName} {bid.bider?.lastName}
                             </p>
-                            <p className="text-white/30 text-xs truncate">{bid.bider?.email}</p>
-                            <p className="text-white/20 text-[10px] mt-0.5 flex items-center gap-1">
+                            <p className="indigo-500/30 text-xs truncate">{bid.bider?.email}</p>
+                            <p className="indigo-500/20 text-[10px] mt-0.5 flex items-center gap-1">
                               <Phone className="w-2.5 h-2.5" /> {bid.bider?.phone}
                             </p>
                           </div>
 
                           <div className="text-right flex-shrink-0">
-                            <p className={`font-bold text-sm ${isTop ? 'text-rose-400' : 'text-white/70'}`}>
+                            <p className={`font-bold text-sm ${isTop ? 'text-rose-400' : 'indigo-500/70'}`}>
                               ₹{bid.amount.toLocaleString()}
                             </p>
-                            <p className="text-white/20 text-[10px] mt-0.5">{timeStr}</p>
+                            <p className="indigo-500/20 text-[10px] mt-0.5">{timeStr}</p>
                             {bid.note && (
-                              <p className="text-white/25 text-[10px] truncate max-w-[90px]">{bid.note}</p>
+                              <p className="indigo-500/25 text-[10px] truncate max-w-[90px]">{bid.note}</p>
                             )}
                           </div>
 
                           {canClose && (
-                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 ml-1 transition-all ${isSelected ? 'bg-indigo-500 border-indigo-500' : 'border-white/20'
-                              }`}>
+                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 ml-1 transition-all ${isSelected ? 'bg-indigo-500 border-indigo-500' : 'border-white/20'}`}>
                               {isSelected && (
-                                <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                                <svg className="w-2.5 h-2.5 indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                                   <polyline points="20 6 9 17 4 12" />
                                 </svg>
                               )}
@@ -394,16 +429,16 @@ const DetailDrawer = ({ auction, onClose, onCloseAuction }) => {
 
             {/* Seller */}
             <div>
-              <p className="text-white/40 text-xs font-bold mb-3 uppercase tracking-wider">Seller Details</p>
+              <p className="indigo-500/40 text-xs font-bold mb-3 uppercase tracking-wider">Seller Details</p>
               <div className="space-y-2">
                 {[
-                  [<User key="u" className="w-4 h-4 text-white/40" />, auction.customerName],
-                  [<Mail key="m" className="w-4 h-4 text-white/40" />, auction.customerEmail],
-                  [<Phone key="p" className="w-4 h-4 text-white/40" />, auction.customerPhone],
+                  [<User key="u" className="w-4 h-4 indigo-500/40" />, auction.customerName],
+                  [<Mail key="m" className="w-4 h-4 indigo-500/40" />, auction.customerEmail],
+                  [<Phone key="p" className="w-4 h-4 indigo-500/40" />, auction.customerPhone],
                 ].map(([icon, val], i) => (
                   <div key={i} className="flex items-center gap-2 p-3 rounded-lg bg-white/[0.03] border border-white/[0.06]">
                     {icon}
-                    <span className="text-white/60 text-sm">{val}</span>
+                    <span className="indigo-500/60 text-sm">{val}</span>
                   </div>
                 ))}
               </div>
@@ -415,41 +450,41 @@ const DetailDrawer = ({ auction, onClose, onCloseAuction }) => {
                 <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
                 {sc.label}
               </span>
-              <span className="ml-auto text-white/25 text-xs flex items-center gap-1">
+              <span className="ml-auto indigo-500/25 text-xs flex items-center gap-1">
                 <Calendar className="w-3 h-3" /> {auction.startDate}
               </span>
             </div>
 
             {auction.description && (
               <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4">
-                <p className="text-white/25 text-[10px] font-bold tracking-widest uppercase mb-2">Description</p>
-                <p className="text-white/60 text-sm leading-relaxed">{auction.description}</p>
+                <p className="indigo-500/25 text-[10px] font-bold tracking-widest uppercase mb-2">Description</p>
+                <p className="indigo-500/60 text-sm leading-relaxed">{auction.description}</p>
               </div>
             )}
           </div>
 
           {/* Footer — Close Auction CTA */}
           {canClose && (
-            <div className="p-5 border-t border-white/[0.06] flex-shrink-0 bg-gray-900">
+            <div className="p-5 border-t border-white/[0.06] flex-shrink-0 bg-white">
               {selectedBidId ? (
                 <div className="mb-3 px-3 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-between">
                   <span className="text-indigo-300 text-xs font-semibold">
                     Winner: {auction.bids.find(b => b._id === selectedBidId)?.bider?.firstName}
                     {' '}— ₹{auction.bids.find(b => b._id === selectedBidId)?.amount.toLocaleString()}
                   </span>
-                  <button onClick={() => setSelectedBidId(null)} className="text-white/30 hover:text-white/60 transition-colors ml-2">
+                  <button onClick={() => setSelectedBidId(null)} className="indigo-500/30 hover:indigo-500/60 transition-colors ml-2">
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
               ) : (
-                <p className="text-white/20 text-xs mb-3 text-center">
+                <p className="indigo-500/20 text-xs mb-3 text-center">
                   {sortedBids.length > 0
                     ? 'No bid selected — highest bid will win automatically'
                     : 'Auction will close with no winner'}
                 </p>
               )}
               <button onClick={() => setShowConfirm(true)}
-                className="w-full py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white text-sm font-bold transition-colors flex items-center justify-center gap-2">
+                className="w-full py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 indigo-500 text-sm font-bold transition-colors flex items-center justify-center gap-2">
                 <X className="w-4 h-4" />
                 Close Auction
               </button>
@@ -479,8 +514,10 @@ export default function AuctionCars() {
   const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 10, pages: 1 });
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [auctionType, setAuctionType] = useState('live_auction');
   const [selectedAuction, setSelectedAuction] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [selectedEnquiryId, setSelectedEnquiryId] = useState(null);
   const [lastRefreshed, setLastRefreshed] = useState(null);
   const [countdown, setCountdown] = useState(REFRESH_INTERVAL / 1000);
 
@@ -502,6 +539,7 @@ export default function AuctionCars() {
         params: {
           page,
           limit: pagination.limit,
+          auctionType,
           ...(filterStatus !== 'all' && { status: filterStatus }),
           ...(searchTerm && { search: searchTerm }),
         },
@@ -511,7 +549,6 @@ export default function AuctionCars() {
       const normalizedList = rawList.map(normalize);
       setAuctions(normalizedList);
       if (rawPag) setPagination(rawPag);
-      // ✅ FIX 2: Keep drawer in sync after silent refresh
       setSelectedAuction(prev =>
         prev ? (normalizedList.find(a => a.id === prev.id) ?? prev) : null
       );
@@ -523,9 +560,9 @@ export default function AuctionCars() {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [filterStatus, searchTerm, pagination.limit]);
+  }, [filterStatus, searchTerm, auctionType, pagination.limit]);
 
-  useEffect(() => { fetchAuctions(1); }, [filterStatus, searchTerm]);
+  useEffect(() => { fetchAuctions(1); }, [filterStatus, searchTerm, auctionType]);
 
   useEffect(() => {
     clearInterval(timerRef.current);
@@ -555,6 +592,15 @@ export default function AuctionCars() {
     fetchAuctions(currentPage);
   };
 
+  if (selectedEnquiryId) {
+    return (
+      <EnquiryDetailPage
+        enquiryId={selectedEnquiryId}
+        onBack={() => setSelectedEnquiryId(null)}
+      />
+    );
+  }
+
   /* ── Stats ──────────────────────────────────────────────────────────────── */
   const totalAuctions = pagination.total;
   const liveCount = auctions.filter(a => a.isLive).length;
@@ -563,26 +609,68 @@ export default function AuctionCars() {
 
   const filterTabs = ['all', 'open', 'live_auction', 'closed', 'sold'];
 
+  /* ── Active type meta ───────────────────────────────────────────────────── */
+  const activeType = auctionTypes.find(t => t.key === auctionType);
+
   return (
     <div className="flex flex-col gap-6 w-full">
+
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white">Auction Cars</h1>
-          <p className="text-white/40 text-sm mt-1">Track and manage all live and upcoming vehicle auctions</p>
+          <h1 className="text-3xl font-bold indigo-500">Auction Cars</h1>
+          <p className="indigo-500/40 text-sm mt-1">Track and manage all live and upcoming vehicle auctions</p>
         </div>
         <div className="flex flex-col items-end gap-1 flex-shrink-0">
           <button onClick={() => fetchAuctions(currentPage)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.05] border border-white/[0.07] text-white/40 hover:text-white/70 hover:bg-white/[0.08] transition-all text-xs font-medium">
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.05] border indigo-500 indigo-500/40 hover:indigo-500/70 hover:bg-white/[0.08] transition-all text-xs font-medium">
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
           {lastRefreshed && (
-            <span className="text-white/20 text-[10px]">
-              Next in <span className="text-white/35 font-semibold tabular-nums">{countdown}s</span>
+            <span className="indigo-500/20 text-[10px]">
+              Next in <span className="indigo-500/35 font-semibold tabular-nums">{countdown}s</span>
               {' '}· Last {lastRefreshed.toLocaleTimeString()}
             </span>
           )}
+        </div>
+      </div>
+
+      {/* ── Auction Type Selector ─────────────────────────────────────────── */}
+      <div>
+        <p className="indigo-500/25 text-[10px] font-bold uppercase tracking-widest mb-3">Auction Type</p>
+        <div className="grid grid-cols-3 gap-3">
+          {auctionTypes.map(({ key, label, desc, icon, badge, dot, activeCard, badgeCls, bar }) => {
+            const isActive = auctionType === key;
+            return (
+              <button
+                key={key}
+                onClick={() => { setAuctionType(key); setFilterStatus('all'); }}
+                className={`relative text-left rounded-2xl border p-4 transition-all duration-200 focus:outline-none ${isActive
+                  ? `${activeCard} shadow-lg`
+                  : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.1]'
+                  }`}
+              >
+                {/* Badge */}
+                <span className={`absolute top-3 right-3 inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full ${badgeCls}`}>
+                  {dot && <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" />}
+                  {badge}
+                </span>
+
+                {/* Icon */}
+                <span className="text-2xl mb-2 block">{icon}</span>
+
+                {/* Text */}
+                <p className={`text-sm font-semibold transition-colors ${isActive ? 'indigo-500' : 'indigo-500/60'}`}>
+                  {label}
+                </p>
+                <p className="indigo-500/30 text-xs mt-0.5 leading-snug">{desc}</p>
+
+                {/* Active indicator bar */}
+                <div className={`h-0.5 rounded-full mt-3 transition-all duration-300 ${isActive ? bar : 'bg-transparent'}`} />
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -599,15 +687,19 @@ export default function AuctionCars() {
       {/* Filters + Search */}
       <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-          <input type="text" placeholder="Search car, seller…" value={searchTerm}
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 indigo-500/40" />
+          <input
+            type="text"
+            placeholder={`Search in ${activeType?.label ?? 'auctions'}…`}
+            value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.06] text-white placeholder-white/30 focus:border-indigo-400/50 focus:outline-none transition-all text-sm" />
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.06] indigo-500 placeholder-white/30 focus:border-indigo-400/50 focus:outline-none transition-all text-sm"
+          />
         </div>
         <div className="flex items-center gap-1 bg-white/[0.04] rounded-xl p-1 border border-white/[0.06] overflow-x-auto">
           {filterTabs.map(tab => (
             <button key={tab} onClick={() => setFilterStatus(tab)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${filterStatus === tab ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'text-white/35 hover:text-white/60'
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${filterStatus === tab ? 'bg-indigo-500 indigo-500 shadow-lg shadow-indigo-500/30' : 'indigo-500/35 hover:indigo-500/60'
                 }`}>
               {tab === 'all' ? 'All' : tab.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
             </button>
@@ -616,7 +708,7 @@ export default function AuctionCars() {
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl bg-gray-900 border border-white/[0.06] overflow-hidden">
+      <div className="rounded-2xl bg-white border border-white/[0.06] overflow-hidden">
         {loading ? (
           <div className="divide-y divide-white/[0.04]">
             {[...Array(5)].map((_, i) => (
@@ -635,19 +727,35 @@ export default function AuctionCars() {
         ) : auctions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-12 h-12 rounded-xl bg-white/[0.04] flex items-center justify-center mb-3">
-              <Car className="w-5 h-5 text-white/20" />
+              <Car className="w-5 h-5 indigo-500/20" />
             </div>
-            <p className="text-white/30 text-sm font-medium">No auctions found</p>
-            <p className="text-white/15 text-xs mt-1">Try adjusting your filters</p>
+            <p className="indigo-500/30 text-sm font-medium">No {activeType?.label} auctions found</p>
+            <p className="indigo-500/15 text-xs mt-1">Try adjusting your filters or switching auction type</p>
           </div>
         ) : (
           <>
+            {/* Type indicator strip */}
+            <div className={`px-5 py-2 border-b border-white/[0.04] flex items-center gap-2 ${auctionType === 'live_auction' ? 'bg-rose-500/5' :
+              auctionType === 'bnb' ? 'bg-indigo-500/5' :
+                'bg-emerald-500/5'
+              }`}>
+              <span className="text-lg">{activeType?.icon}</span>
+              <span className={`text-xs font-bold ${auctionType === 'live_auction' ? 'text-rose-400' :
+                auctionType === 'bnb' ? 'text-indigo-400' :
+                  'text-emerald-400'
+                }`}>
+                {activeType?.label}
+              </span>
+              <span className="indigo-500/20 text-xs">·</span>
+              <span className="indigo-500/25 text-xs">{pagination.total} total</span>
+            </div>
+
             <div className="overflow-x-auto">
               <table className="w-full whitespace-nowrap min-w-[960px]">
                 <thead>
                   <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                    {['Vehicle', 'Registration', 'Seller', 'Remaining Time', 'Expected Price', 'Top Bid / Bids', 'Fuel · Trans', 'KMs · Year', 'Status', 'Date', 'Action'].map(h => (
-                      <th key={h} className="px-4 py-3 text-left text-[10px] font-bold text-white/25 uppercase tracking-widest">{h}</th>
+                    {['Vehicle', 'Seller', 'Remaining Time', 'Expected Price', 'Top Bid / Bids', 'Fuel · Trans', 'KMs · Year', 'Status', 'Date', 'Action'].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-[10px] font-bold indigo-500/25 uppercase tracking-widest">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -656,6 +764,7 @@ export default function AuctionCars() {
                     const sc = statusConfig[a.status] || statusConfig.new;
                     return (
                       <tr key={a.id} className="hover:bg-white/[0.025] transition-colors duration-150">
+
                         {/* Vehicle */}
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2.5">
@@ -663,33 +772,28 @@ export default function AuctionCars() {
                               <img src={a.thumb} alt="" className="w-10 h-10 rounded-lg object-cover border border-white/[0.08] flex-shrink-0" />
                             ) : (
                               <div className="w-10 h-10 rounded-lg bg-white/[0.06] flex items-center justify-center flex-shrink-0">
-                                <Car className="w-4 h-4 text-white/25" />
+                                <Car className="w-4 h-4 indigo-500/25" />
                               </div>
                             )}
                             <div className="min-w-0">
-                              <p className="text-white text-sm font-semibold truncate max-w-[130px]" title={`${a.carMake} ${a.carModel}`}>
+                              <p className="indigo-500 text-sm font-semibold truncate max-w-[130px]" title={`${a.carMake} ${a.carModel}`}>
                                 {a.carMake} {a.carModel}
                               </p>
-                              <p className="text-white/30 text-xs">{a.color}</p>
+                              <p className="indigo-500/30 text-xs">{a.color}</p>
                             </div>
                           </div>
                         </td>
 
-                        {/* Registration */}
-                        <td className="px-4 py-3">
-                          <span className="font-mono text-xs text-white/60 bg-white/[0.05] px-2 py-0.5 rounded-md border border-white/[0.06]">{a.regNumber}</span>
-                        </td>
-
                         {/* Seller */}
                         <td className="px-4 py-3">
-                          <p className="text-white/80 text-sm font-medium">{a.customerName}</p>
-                          <p className="text-white/30 text-xs">{a.customerPhone}</p>
+                          <p className="indigo-500/80 text-sm font-medium">{a.customerName}</p>
+                          <p className="indigo-500/30 text-xs">{a.customerPhone}</p>
                         </td>
 
-                        {/* ✅ FIX 3: Remaining Time column — was missing, causing all columns to shift */}
+                        {/* Remaining Time */}
                         <td className="px-4 py-3">
                           {a.isClosed ? (
-                            <span className="text-white/20 text-xs">Ended</span>
+                            <span className="indigo-500/20 text-xs">Ended</span>
                           ) : a.remainingTime ? (
                             <p className="text-amber-400 font-semibold text-sm tabular-nums">
                               {String(a.remainingTime.hours).padStart(2, '0')}h{' '}
@@ -697,13 +801,13 @@ export default function AuctionCars() {
                               {String(a.remainingTime.seconds).padStart(2, '0')}s
                             </p>
                           ) : (
-                            <span className="text-white/20 text-xs">—</span>
+                            <span className="indigo-500/20 text-xs">—</span>
                           )}
                         </td>
 
                         {/* Expected Price */}
                         <td className="px-4 py-3">
-                          <p className="text-white font-semibold text-sm">₹{a.expectedPrice.toLocaleString()}</p>
+                          <p className="indigo-500 font-semibold text-sm">₹{a.expectedPrice.toLocaleString()}</p>
                         </td>
 
                         {/* Top Bid / Bids */}
@@ -711,21 +815,21 @@ export default function AuctionCars() {
                           {a.topBid > 0 ? (
                             <p className="text-rose-400 font-bold text-sm">₹{a.topBid.toLocaleString()}</p>
                           ) : (
-                            <p className="text-white/20 text-xs">No bids</p>
+                            <p className="indigo-500/20 text-xs">No bids</p>
                           )}
                           <p className="text-indigo-400 text-xs font-semibold mt-0.5">{a.bidsCount} bid{a.bidsCount !== 1 ? 's' : ''}</p>
                         </td>
 
                         {/* Fuel · Trans */}
                         <td className="px-4 py-3">
-                          <p className="text-white/60 text-xs capitalize">{fuelIcon[a.fuelType] || ''} {a.fuelType}</p>
-                          <p className="text-white/35 text-xs capitalize mt-0.5">{a.transmission}</p>
+                          <p className="indigo-500/60 text-xs capitalize">{fuelIcon[a.fuelType] || ''} {a.fuelType}</p>
+                          <p className="indigo-500/35 text-xs capitalize mt-0.5">{a.transmission}</p>
                         </td>
 
                         {/* KMs · Year */}
                         <td className="px-4 py-3">
-                          <p className="text-white/60 text-xs">{a.kmsDriven.toLocaleString()} km</p>
-                          <p className="text-white/35 text-xs mt-0.5">{a.carYear}</p>
+                          <p className="indigo-500/60 text-xs">{a.kmsDriven.toLocaleString()} km</p>
+                          <p className="indigo-500/35 text-xs mt-0.5">{a.carYear}</p>
                         </td>
 
                         {/* Status */}
@@ -737,12 +841,18 @@ export default function AuctionCars() {
                         </td>
 
                         {/* Date */}
-                        <td className="px-4 py-3 text-white/40 text-xs">{a.startDate}</td>
+                        <td className="px-4 py-3 indigo-500/40 text-xs">{a.startDate}</td>
 
                         {/* Action */}
                         <td className="px-4 py-3">
-                          <button onClick={() => setSelectedAuction(a)}
+                          <button
+                            onClick={() => setSelectedAuction(a)}
                             className="px-3 py-1.5 rounded-lg bg-indigo-500/15 text-indigo-400 hover:bg-indigo-500/25 transition-all text-xs font-semibold">
+                            Details
+                          </button>
+                          <button
+                            onClick={() => setSelectedEnquiryId(a.enquiryDocId)}
+                            className="px-3 py-1.5 rounded-lg bg-violet-500/15 text-violet-400 hover:bg-violet-500/25 transition-all text-xs font-semibold ml-1">
                             View
                           </button>
                         </td>

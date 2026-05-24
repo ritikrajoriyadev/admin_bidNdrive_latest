@@ -71,29 +71,29 @@ const buildRequest = (formData) => {
 
 /* ─── Stat Card ─────────────────────────────────────────────────────────── */
 const StatCard = ({ label, value, icon, accentClass, change }) => (
-  <div className="relative overflow-hidden rounded-2xl bg-gray-900 border border-white/6 p-5 hover:border-white/12 transition-all duration-300">
+  <div className="relative overflow-hidden rounded-2xl bg-white border border-white/6 p-5 hover:border-white/12 transition-all duration-300">
     <div className={`absolute -top-6 -right-6 w-24 h-24 rounded-full blur-2xl opacity-15 ${accentClass}`} />
     <div className="flex items-center justify-between mb-4">
-      <span className="w-9 h-9 rounded-xl bg-white/6 flex items-center justify-center text-white/60">
+      <span className="w-9 h-9 rounded-xl bg-white/6 flex items-center justify-center indigo-500/60">
         {icon}
       </span>
       <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">
         {change}
       </span>
     </div>
-    <p className="text-white text-2xl font-bold tracking-tight">{value}</p>
-    <p className="text-white/40 text-xs font-medium mt-1 uppercase tracking-widest">{label}</p>
+    <p className="indigo-500 text-2xl font-bold tracking-tight">{value}</p>
+    <p className="indigo-500/40 text-xs font-medium mt-1 uppercase tracking-widest">{label}</p>
   </div>
 );
 
 /* ─── Status Badge ─────────────────────────────────────────────────────── */
 const StatusBadge = ({ status }) => {
   const config = {
-    sent:      { bg: 'bg-emerald-500/15', text: 'text-emerald-400', dot: 'bg-emerald-400' },
-    pending:   { bg: 'bg-blue-500/15',    text: 'text-blue-400',    dot: 'bg-blue-400'    },
-    draft:     { bg: 'bg-gray-500/15',    text: 'text-gray-400',    dot: 'bg-gray-400'    },
-    scheduled: { bg: 'bg-violet-500/15',  text: 'text-violet-400',  dot: 'bg-violet-400'  },
-    failed:    { bg: 'bg-red-500/15',     text: 'text-red-400',     dot: 'bg-red-400'     },
+    sent: { bg: 'bg-emerald-500/15', text: 'text-emerald-400', dot: 'bg-emerald-400' },
+    pending: { bg: 'bg-blue-500/15', text: 'text-blue-400', dot: 'bg-blue-400' },
+    draft: { bg: 'bg-gray-500/15', text: 'text-gray-400', dot: 'bg-gray-400' },
+    scheduled: { bg: 'bg-violet-500/15', text: 'text-violet-400', dot: 'bg-violet-400' },
+    failed: { bg: 'bg-red-500/15', text: 'text-red-400', dot: 'bg-red-400' },
   };
   const cfg = config[status] || config.draft;
   return (
@@ -114,18 +114,18 @@ const NotificationIcon = () => (
 /* ─── Target Badge ─────────────────────────────────────────────────────── */
 const TargetBadge = ({ target, value }) => {
   const config = {
-    broadcast:          { label: 'All Users',        color: 'text-cyan-400',    bg: 'bg-cyan-500/10',    border: 'border-cyan-500/20'    },
-    'broadcast-biders': { label: 'All Bidders',      color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-    'send-to-user':     { label: 'Specific User',    color: 'text-indigo-400',  bg: 'bg-indigo-500/10',  border: 'border-indigo-500/20'  },
-    'send-to-bider':    { label: 'Specific Bidder',  color: 'text-violet-400',  bg: 'bg-violet-500/10',  border: 'border-violet-500/20'  },
-    'send-to-multiple': { label: 'Multiple Users',   color: 'text-pink-400',    bg: 'bg-pink-500/10',    border: 'border-pink-500/20'    },
-    'send-to-biders':   { label: 'Multiple Bidders', color: 'text-orange-400',  bg: 'bg-orange-500/10',  border: 'border-orange-500/20'  },
+    broadcast: { label: 'All Users', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/20' },
+    'broadcast-biders': { label: 'All Bidders', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+    'send-to-user': { label: 'Specific User', color: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20' },
+    'send-to-bider': { label: 'Specific Bidder', color: 'text-violet-400', bg: 'bg-violet-500/10', border: 'border-violet-500/20' },
+    'send-to-multiple': { label: 'Multiple Users', color: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/20' },
+    'send-to-biders': { label: 'Multiple Bidders', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
     // Legacy / mock keys kept for display compatibility
-    all_users:          { label: 'All Users',        color: 'text-cyan-400',    bg: 'bg-cyan-500/10',    border: 'border-cyan-500/20'    },
-    buyers:             { label: 'Buyers Only',      color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-    car_model:          { label: 'By Car Model',     color: 'text-indigo-400',  bg: 'bg-indigo-500/10',  border: 'border-indigo-500/20'  },
-    category:           { label: 'By Category',      color: 'text-violet-400',  bg: 'bg-violet-500/10',  border: 'border-violet-500/20'  },
-    segment:            { label: 'By Segment',       color: 'text-pink-400',    bg: 'bg-pink-500/10',    border: 'border-pink-500/20'    },
+    all_users: { label: 'All Users', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/20' },
+    buyers: { label: 'Buyers Only', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+    car_model: { label: 'By Car Model', color: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20' },
+    category: { label: 'By Category', color: 'text-violet-400', bg: 'bg-violet-500/10', border: 'border-violet-500/20' },
+    segment: { label: 'By Segment', color: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/20' },
   };
   const cfg = config[target] || config.broadcast;
 
@@ -139,7 +139,7 @@ const TargetBadge = ({ target, value }) => {
         <div className="flex items-center gap-2 px-3 py-1.5 bg-white/[0.02] border border-white/5 rounded-lg ml-3 relative">
           <div className="absolute -left-3 top-1/2 w-3 h-[1px] bg-white/10" />
           <div className="absolute -left-3 -top-2 w-[1px] h-[calc(50%+8px)] bg-white/10" />
-          <span className="text-xs font-mono text-white/60 truncate max-w-[160px]" title={value}>
+          <span className="text-xs font-mono indigo-500/60 truncate max-w-[160px]" title={value}>
             {value}
           </span>
         </div>
@@ -175,7 +175,7 @@ const NotificationForm = ({ notification, onSubmit, onCancel, loading }) => {
     onSubmit(formData);
   };
 
-  const needsSingleId   = ['send-to-user', 'send-to-bider'].includes(formData.targetType);
+  const needsSingleId = ['send-to-user', 'send-to-bider'].includes(formData.targetType);
   const needsMultipleIds = ['send-to-multiple', 'send-to-biders'].includes(formData.targetType);
 
   return (
@@ -183,18 +183,18 @@ const NotificationForm = ({ notification, onSubmit, onCancel, loading }) => {
       {/* Title + Type */}
       <div className="grid md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-white/80 mb-2">Notification Title</label>
+          <label className="block text-sm font-medium indigo-500/80 mb-2">Notification Title</label>
           <input
             type="text" name="title" value={formData.title} onChange={handleChange}
             placeholder="e.g., New Car Model Launch"
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
+            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
             required
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-white/80 mb-2">Notification Type</label>
+          <label className="block text-sm font-medium indigo-500/80 mb-2">Notification Type</label>
           <select name="type" value={formData.type} onChange={handleChange}
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 transition">
+            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition">
             <option value="info">Info</option>
             <option value="promotion">Promotion</option>
             <option value="alert">Alert</option>
@@ -206,21 +206,21 @@ const NotificationForm = ({ notification, onSubmit, onCancel, loading }) => {
 
       {/* Message */}
       <div>
-        <label className="block text-sm font-medium text-white/80 mb-2">Message</label>
+        <label className="block text-sm font-medium indigo-500/80 mb-2">Message</label>
         <textarea
           name="message" value={formData.message} onChange={handleChange}
           placeholder="Enter your notification message here..."
           rows="4"
-          className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition resize-none"
+          className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition resize-none"
           required
         />
       </div>
 
       {/* Target Audience */}
       <div>
-        <label className="block text-sm font-medium text-white/80 mb-2">Target Audience</label>
+        <label className="block text-sm font-medium indigo-500/80 mb-2">Target Audience</label>
         <select name="targetType" value={formData.targetType} onChange={handleChange}
-          className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 transition">
+          className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition">
           <option value="broadcast">Broadcast to All Users</option>
           <option value="broadcast-biders">Broadcast to All Bidders</option>
           <option value="send-to-user">Specific User</option>
@@ -233,13 +233,13 @@ const NotificationForm = ({ notification, onSubmit, onCancel, loading }) => {
       {/* Single ID field */}
       {needsSingleId && (
         <div>
-          <label className="block text-sm font-medium text-white/80 mb-2">
+          <label className="block text-sm font-medium indigo-500/80 mb-2">
             {formData.targetType === 'send-to-user' ? 'User ID' : 'Bidder ID'}
           </label>
           <input
             type="text" name="targetId" value={formData.targetId} onChange={handleChange}
             placeholder="Enter ID…"
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 transition"
+            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
             required
           />
         </div>
@@ -248,14 +248,14 @@ const NotificationForm = ({ notification, onSubmit, onCancel, loading }) => {
       {/* Multiple IDs field */}
       {needsMultipleIds && (
         <div>
-          <label className="block text-sm font-medium text-white/80 mb-2">
+          <label className="block text-sm font-medium indigo-500/80 mb-2">
             {formData.targetType === 'send-to-multiple' ? 'User IDs' : 'Bidder IDs'}
-            <span className="text-white/40 font-normal ml-1">(comma separated)</span>
+            <span className="indigo-500/40 font-normal ml-1">(comma separated)</span>
           </label>
           <input
             type="text" name="targetIds" value={formData.targetIds} onChange={handleChange}
             placeholder="id1, id2, id3…"
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 transition"
+            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
             required
           />
         </div>
@@ -263,21 +263,21 @@ const NotificationForm = ({ notification, onSubmit, onCancel, loading }) => {
 
       {/* Action URL */}
       <div>
-        <label className="block text-sm font-medium text-white/80 mb-2">
-          Action URL <span className="text-white/40 font-normal">(Optional — sent in <code className="text-indigo-400 text-xs">data.actionUrl</code>)</span>
+        <label className="block text-sm font-medium indigo-500/80 mb-2">
+          Action URL <span className="indigo-500/40 font-normal">(Optional — sent in <code className="text-indigo-400 text-xs">data.actionUrl</code>)</span>
         </label>
         <input
           type="url" name="actionUrl" value={formData.actionUrl} onChange={handleChange}
           placeholder="https://example.com"
-          className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
+          className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
         />
       </div>
 
       {/* Scheduling */}
       <div>
-        <label className="block text-sm font-medium text-white/80 mb-2">Send</label>
+        <label className="block text-sm font-medium indigo-500/80 mb-2">Send</label>
         <select name="scheduling" value={formData.scheduling} onChange={handleChange}
-          className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 transition">
+          className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition">
           <option value="now">Send Now</option>
           <option value="scheduled">Schedule for Later</option>
           <option value="draft">Save as Draft</option>
@@ -288,15 +288,15 @@ const NotificationForm = ({ notification, onSubmit, onCancel, loading }) => {
       {formData.scheduling === 'scheduled' && (
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-white/80 mb-2">Date</label>
+            <label className="block text-sm font-medium indigo-500/80 mb-2">Date</label>
             <input type="date" name="scheduledDate" value={formData.scheduledDate} onChange={handleChange}
-              className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 transition"
+              className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
               required />
           </div>
           <div>
-            <label className="block text-sm font-medium text-white/80 mb-2">Time</label>
+            <label className="block text-sm font-medium indigo-500/80 mb-2">Time</label>
             <input type="time" name="scheduledTime" value={formData.scheduledTime} onChange={handleChange}
-              className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 transition"
+              className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
               required />
           </div>
         </div>
@@ -305,12 +305,12 @@ const NotificationForm = ({ notification, onSubmit, onCancel, loading }) => {
       {/* Actions */}
       <div className="flex gap-3 pt-4">
         <button type="submit" disabled={loading}
-          className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg font-medium transition flex items-center justify-center gap-2">
+          className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 indigo-500 rounded-lg font-medium transition flex items-center justify-center gap-2">
           <Send size={18} />
           {loading ? 'Sending…' : notification ? 'Update' : 'Send Notification'}
         </button>
         <button type="button" onClick={onCancel}
-          className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg font-medium transition">
+          className="px-4 py-2 bg-gray-800 hover:bg-gray-700 indigo-500 rounded-lg font-medium transition">
           Cancel
         </button>
       </div>
@@ -321,14 +321,14 @@ const NotificationForm = ({ notification, onSubmit, onCancel, loading }) => {
 /* ─── Main Component ─────────────────────────────────────────────────────── */
 export default function Notifications() {
   const { addToast } = useToast();
-  const [notifications, setNotifications]           = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [filteredNotifications, setFilteredNotifications] = useState([]);
-  const [searchTerm, setSearchTerm]                 = useState('');
-  const [filterStatus, setFilterStatus]             = useState('all');
-  const [filterType, setFilterType]                 = useState('all');
-  const [loading, setLoading]                       = useState(false);
-  const [showForm, setShowForm]                     = useState(false);
-  const [editingId, setEditingId]                   = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterType, setFilterType] = useState('all');
+  const [loading, setLoading] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
     setNotifications([]);
@@ -343,7 +343,7 @@ export default function Notifications() {
         n.message.toLowerCase().includes(searchTerm.toLowerCase())
       );
     if (filterStatus !== 'all') filtered = filtered.filter((n) => n.status === filterStatus);
-    if (filterType   !== 'all') filtered = filtered.filter((n) => n.type   === filterType);
+    if (filterType !== 'all') filtered = filtered.filter((n) => n.type === filterType);
     setFilteredNotifications(filtered);
   }, [notifications, searchTerm, filterStatus, filterType]);
 
@@ -396,8 +396,8 @@ export default function Notifications() {
       (formData.scheduling === 'now'
         ? 'sent'
         : formData.scheduling === 'draft'
-        ? 'draft'
-        : 'scheduled');
+          ? 'draft'
+          : 'scheduled');
 
     const isBroadcast = formData.targetType.startsWith('broadcast');
 
@@ -429,15 +429,15 @@ export default function Notifications() {
 
   // ── Derived stats ────────────────────────────────────────────────────────
   const sentNotifications = notifications.filter((n) => n.status === 'sent').length;
-  const totalDelivered    = notifications.reduce((s, n) => s + (Number(n.delivered) || 0), 0);
-  const totalViewed       = notifications.reduce((s, n) => s + (Number(n.viewed)    || 0), 0);
+  const totalDelivered = notifications.reduce((s, n) => s + (Number(n.delivered) || 0), 0);
+  const totalViewed = notifications.reduce((s, n) => s + (Number(n.viewed) || 0), 0);
   const avgCTR = notifications.length
     ? (
-        notifications.reduce((s, n) => {
-          const r = Number(n.totalRecipients);
-          return s + (r > 0 ? (n.clicked / r) * 100 : 0);
-        }, 0) / notifications.length
-      ).toFixed(2)
+      notifications.reduce((s, n) => {
+        const r = Number(n.totalRecipients);
+        return s + (r > 0 ? (n.clicked / r) * 100 : 0);
+      }, 0) / notifications.length
+    ).toFixed(2)
     : '0';
 
   return (
@@ -447,12 +447,12 @@ export default function Notifications() {
         {/* ── Header ── */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-1">Notifications</h1>
-            <p className="text-white/60">Send targeted notifications to users</p>
+            <h1 className="text-3xl font-bold indigo-500 mb-1">Notifications</h1>
+            <p className="indigo-500/60">Send targeted notifications to users</p>
           </div>
           <button
             onClick={() => { setEditingId(null); setShowForm((v) => !v); }}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white rounded-lg font-medium transition"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 indigo-500 rounded-lg font-medium transition"
           >
             <Plus size={20} />
             New Notification
@@ -461,16 +461,16 @@ export default function Notifications() {
 
         {/* ── Stats ── */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <StatCard label="Total Sent"      value={sentNotifications}            icon={<Send size={18} />}         accentClass="bg-indigo-600"  change="+3 this week" />
-          <StatCard label="Total Delivered" value={totalDelivered.toLocaleString()} icon={<Eye size={18} />}       accentClass="bg-emerald-600" change="+12.5%"        />
-          <StatCard label="Total Viewed"    value={totalViewed.toLocaleString()}    icon={<MessageSquare size={18} />} accentClass="bg-blue-600" change="+8.3%"        />
-          <StatCard label="Avg CTR"         value={`${avgCTR}%`}                 icon={<Users size={18} />}        accentClass="bg-purple-600" change="+2.1%"         />
+          <StatCard label="Total Sent" value={sentNotifications} icon={<Send size={18} />} accentClass="bg-indigo-600" change="+3 this week" />
+          <StatCard label="Total Delivered" value={totalDelivered.toLocaleString()} icon={<Eye size={18} />} accentClass="bg-emerald-600" change="+12.5%" />
+          <StatCard label="Total Viewed" value={totalViewed.toLocaleString()} icon={<MessageSquare size={18} />} accentClass="bg-blue-600" change="+8.3%" />
+          <StatCard label="Avg CTR" value={`${avgCTR}%`} icon={<Users size={18} />} accentClass="bg-purple-600" change="+2.1%" />
         </div>
 
         {/* ── Form ── */}
         {showForm && (
-          <div className="bg-gray-900 border border-white/6 rounded-2xl p-6">
-            <h2 className="text-xl font-bold text-white mb-6">
+          <div className="bg-white border border-white/6 rounded-2xl p-6">
+            <h2 className="text-xl font-bold indigo-500 mb-6">
               {editingId ? 'Edit Notification' : 'Create New Notification'}
             </h2>
             <NotificationForm
@@ -485,15 +485,15 @@ export default function Notifications() {
         {/* ── Filters ── */}
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" size={20} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 indigo-500/40" size={20} />
             <input
               type="text" placeholder="Search notifications…" value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-gray-800 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
             />
           </div>
           <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
-            className="px-4 py-2.5 rounded-lg bg-gray-800 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 transition">
+            className="px-4 py-2.5 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition">
             <option value="all">All Types</option>
             <option value="info">Info</option>
             <option value="promotion">Promotion</option>
@@ -502,7 +502,7 @@ export default function Notifications() {
             <option value="reminder">Reminder</option>
           </select>
           <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2.5 rounded-lg bg-gray-800 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 transition">
+            className="px-4 py-2.5 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition">
             <option value="all">All Status</option>
             <option value="sent">Sent</option>
             <option value="pending">Pending</option>
@@ -513,7 +513,7 @@ export default function Notifications() {
         </div>
 
         {/* ── Table ── */}
-      
+
       </div>
     </div>
   );

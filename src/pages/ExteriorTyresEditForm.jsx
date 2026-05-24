@@ -3,24 +3,24 @@ import React, { useState, useRef } from 'react';
 /* ─── Design tokens (mirrors parent page) ──────────────────────────────── */
 const STATUS_OPTIONS = ['ok', 'issue', 'na'];
 const CONDITIONS_MAP = {
-  bumper:         ['dent','scratch','broken','repainted','replaced','rust'],
-  fender:         ['dent','scratch','repainted','replaced','rust','bent'],
-  door:           ['dent','scratch','repainted','replaced','rust','alignment_issue'],
-  pillar:         ['dent','scratch','repainted','replaced','bent'],
-  quarter_panel:  ['dent','scratch','repainted','replaced','rust'],
-  running_border: ['dent','scratch','repainted','replaced','rust'],
-  windshield:     ['crack','chip','scratched','replaced','tinted'],
-  orvm:           ['broken','scratched','replaced','motor_issue'],
-  lights:         ['crack','condensation','replaced','not_working'],
-  tyres:          ['worn','puncture','bulge','replaced','mismatched'],
-  roof:           ['dent','scratch','repainted','rust'],
-  bonnet_hood:    ['dent','scratch','repainted','replaced','rust'],
-  default:        ['dent','scratch','repainted','replaced','rust','broken'],
+  bumper: ['dent', 'scratch', 'broken', 'repainted', 'replaced', 'rust'],
+  fender: ['dent', 'scratch', 'repainted', 'replaced', 'rust', 'bent'],
+  door: ['dent', 'scratch', 'repainted', 'replaced', 'rust', 'alignment_issue'],
+  pillar: ['dent', 'scratch', 'repainted', 'replaced', 'bent'],
+  quarter_panel: ['dent', 'scratch', 'repainted', 'replaced', 'rust'],
+  running_border: ['dent', 'scratch', 'repainted', 'replaced', 'rust'],
+  windshield: ['crack', 'chip', 'scratched', 'replaced', 'tinted'],
+  orvm: ['broken', 'scratched', 'replaced', 'motor_issue'],
+  lights: ['crack', 'condensation', 'replaced', 'not_working'],
+  tyres: ['worn', 'puncture', 'bulge', 'replaced', 'mismatched'],
+  roof: ['dent', 'scratch', 'repainted', 'rust'],
+  bonnet_hood: ['dent', 'scratch', 'repainted', 'replaced', 'rust'],
+  default: ['dent', 'scratch', 'repainted', 'replaced', 'rust', 'broken'],
 };
 
 /* ─── Atoms ──────────────────────────────────────────────────────────────── */
 const Label = ({ children }) => (
-  <p className="text-white/25 text-[10px] font-bold tracking-widest uppercase mb-2">{children}</p>
+  <p className="indigo-500/25 text-[10px] font-bold tracking-widest uppercase mb-2">{children}</p>
 );
 
 const StatusSelect = ({ value, onChange }) => (
@@ -30,15 +30,14 @@ const StatusSelect = ({ value, onChange }) => (
         key={s}
         type="button"
         onClick={() => onChange(s)}
-        className={`px-3 py-1 rounded-lg text-[11px] font-bold uppercase transition-all border ${
-          value === s
-            ? s === 'ok'
-              ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
-              : s === 'issue'
+        className={`px-3 py-1 rounded-lg text-[11px] font-bold uppercase transition-all border ${value === s
+          ? s === 'ok'
+            ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
+            : s === 'issue'
               ? 'bg-rose-500/20 border-rose-500/50 text-rose-400'
-              : 'bg-white/10 border-white/20 text-white/60'
-            : 'bg-transparent border-white/[0.07] text-white/25 hover:border-white/20 hover:text-white/40'
-        }`}
+              : 'bg-white/10 border-white/20 indigo-500/60'
+          : 'bg-transparent indigo-500 indigo-500/25 hover:border-white/20 hover:indigo-500/40'
+          }`}
       >
         {s}
       </button>
@@ -55,11 +54,10 @@ const ConditionPills = ({ options, selected = [], onChange }) => (
           key={c}
           type="button"
           onClick={() => onChange(active ? selected.filter(x => x !== c) : [...selected, c])}
-          className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-all capitalize border ${
-            active
-              ? 'bg-amber-500/20 border-amber-500/40 text-amber-400'
-              : 'bg-transparent border-white/[0.07] text-white/25 hover:text-white/40'
-          }`}
+          className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-all capitalize border ${active
+            ? 'bg-amber-500/20 border-amber-500/40 text-amber-400'
+            : 'bg-transparent indigo-500 indigo-500/25 hover:indigo-500/40'
+            }`}
         >
           {c.replace(/_/g, ' ')}
         </button>
@@ -74,7 +72,7 @@ const NoteInput = ({ value, onChange, placeholder = 'Add a note…' }) => (
     onChange={e => onChange(e.target.value)}
     placeholder={placeholder}
     rows={2}
-    className="w-full mt-2 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.07] text-white/60 text-xs placeholder-white/20 focus:outline-none focus:border-teal-500/40 focus:bg-white/[0.05] resize-none transition-all"
+    className="w-full mt-2 px-3 py-2 rounded-lg bg-white/[0.03] border indigo-500 indigo-500/60 text-xs indigo-500 focus:outline-none focus:border-teal-500/40 focus:bg-white/[0.05] resize-none transition-all"
   />
 );
 
@@ -89,8 +87,8 @@ const ImageUploadStrip = ({ fieldName, existingImages = [], newFiles, onNewFiles
         {existingImages.map((img, i) => (
           <div key={i} className="relative w-[60px] h-[45px] rounded-lg overflow-hidden border border-white/[0.08] flex-shrink-0">
             <img src={img.url} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-              <span className="text-white/60 text-[8px] font-bold">EXISTING</span>
+            <div className="absolute inset-0 indigo-500/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+              <span className="indigo-500/60 text-[8px] font-bold">EXISTING</span>
             </div>
           </div>
         ))}
@@ -100,7 +98,7 @@ const ImageUploadStrip = ({ fieldName, existingImages = [], newFiles, onNewFiles
           <div key={`new-${i}`} className="relative w-[60px] h-[45px] rounded-lg overflow-hidden border border-teal-500/30 flex-shrink-0">
             <img src={URL.createObjectURL(f)} alt="" className="w-full h-full object-cover" />
             <div className="absolute top-0.5 right-0.5 w-3 h-3 rounded-full bg-teal-500 flex items-center justify-center">
-              <span className="text-[7px] text-white font-bold">N</span>
+              <span className="text-[7px] indigo-500 font-bold">N</span>
             </div>
           </div>
         ))}
@@ -109,10 +107,10 @@ const ImageUploadStrip = ({ fieldName, existingImages = [], newFiles, onNewFiles
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="w-[60px] h-[45px] rounded-lg border border-dashed border-white/[0.12] bg-white/[0.02] flex flex-col items-center justify-center gap-0.5 text-white/20 hover:border-teal-500/40 hover:text-teal-400/60 transition-all flex-shrink-0"
+          className="w-[60px] h-[45px] rounded-lg border border-dashed border-white/[0.12] bg-white/[0.02] flex flex-col items-center justify-center gap-0.5 indigo-500/20 hover:border-teal-500/40 hover:text-teal-400/60 transition-all flex-shrink-0"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 5v14M5 12h14"/>
+            <path d="M12 5v14M5 12h14" />
           </svg>
           <span className="text-[8px] font-bold">ADD</span>
         </button>
@@ -140,7 +138,7 @@ const PartEditor = ({ label, partKey, data = {}, imageFieldName, conditionsKey =
   return (
     <div className="py-3 border-b border-white/[0.04] last:border-0">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-white/50 text-xs capitalize font-medium">{label.replace(/_/g, ' ')}</span>
+        <span className="indigo-500/50 text-xs capitalize font-medium">{label.replace(/_/g, ' ')}</span>
         <StatusSelect value={state.status} onChange={v => onChange(partKey, 'status', v)} />
       </div>
 
@@ -177,12 +175,12 @@ const Section = ({ title, defaultOpen = false, children }) => {
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-white/[0.02] transition-all"
       >
-        <span className="text-white/50 text-xs font-bold tracking-widest uppercase">{title}</span>
+        <span className="indigo-500/50 text-xs font-bold tracking-widest uppercase">{title}</span>
         <svg
-          className={`w-4 h-4 text-white/20 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 indigo-500/20 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
           viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
         >
-          <polyline points="6 9 12 15 18 9"/>
+          <polyline points="6 9 12 15 18 9" />
         </svg>
       </button>
       {open && <div className="px-4 pb-3">{children}</div>}
@@ -199,8 +197,8 @@ const ExteriorTyresEditForm = ({ initialData = {}, onSave, onCancel, saving = fa
   const [form, setForm] = useState({});
 
   /* misc top-level fields */
-  const [jackTool,    setJackTool]    = useState(initialData.jack_tool_available ?? false);
-  const [comments,   setComments]    = useState(initialData.comments || '');
+  const [jackTool, setJackTool] = useState(initialData.jack_tool_available ?? false);
+  const [comments, setComments] = useState(initialData.comments || '');
 
   const handleChange = (partKey, field, value) => {
     setForm(prev => ({
@@ -230,12 +228,12 @@ const ExteriorTyresEditForm = ({ initialData = {}, onSave, onCancel, saving = fa
       const s = form[partKey] || {};
       const initial = getInitial(partKey);
 
-      const status     = s.status     ?? initial?.status     ?? 'ok';
+      const status = s.status ?? initial?.status ?? 'ok';
       const conditions = s.conditions ?? initial?.conditions ?? [];
-      const notes      = s.notes      ?? initial?.notes      ?? '';
+      const notes = s.notes ?? initial?.notes ?? '';
 
-      fd.append(`${prefix}[status]`,     status);
-      fd.append(`${prefix}[notes]`,      notes);
+      fd.append(`${prefix}[status]`, status);
+      fd.append(`${prefix}[notes]`, notes);
       conditions.forEach(c => fd.append(`${prefix}[conditions][]`, c));
 
       // Append new image files
@@ -247,19 +245,19 @@ const ExteriorTyresEditForm = ({ initialData = {}, onSave, onCancel, saving = fa
 
     // ── Bumpers ──────────────────────────────────────────────────────────
     encodePart('bumper[front]', 'bumper_front', 'bumper_front_images');
-    encodePart('bumper[rear]',  'bumper_rear',  'bumper_rear_images');
+    encodePart('bumper[rear]', 'bumper_rear', 'bumper_rear_images');
 
     // ── Fenders ──────────────────────────────────────────────────────────
     encodePart('fender[lhs]', 'fender_lhs', 'fender_lhs_images');
     encodePart('fender[rhs]', 'fender_rhs', 'fender_rhs_images');
 
     // ── Doors ────────────────────────────────────────────────────────────
-    ['lhs_front','lhs_rear','rhs_front','rhs_rear'].forEach(k => {
+    ['lhs_front', 'lhs_rear', 'rhs_front', 'rhs_rear'].forEach(k => {
       encodePart(`door[${k}]`, `door_${k}`, `door_${k}_images`);
     });
 
     // ── Pillars ──────────────────────────────────────────────────────────
-    ['lhs_a','lhs_b','lhs_c','rhs_a','rhs_b','rhs_c'].forEach(k => {
+    ['lhs_a', 'lhs_b', 'lhs_c', 'rhs_a', 'rhs_b', 'rhs_c'].forEach(k => {
       encodePart(`pillar[${k}]`, `pillar_${k}`, `pillar_${k}_images`);
     });
 
@@ -273,7 +271,7 @@ const ExteriorTyresEditForm = ({ initialData = {}, onSave, onCancel, saving = fa
 
     // ── Windshield ───────────────────────────────────────────────────────
     encodePart('windshield[front]', 'windshield_front', 'windshield_front_images');
-    encodePart('windshield[rear]',  'windshield_rear',  'windshield_rear_images');
+    encodePart('windshield[rear]', 'windshield_rear', 'windshield_rear_images');
 
     // ── ORVM ─────────────────────────────────────────────────────────────
     encodePart('orvm[lhs]', 'orvm_lhs', 'orvm_lhs_images');
@@ -286,24 +284,24 @@ const ExteriorTyresEditForm = ({ initialData = {}, onSave, onCancel, saving = fa
     encodePart('lights[rhs_taillight]', 'rhs_taillight', 'rhs_taillight_images');
 
     // ── Tyres ────────────────────────────────────────────────────────────
-    ['lhs_front','rhs_front','lhs_rear','rhs_rear','spare'].forEach(k => {
+    ['lhs_front', 'rhs_front', 'lhs_rear', 'rhs_rear', 'spare'].forEach(k => {
       encodePart(`tyres[${k}]`, `tyre_${k}`, `tyre_${k}_images`);
     });
 
     // ── Singles ──────────────────────────────────────────────────────────
     const singles = [
-      ['bonnet_hood',          'bonnet_hood',          'bonnet_hood_images'],
-      ['roof',                 'roof',                 'roof_images'],
-      ['dicky_boot_door',      'dicky_boot_door',      'dicky_boot_door_images'],
-      ['boot_floor',           'boot_floor',           'boot_floor_images'],
-      ['apron',                'apron',                'apron_images'],
-      ['cowl_top',             'cowl_top',             'cowl_top_images'],
-      ['firewall',             'firewall',             'firewall_images'],
-      ['alloy_wheel',          'alloy_wheel',          'alloy_wheel_images'],
-      ['radiator_support',     'radiator_support',     'radiator_support_images'],
-      ['head_light_support',   'head_light_support',   'head_light_support_images'],
-      ['upper_cross_member',   'upper_cross_member',   'upper_cross_member_images'],
-      ['lower_cross_member',   'lower_cross_member',   'lower_cross_member_images'],
+      ['bonnet_hood', 'bonnet_hood', 'bonnet_hood_images'],
+      ['roof', 'roof', 'roof_images'],
+      ['dicky_boot_door', 'dicky_boot_door', 'dicky_boot_door_images'],
+      ['boot_floor', 'boot_floor', 'boot_floor_images'],
+      ['apron', 'apron', 'apron_images'],
+      ['cowl_top', 'cowl_top', 'cowl_top_images'],
+      ['firewall', 'firewall', 'firewall_images'],
+      ['alloy_wheel', 'alloy_wheel', 'alloy_wheel_images'],
+      ['radiator_support', 'radiator_support', 'radiator_support_images'],
+      ['head_light_support', 'head_light_support', 'head_light_support_images'],
+      ['upper_cross_member', 'upper_cross_member', 'upper_cross_member_images'],
+      ['lower_cross_member', 'lower_cross_member', 'lower_cross_member_images'],
     ];
     singles.forEach(([prefix, partKey, fieldName]) => encodePart(prefix, partKey, fieldName));
 
@@ -318,49 +316,49 @@ const ExteriorTyresEditForm = ({ initialData = {}, onSave, onCancel, saving = fa
   const getInitial = (partKey) => {
     const d = initialData;
     const map = {
-      bumper_front:         d.bumper?.front,
-      bumper_rear:          d.bumper?.rear,
-      fender_lhs:           d.fender?.lhs,
-      fender_rhs:           d.fender?.rhs,
-      door_lhs_front:       d.door?.lhs_front,
-      door_lhs_rear:        d.door?.lhs_rear,
-      door_rhs_front:       d.door?.rhs_front,
-      door_rhs_rear:        d.door?.rhs_rear,
-      pillar_lhs_a:         d.pillar?.lhs_a,
-      pillar_lhs_b:         d.pillar?.lhs_b,
-      pillar_lhs_c:         d.pillar?.lhs_c,
-      pillar_rhs_a:         d.pillar?.rhs_a,
-      pillar_rhs_b:         d.pillar?.rhs_b,
-      pillar_rhs_c:         d.pillar?.rhs_c,
-      quarter_panel_lhs:    d.quarter_panel?.lhs,
-      quarter_panel_rhs:    d.quarter_panel?.rhs,
-      running_border_lhs:   d.running_border?.lhs,
-      running_border_rhs:   d.running_border?.rhs,
-      windshield_front:     d.windshield?.front,
-      windshield_rear:      d.windshield?.rear,
-      orvm_lhs:             d.orvm?.lhs,
-      orvm_rhs:             d.orvm?.rhs,
-      lhs_headlight:        d.lights?.lhs_headlight,
-      rhs_headlight:        d.lights?.rhs_headlight,
-      lhs_taillight:        d.lights?.lhs_taillight,
-      rhs_taillight:        d.lights?.rhs_taillight,
-      tyre_lhs_front:       d.tyres?.lhs_front,
-      tyre_rhs_front:       d.tyres?.rhs_front,
-      tyre_lhs_rear:        d.tyres?.lhs_rear,
-      tyre_rhs_rear:        d.tyres?.rhs_rear,
-      tyre_spare:           d.tyres?.spare,
-      bonnet_hood:          d.bonnet_hood,
-      roof:                 d.roof,
-      dicky_boot_door:      d.dicky_boot_door,
-      boot_floor:           d.boot_floor,
-      apron:                d.apron,
-      cowl_top:             d.cowl_top,
-      firewall:             d.firewall,
-      alloy_wheel:          d.alloy_wheel,
-      radiator_support:     d.radiator_support,
-      head_light_support:   d.head_light_support,
-      upper_cross_member:   d.upper_cross_member,
-      lower_cross_member:   d.lower_cross_member,
+      bumper_front: d.bumper?.front,
+      bumper_rear: d.bumper?.rear,
+      fender_lhs: d.fender?.lhs,
+      fender_rhs: d.fender?.rhs,
+      door_lhs_front: d.door?.lhs_front,
+      door_lhs_rear: d.door?.lhs_rear,
+      door_rhs_front: d.door?.rhs_front,
+      door_rhs_rear: d.door?.rhs_rear,
+      pillar_lhs_a: d.pillar?.lhs_a,
+      pillar_lhs_b: d.pillar?.lhs_b,
+      pillar_lhs_c: d.pillar?.lhs_c,
+      pillar_rhs_a: d.pillar?.rhs_a,
+      pillar_rhs_b: d.pillar?.rhs_b,
+      pillar_rhs_c: d.pillar?.rhs_c,
+      quarter_panel_lhs: d.quarter_panel?.lhs,
+      quarter_panel_rhs: d.quarter_panel?.rhs,
+      running_border_lhs: d.running_border?.lhs,
+      running_border_rhs: d.running_border?.rhs,
+      windshield_front: d.windshield?.front,
+      windshield_rear: d.windshield?.rear,
+      orvm_lhs: d.orvm?.lhs,
+      orvm_rhs: d.orvm?.rhs,
+      lhs_headlight: d.lights?.lhs_headlight,
+      rhs_headlight: d.lights?.rhs_headlight,
+      lhs_taillight: d.lights?.lhs_taillight,
+      rhs_taillight: d.lights?.rhs_taillight,
+      tyre_lhs_front: d.tyres?.lhs_front,
+      tyre_rhs_front: d.tyres?.rhs_front,
+      tyre_lhs_rear: d.tyres?.lhs_rear,
+      tyre_rhs_rear: d.tyres?.rhs_rear,
+      tyre_spare: d.tyres?.spare,
+      bonnet_hood: d.bonnet_hood,
+      roof: d.roof,
+      dicky_boot_door: d.dicky_boot_door,
+      boot_floor: d.boot_floor,
+      apron: d.apron,
+      cowl_top: d.cowl_top,
+      firewall: d.firewall,
+      alloy_wheel: d.alloy_wheel,
+      radiator_support: d.radiator_support,
+      head_light_support: d.head_light_support,
+      upper_cross_member: d.upper_cross_member,
+      lower_cross_member: d.lower_cross_member,
     };
     return map[partKey];
   };
@@ -384,7 +382,7 @@ const ExteriorTyresEditForm = ({ initialData = {}, onSave, onCancel, saving = fa
 
       <Section title="Bumpers" defaultOpen>
         <PE label="Front Bumper" partKey="bumper_front" imageField="bumper_front_images" condKey="bumper" />
-        <PE label="Rear Bumper"  partKey="bumper_rear"  imageField="bumper_rear_images"  condKey="bumper" />
+        <PE label="Rear Bumper" partKey="bumper_rear" imageField="bumper_rear_images" condKey="bumper" />
       </Section>
 
       <Section title="Bonnet / Hood">
@@ -398,13 +396,13 @@ const ExteriorTyresEditForm = ({ initialData = {}, onSave, onCancel, saving = fa
 
       <Section title="Doors">
         <PE label="LHS Front" partKey="door_lhs_front" imageField="door_lhs_front_images" condKey="door" />
-        <PE label="LHS Rear"  partKey="door_lhs_rear"  imageField="door_lhs_rear_images"  condKey="door" />
+        <PE label="LHS Rear" partKey="door_lhs_rear" imageField="door_lhs_rear_images" condKey="door" />
         <PE label="RHS Front" partKey="door_rhs_front" imageField="door_rhs_front_images" condKey="door" />
-        <PE label="RHS Rear"  partKey="door_rhs_rear"  imageField="door_rhs_rear_images"  condKey="door" />
+        <PE label="RHS Rear" partKey="door_rhs_rear" imageField="door_rhs_rear_images" condKey="door" />
       </Section>
 
       <Section title="Pillars">
-        {['lhs_a','lhs_b','lhs_c','rhs_a','rhs_b','rhs_c'].map(k => (
+        {['lhs_a', 'lhs_b', 'lhs_c', 'rhs_a', 'rhs_b', 'rhs_c'].map(k => (
           <PE key={k} label={k.replace('_', ' ').toUpperCase()} partKey={`pillar_${k}`} imageField={`pillar_${k}_images`} condKey="pillar" />
         ))}
       </Section>
@@ -425,7 +423,7 @@ const ExteriorTyresEditForm = ({ initialData = {}, onSave, onCancel, saving = fa
 
       <Section title="Windshields">
         <PE label="Front Windshield" partKey="windshield_front" imageField="windshield_front_images" condKey="windshield" />
-        <PE label="Rear Windshield"  partKey="windshield_rear"  imageField="windshield_rear_images"  condKey="windshield" />
+        <PE label="Rear Windshield" partKey="windshield_rear" imageField="windshield_rear_images" condKey="windshield" />
       </Section>
 
       <Section title="ORVM">
@@ -441,29 +439,29 @@ const ExteriorTyresEditForm = ({ initialData = {}, onSave, onCancel, saving = fa
       </Section>
 
       <Section title="Tyres">
-        {['lhs_front','rhs_front','lhs_rear','rhs_rear','spare'].map(k => (
+        {['lhs_front', 'rhs_front', 'lhs_rear', 'rhs_rear', 'spare'].map(k => (
           <PE key={k} label={k.replace(/_/g, ' ').toUpperCase()} partKey={`tyre_${k}`} imageField={`tyre_${k}_images`} condKey="tyres" />
         ))}
       </Section>
 
       <Section title="Structural / Body Panels">
-        <PE label="Boot Floor"           partKey="boot_floor"           imageField="boot_floor_images"           condKey="default" />
-        <PE label="Dicky / Boot Door"    partKey="dicky_boot_door"      imageField="dicky_boot_door_images"      condKey="default" />
-        <PE label="Apron"                partKey="apron"                imageField="apron_images"                condKey="default" />
-        <PE label="Cowl Top"             partKey="cowl_top"             imageField="cowl_top_images"             condKey="default" />
-        <PE label="Firewall"             partKey="firewall"             imageField="firewall_images"             condKey="default" />
-        <PE label="Alloy Wheel"          partKey="alloy_wheel"          imageField="alloy_wheel_images"          condKey="default" />
-        <PE label="Radiator Support"     partKey="radiator_support"     imageField="radiator_support_images"     condKey="default" />
-        <PE label="Head Light Support"   partKey="head_light_support"   imageField="head_light_support_images"   condKey="default" />
-        <PE label="Upper Cross Member"   partKey="upper_cross_member"   imageField="upper_cross_member_images"   condKey="default" />
-        <PE label="Lower Cross Member"   partKey="lower_cross_member"   imageField="lower_cross_member_images"   condKey="default" />
+        <PE label="Boot Floor" partKey="boot_floor" imageField="boot_floor_images" condKey="default" />
+        <PE label="Dicky / Boot Door" partKey="dicky_boot_door" imageField="dicky_boot_door_images" condKey="default" />
+        <PE label="Apron" partKey="apron" imageField="apron_images" condKey="default" />
+        <PE label="Cowl Top" partKey="cowl_top" imageField="cowl_top_images" condKey="default" />
+        <PE label="Firewall" partKey="firewall" imageField="firewall_images" condKey="default" />
+        <PE label="Alloy Wheel" partKey="alloy_wheel" imageField="alloy_wheel_images" condKey="default" />
+        <PE label="Radiator Support" partKey="radiator_support" imageField="radiator_support_images" condKey="default" />
+        <PE label="Head Light Support" partKey="head_light_support" imageField="head_light_support_images" condKey="default" />
+        <PE label="Upper Cross Member" partKey="upper_cross_member" imageField="upper_cross_member_images" condKey="default" />
+        <PE label="Lower Cross Member" partKey="lower_cross_member" imageField="lower_cross_member_images" condKey="default" />
       </Section>
 
       {/* Misc */}
       <div className="rounded-xl bg-white/[0.02] border border-white/[0.05] p-4 space-y-3">
         <Label>Miscellaneous</Label>
         <div className="flex items-center justify-between">
-          <span className="text-white/40 text-xs">Jack Tool Available</span>
+          <span className="indigo-500/40 text-xs">Jack Tool Available</span>
           <button
             type="button"
             onClick={() => setJackTool(v => !v)}
@@ -486,7 +484,7 @@ const ExteriorTyresEditForm = ({ initialData = {}, onSave, onCancel, saving = fa
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 py-2.5 rounded-xl border border-white/[0.08] text-white/40 text-sm font-semibold hover:text-white/70 hover:border-white/20 transition-all"
+          className="flex-1 py-2.5 rounded-xl border border-white/[0.08] indigo-500/40 text-sm font-semibold hover:indigo-500/70 hover:border-white/20 transition-all"
         >
           Cancel
         </button>
@@ -499,7 +497,7 @@ const ExteriorTyresEditForm = ({ initialData = {}, onSave, onCancel, saving = fa
           {saving ? (
             <span className="flex items-center justify-center gap-2">
               <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                <path d="M21 12a9 9 0 1 1-6.219-8.56" />
               </svg>
               Saving…
             </span>

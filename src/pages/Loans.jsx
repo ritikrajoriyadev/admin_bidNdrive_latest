@@ -111,7 +111,7 @@ export default function Loan() {
         `${apiUrl}/api/loans/update/${selectedLoan.id}`,
         { status: statusUpdate },
         {
-          headers: {  Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
@@ -127,7 +127,7 @@ export default function Loan() {
   };
 
   return (
-    <div className="p-6 text-white">
+    <div className="p-6 indigo-500">
       {/* HEADER */}
       <div className="flex justify-between mb-6">
         <h1 className="text-2xl font-bold">Loan Requests</h1>
@@ -143,13 +143,13 @@ export default function Loan() {
       <div className="flex gap-3 mb-6">
         <input
           placeholder="Search..."
-          className="flex-1 p-2 bg-gray-900 rounded"
+          className="flex-1 p-2 bg-white rounded"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
 
         <select
-          className="p-2 bg-gray-900 rounded"
+          className="p-2 bg-white rounded"
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
         >
@@ -193,7 +193,7 @@ export default function Loan() {
 
       {/* MODAL */}
       {selectedLoan && (
-        <div className="mt-6 bg-gray-900 p-4 rounded">
+        <div className="mt-6 bg-white p-4 rounded">
           <h2 className="mb-4 font-semibold">Update Loan Status</h2>
 
           <select

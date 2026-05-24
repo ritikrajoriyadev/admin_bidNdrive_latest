@@ -20,7 +20,7 @@ const Greeting = ({ name = "Admin" }) => {
       <p className="text-indigo-200 text-xs font-semibold tracking-widest uppercase mb-1">
         {greeting}
       </p>
-      <h2 className="text-white text-2xl font-bold tracking-tight">
+      <h2 className="indigo-500 text-2xl font-bold tracking-tight">
         Welcome back, {name}
       </h2>
       <p className="text-indigo-200/70 text-sm mt-1">

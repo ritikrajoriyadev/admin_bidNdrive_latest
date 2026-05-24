@@ -9,7 +9,7 @@ export default function ProtectedRoute({ children }) {
     const checkAuth = () => {
       const token = localStorage.getItem('adminToken');
       const refreshToken = localStorage.getItem('adminRefreshToken');
-      
+
       if (token && refreshToken) {
         setIsAuthenticated(true);
       } else {
@@ -26,7 +26,7 @@ export default function ProtectedRoute({ children }) {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-950 via-gray-900 to-black">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin" />
-          <p className="text-white/40 text-sm">Loading...</p>
+          <p className="indigo-500/40 text-sm">Loading...</p>
         </div>
       </div>
     );

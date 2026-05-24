@@ -29,8 +29,10 @@ import ToastContainer from './components/ToastContainer';
 import { PermissionsProvider } from './context/PermissionsContext';
 import Telecaller from './pages/Telecaller';
 import Bidders from './pages/Adminbidermanagement ';
+import BNB_TNB from './pages/BNB_TNB';
+import RA_Assigned from './pages/RA-Assigned';
+import RetailAssociate from './pages/RetailAssociate';
 
-import './App.css';
 
 function App() {
   return (
@@ -69,21 +71,21 @@ function App() {
               }
             />
             <Route
-  path="/auction-winners"
-  element={
-    <ProtectedRoute>
-      <Layout><WinnerList /></Layout>
-    </ProtectedRoute>
-  }
-/>
-<Route
-  path="/sales-team"
-  element={
-    <ProtectedRoute>
-      <Layout><SalesTeams /></Layout>
-    </ProtectedRoute>
-  }
-/>
+              path="/auction-winners"
+              element={
+                <ProtectedRoute>
+                  <Layout><WinnerList /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/sales-team"
+              element={
+                <ProtectedRoute>
+                  <Layout><SalesTeams /></Layout>
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/bidders"
               element={
@@ -133,6 +135,14 @@ function App() {
               }
             />
             <Route
+              path="/ra-assigned-enquiries"
+              element={
+                <ProtectedRoute>
+                  <Layout><RA_Assigned /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/profile"
               element={
                 <ProtectedRoute>
@@ -172,11 +182,11 @@ function App() {
                 </ProtectedRoute>
               }
             />
-             <Route
+            <Route
               path="/bnb-tnb"
               element={
                 <ProtectedRoute>
-                  <Layout><AuctionCars /></Layout>
+                  <Layout><BNB_TNB /></Layout>
                 </ProtectedRoute>
               }
             />
@@ -185,6 +195,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Layout><SubAdmin /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/retail-associate"
+              element={
+                <ProtectedRoute>
+                  <Layout><RetailAssociate /></Layout>
                 </ProtectedRoute>
               }
             />

@@ -2,20 +2,20 @@ import React, { useState } from 'react';
 import { useToast } from '../hooks/useToast';
 import {
   Settings as SettingsIcon, User, Lock, Bell, Globe, Shield, Database,
-  Mail, Phone, Eye, EyeOff, Save, RefreshCw, Trash2, ChevronRight, Check, 
+  Mail, Phone, Eye, EyeOff, Save, RefreshCw, Trash2, ChevronRight, Check,
   Moon, Sun, Monitor, Palette, Key, AlertTriangle, Download, Upload
 } from 'lucide-react';
 
 /* ─── Section Wrapper ──────────────────────────────────────────────────── */
 const Section = ({ title, description, icon, children }) => (
-  <div className="bg-gray-900 border border-white/[0.06] rounded-2xl overflow-hidden">
+  <div className="bg-white border border-white/[0.06] rounded-2xl overflow-hidden">
     <div className="flex items-start gap-4 px-6 py-5 border-b border-white/[0.06]">
       <span className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 shrink-0 mt-0.5">
         {icon}
       </span>
       <div>
-        <h2 className="text-base font-semibold text-white">{title}</h2>
-        <p className="text-xs text-white/40 mt-0.5">{description}</p>
+        <h2 className="text-base font-semibold indigo-500">{title}</h2>
+        <p className="text-xs indigo-500/40 mt-0.5">{description}</p>
       </div>
     </div>
     <div className="px-6 py-5 space-y-5">{children}</div>
@@ -26,8 +26,8 @@ const Section = ({ title, description, icon, children }) => (
 const FieldRow = ({ label, hint, children }) => (
   <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6">
     <div className="md:w-56 shrink-0">
-      <p className="text-sm font-medium text-white/80">{label}</p>
-      {hint && <p className="text-xs text-white/35 mt-0.5">{hint}</p>}
+      <p className="text-sm font-medium indigo-500/80">{label}</p>
+      {hint && <p className="text-xs indigo-500/35 mt-0.5">{hint}</p>}
     </div>
     <div className="flex-1">{children}</div>
   </div>
@@ -49,14 +49,14 @@ const Toggle = ({ enabled, onChange }) => (
 /* ─── Input ────────────────────────────────────────────────────────────── */
 const Input = ({ type = 'text', value, onChange, placeholder, disabled, icon: Icon }) => (
   <div className="relative">
-    {Icon && <Icon className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" size={16} />}
+    {Icon && <Icon className="absolute left-3 top-1/2 -translate-y-1/2 indigo-500/30" size={16} />}
     <input
       type={type}
       value={value}
       onChange={onChange}
       placeholder={placeholder}
       disabled={disabled}
-      className={`w-full ${Icon ? 'pl-9' : 'pl-3'} pr-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-indigo-500/50 transition disabled:opacity-40 disabled:cursor-not-allowed`}
+      className={`w-full ${Icon ? 'pl-9' : 'pl-3'} pr-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/25 text-sm focus:outline-none focus:border-indigo-500/50 transition disabled:opacity-40 disabled:cursor-not-allowed`}
     />
   </div>
 );
@@ -66,7 +66,7 @@ const Select = ({ value, onChange, children }) => (
   <select
     value={value}
     onChange={onChange}
-    className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 text-white text-sm focus:outline-none focus:border-indigo-500/50 transition"
+    className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 text-sm focus:outline-none focus:border-indigo-500/50 transition"
   >
     {children}
   </select>
@@ -87,11 +87,10 @@ const DangerButton = ({ icon: Icon, label, onClick }) => (
 const ThemeOption = ({ icon: Icon, label, active, onClick }) => (
   <button
     onClick={onClick}
-    className={`flex flex-col items-center gap-2 px-5 py-3 rounded-xl border text-sm font-medium transition ${
-      active
-        ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
-        : 'bg-gray-800 border-white/10 text-white/50 hover:text-white/70 hover:bg-gray-700'
-    }`}
+    className={`flex flex-col items-center gap-2 px-5 py-3 rounded-xl border text-sm font-medium transition ${active
+      ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
+      : 'bg-gray-800 border-white/10 indigo-500/50 hover:indigo-500/70 hover:bg-gray-700'
+      }`}
   >
     <Icon size={20} />
     {label}
@@ -175,17 +174,17 @@ export default function Settings() {
         {/* ── Page Header ── */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-1">Settings</h1>
-            <p className="text-white/50">Manage your platform preferences and configurations</p>
+            <h1 className="text-3xl font-bold indigo-500 mb-1">Settings</h1>
+            <p className="indigo-500/50">Manage your platform preferences and configurations</p>
           </div>
-          <span className="flex items-center gap-2 text-xs text-white/30 bg-gray-800 border border-white/[0.06] px-3 py-1.5 rounded-lg">
+          <span className="flex items-center gap-2 text-xs indigo-500/30 bg-gray-800 border border-white/[0.06] px-3 py-1.5 rounded-lg">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             System Online
           </span>
         </div>
 
         {/* ── Tab Navigation ── */}
-        <div className="bg-gray-900 border border-white/[0.06] rounded-2xl p-1.5 flex gap-1 flex-wrap">
+        <div className="bg-white border border-white/[0.06] rounded-2xl p-1.5 flex gap-1 flex-wrap">
           {[
             { id: 'general', label: 'General', icon: SettingsIcon },
             { id: 'profile', label: 'Profile', icon: User },
@@ -197,7 +196,7 @@ export default function Settings() {
             <a
               key={id}
               href={`#${id}`}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-white/50 hover:text-white/80 hover:bg-white/5 transition"
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium indigo-500/50 hover:indigo-500/80 hover:bg-white/5 transition"
             >
               <Icon size={15} />
               {label}
@@ -238,7 +237,7 @@ export default function Settings() {
               </Select>
             </FieldRow>
             <div className="flex justify-end pt-2">
-              <button onClick={() => saveSection('General')} className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition">
+              <button onClick={() => saveSection('General')} className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 indigo-500 text-sm font-medium rounded-lg transition">
                 <Save size={16} /> Save Changes
               </button>
             </div>
@@ -251,11 +250,11 @@ export default function Settings() {
             {/* Avatar */}
             <FieldRow label="Profile Photo" hint="JPG, PNG up to 2MB">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-indigo-500/30">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center indigo-500 text-2xl font-bold shadow-lg shadow-indigo-500/30">
                   A
                 </div>
                 <div className="flex gap-2">
-                  <label className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-white/10 text-white/70 text-xs rounded-lg cursor-pointer transition">
+                  <label className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-white/10 indigo-500/70 text-xs rounded-lg cursor-pointer transition">
                     <Upload size={14} /> Upload
                     <input type="file" accept="image/*" className="hidden" />
                   </label>
@@ -278,7 +277,7 @@ export default function Settings() {
               <Input value={adminPhone} onChange={e => setAdminPhone(e.target.value)} placeholder="+91 00000 00000" icon={Phone} />
             </FieldRow>
             <div className="flex justify-end pt-2">
-              <button onClick={() => saveSection('Profile')} className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition">
+              <button onClick={() => saveSection('Profile')} className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 indigo-500 text-sm font-medium rounded-lg transition">
                 <Save size={16} /> Save Changes
               </button>
             </div>
@@ -289,7 +288,7 @@ export default function Settings() {
         <div id="security">
           <Section title="Security" description="Manage password and account security settings" icon={<Lock size={18} />}>
             {/* Change Password */}
-            <p className="text-xs font-semibold text-white/30 uppercase tracking-widest">Change Password</p>
+            <p className="text-xs font-semibold indigo-500/30 uppercase tracking-widest">Change Password</p>
             <FieldRow label="Current Password">
               <div className="relative">
                 <input
@@ -297,9 +296,9 @@ export default function Settings() {
                   value={currentPassword}
                   onChange={e => setCurrentPassword(e.target.value)}
                   placeholder="Enter current password"
-                  className="w-full pl-3 pr-10 py-2 rounded-lg bg-gray-800 border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-indigo-500/50 transition"
+                  className="w-full pl-3 pr-10 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/25 text-sm focus:outline-none focus:border-indigo-500/50 transition"
                 />
-                <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition">
+                <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 indigo-500/40 hover:indigo-500/70 transition">
                   {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
@@ -311,9 +310,9 @@ export default function Settings() {
                   value={newPassword}
                   onChange={e => setNewPassword(e.target.value)}
                   placeholder="Min. 8 characters"
-                  className="w-full pl-3 pr-10 py-2 rounded-lg bg-gray-800 border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-indigo-500/50 transition"
+                  className="w-full pl-3 pr-10 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/25 text-sm focus:outline-none focus:border-indigo-500/50 transition"
                 />
-                <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition">
+                <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 indigo-500/40 hover:indigo-500/70 transition">
                   {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
@@ -325,26 +324,26 @@ export default function Settings() {
                   value={confirmPassword}
                   onChange={e => setConfirmPassword(e.target.value)}
                   placeholder="Repeat new password"
-                  className="w-full pl-3 pr-10 py-2 rounded-lg bg-gray-800 border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-indigo-500/50 transition"
+                  className="w-full pl-3 pr-10 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/25 text-sm focus:outline-none focus:border-indigo-500/50 transition"
                 />
-                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition">
+                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 indigo-500/40 hover:indigo-500/70 transition">
                   {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </FieldRow>
             <div className="flex justify-end">
-              <button onClick={handlePasswordChange} className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition">
+              <button onClick={handlePasswordChange} className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 indigo-500 text-sm font-medium rounded-lg transition">
                 <Key size={16} /> Update Password
               </button>
             </div>
 
             <div className="h-px bg-white/[0.06]" />
-            <p className="text-xs font-semibold text-white/30 uppercase tracking-widest">Access Control</p>
+            <p className="text-xs font-semibold indigo-500/30 uppercase tracking-widest">Access Control</p>
 
             <FieldRow label="Two-Factor Authentication" hint="Adds an extra layer of security to your login">
               <div className="flex items-center gap-3">
                 <Toggle enabled={twoFactor} onChange={setTwoFactor} />
-                <span className={`text-sm ${twoFactor ? 'text-emerald-400' : 'text-white/40'}`}>
+                <span className={`text-sm ${twoFactor ? 'text-emerald-400' : 'indigo-500/40'}`}>
                   {twoFactor ? 'Enabled' : 'Disabled'}
                 </span>
               </div>
@@ -360,7 +359,7 @@ export default function Settings() {
               </Select>
             </FieldRow>
             <div className="flex justify-end pt-2">
-              <button onClick={() => saveSection('Security')} className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition">
+              <button onClick={() => saveSection('Security')} className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 indigo-500 text-sm font-medium rounded-lg transition">
                 <Save size={16} /> Save Changes
               </button>
             </div>
@@ -370,7 +369,7 @@ export default function Settings() {
         {/* ── Notifications ── */}
         <div id="notifications">
           <Section title="Notifications" description="Control how and when you receive alerts" icon={<Bell size={18} />}>
-            <p className="text-xs font-semibold text-white/30 uppercase tracking-widest">Channels</p>
+            <p className="text-xs font-semibold indigo-500/30 uppercase tracking-widest">Channels</p>
             <FieldRow label="Email Notifications" hint="Receive alerts via email">
               <Toggle enabled={emailNotifs} onChange={setEmailNotifs} />
             </FieldRow>
@@ -384,7 +383,7 @@ export default function Settings() {
             </FieldRow>
 
             <div className="h-px bg-white/[0.06]" />
-            <p className="text-xs font-semibold text-white/30 uppercase tracking-widest">Alert Types</p>
+            <p className="text-xs font-semibold indigo-500/30 uppercase tracking-widest">Alert Types</p>
 
             {[
               { label: 'New User Registrations', hint: 'Alert when a new user signs up', val: newUserAlert, set: setNewUserAlert },
@@ -401,7 +400,7 @@ export default function Settings() {
             ))}
 
             <div className="h-px bg-white/[0.06]" />
-            <p className="text-xs font-semibold text-white/30 uppercase tracking-widest">Reports</p>
+            <p className="text-xs font-semibold indigo-500/30 uppercase tracking-widest">Reports</p>
             <FieldRow label="Weekly Summary Report" hint="Every Monday at 9:00 AM">
               <Toggle enabled={weeklyReport} onChange={setWeeklyReport} />
             </FieldRow>
@@ -410,7 +409,7 @@ export default function Settings() {
               <Toggle enabled={monthlyReport} onChange={setMonthlyReport} />
             </FieldRow>
             <div className="flex justify-end pt-2">
-              <button onClick={() => saveSection('Notification')} className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition">
+              <button onClick={() => saveSection('Notification')} className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 indigo-500 text-sm font-medium rounded-lg transition">
                 <Save size={16} /> Save Changes
               </button>
             </div>
@@ -438,7 +437,7 @@ export default function Settings() {
                   { label: 'Rose', classes: 'bg-rose-500', active: false },
                 ].map(({ label, classes, active }) => (
                   <button key={label} title={label} className={`w-8 h-8 rounded-full ${classes} flex items-center justify-center transition hover:scale-110 ${active ? 'ring-2 ring-white/50 ring-offset-2 ring-offset-gray-900' : ''}`}>
-                    {active && <Check size={14} className="text-white" />}
+                    {active && <Check size={14} className="indigo-500" />}
                   </button>
                 ))}
               </div>
@@ -451,7 +450,7 @@ export default function Settings() {
               </Select>
             </FieldRow>
             <div className="flex justify-end pt-2">
-              <button onClick={() => saveSection('Appearance')} className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition">
+              <button onClick={() => saveSection('Appearance')} className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 indigo-500 text-sm font-medium rounded-lg transition">
                 <Save size={16} /> Save Changes
               </button>
             </div>
@@ -503,18 +502,18 @@ export default function Settings() {
             </FieldRow>
 
             <div className="h-px bg-white/[0.06]" />
-            <p className="text-xs font-semibold text-white/30 uppercase tracking-widest">Data & Backup</p>
+            <p className="text-xs font-semibold indigo-500/30 uppercase tracking-widest">Data & Backup</p>
             <div className="grid sm:grid-cols-2 gap-3 pt-1">
-              <button className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white/70 text-sm font-medium border border-white/10 hover:border-white/20 transition">
+              <button className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 indigo-500/70 text-sm font-medium border border-white/10 hover:border-white/20 transition">
                 <Download size={16} className="text-indigo-400" /> Export All Data
               </button>
-              <button className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white/70 text-sm font-medium border border-white/10 hover:border-white/20 transition">
+              <button className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 indigo-500/70 text-sm font-medium border border-white/10 hover:border-white/20 transition">
                 <RefreshCw size={16} className="text-emerald-400" /> Trigger Backup Now
               </button>
             </div>
 
             <div className="flex justify-end pt-2">
-              <button onClick={() => saveSection('System')} className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition">
+              <button onClick={() => saveSection('System')} className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 indigo-500 text-sm font-medium rounded-lg transition">
                 <Save size={16} /> Save Changes
               </button>
             </div>
@@ -522,14 +521,14 @@ export default function Settings() {
         </div>
 
         {/* ── Danger Zone ── */}
-        <div className="bg-gray-900 border border-red-500/20 rounded-2xl overflow-hidden">
+        <div className="bg-white border border-red-500/20 rounded-2xl overflow-hidden">
           <div className="flex items-start gap-4 px-6 py-5 border-b border-red-500/10">
             <span className="w-9 h-9 rounded-xl bg-red-500/10 flex items-center justify-center text-red-400 shrink-0">
               <AlertTriangle size={18} />
             </span>
             <div>
-              <h2 className="text-base font-semibold text-white">Danger Zone</h2>
-              <p className="text-xs text-white/40 mt-0.5">Irreversible and destructive actions</p>
+              <h2 className="text-base font-semibold indigo-500">Danger Zone</h2>
+              <p className="text-xs indigo-500/40 mt-0.5">Irreversible and destructive actions</p>
             </div>
           </div>
           <div className="px-6 py-5 space-y-3">
