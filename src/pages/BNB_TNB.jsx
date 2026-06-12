@@ -23,19 +23,17 @@ const avatarColors = [
 ];
 
 /* ─── Normalize ──────────────────────────────────────────────────────────── */
-const normalize = (auction) => {
-  const enq = auction.enquiry || {};  // ← was: auction.enquiryId
+// Normalize for Auction
+const normalizeAuction = (auction) => {
+  const enq = auction.enquiry || {};
   const car = enq.carDetails || {};
   const sell = enq.sellingDetails || {};
   const user = enq.userId || {};
   const thumb = enq.attachments?.[0]?.url || null;
-
-  // API gives totalBids count and highestBid directly — no bids array
   const bidsCount = auction.totalBids || 0;
   const topBid = auction.highestBid || 0;
-
   return {
-    id: auction.auctionId,           // ← was: auction._id
+    id: auction.auctionId,
     enquiryDocId: enq._id || auction.auctionId,
     enquiryId: enq.enquiryId || '—',
     carMake: car.make || 'N/A',
@@ -55,7 +53,7 @@ const normalize = (auction) => {
     reservePrice: auction.reservePrice || null,
     bidsCount,
     topBid,
-    bids: [],                        // ← no bids array in this endpoint
+    bids: [],
     isLive: auction.isLive,
     status: auction.isLive ? 'live_auction' : (auction.status || 'pending'),
     isClosed: auction.status === 'closed',
@@ -71,6 +69,84 @@ const normalize = (auction) => {
     priority: enq.priority || 'medium',
     remainingTime: auction.remainingTime || null,
     remainingTimestamp: auction.remainingTimestamp || 0,
+    type: 'auction',
+  };
+};
+
+// Normalize for BNB (OCB)
+const normalizeBNB = (ocb) => {
+  const car = ocb.carDetails || {};
+  const user = ocb.userId || {};
+
+  return {
+    id: ocb._id,
+    enquiryDocId: ocb.enquiryId,
+    enquiryId: ocb.enquiryId || '—',
+    auctionId: ocb.auctionId || null,
+
+    carMake: car.make || 'N/A',
+    carModel: car.model || 'N/A',
+    carYear: car.year || '—',
+    regNumber: car.registrationNumber || '—',
+    color: car.color || '—',
+    mileage: car.mileage || 0,
+    kmsDriven: ocb.kilometersDriven ?? car.mileage ?? 0,
+
+    thumb: ocb.attachments?.[0]?.url || null,
+
+    expectedPrice: ocb.startingPrice || 0,
+    startingPrice: ocb.minimumOfferPrice || 0,
+
+    fuelType: car.fuelType || '—',
+    transmission: car.transmission || '—',
+
+    bidsCount: ocb.interests?.length || 0,
+
+    topBid:
+      ocb.interests?.length > 0
+        ? Math.max(...ocb.interests.map(i => i.interestAmount || 0))
+        : 0,
+
+    bids:
+      ocb.interests?.map(i => ({
+        _id: i._id,
+        amount: i.interestAmount,
+        createdAt: i.createdAt,
+        bider: {
+          firstName: i.biderId?.firstName,
+          lastName: i.biderId?.lastName,
+          email: i.biderId?.email,
+          phone: i.biderId?.phone,
+        },
+      })) || [],
+
+    isLive: false,
+    status: ocb.status || 'closed',
+    isClosed: true,
+
+    winner: ocb.selectedBiderId || null,
+    winningAmount: ocb.finalPrice || 0,
+
+    startDate: ocb.createdAt
+      ? new Date(ocb.createdAt).toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      })
+      : '—',
+
+    customerName:
+      `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'N/A',
+
+    customerEmail: user.email || 'N/A',
+    customerPhone: user.phone || 'N/A',
+
+    description: ocb.description || '',
+
+    remainingTime: null,
+    remainingTimestamp: 0,
+
+    type: 'bnb',
   };
 };
 
@@ -214,69 +290,69 @@ const ConvertBNBModal = ({ auction, onClose, onConfirm, loading }) => {
             >
               <option
                 value=""
-                className="bg-slate-900 text-gray-400"
+                className=" text-gray-400"
               >
                 Select Hours
               </option>
 
               <option
                 value="1"
-                className="bg-slate-900 indigo-500"
+                className=" text-gray-400"
               >
                 1 Hour
               </option>
 
               <option
                 value="2"
-                className="bg-slate-900 indigo-500"
+                className=" text-gray-400"
               >
                 2 Hours
               </option>
 
               <option
                 value="3"
-                className="bg-slate-900 indigo-500"
+                className=" text-gray-400"
               >
                 3 Hours
               </option>
 
               <option
                 value="6"
-                className="bg-slate-900 indigo-500"
+                className=" indigo-500"
               >
                 6 Hours
               </option>
 
               <option
                 value="12"
-                className="bg-slate-900 indigo-500"
+                className=" text-gray-400"
               >
                 12 Hours
               </option>
 
               <option
                 value="24"
-                className="bg-slate-900 indigo-500"
+                className=" text-gray-400"
               >
                 24 Hours
               </option>
 
               <option
                 value="48"
-                className="bg-slate-900 indigo-500"
+                className="text-gray-400"
               >
                 48 Hours
               </option>
 
               <option
                 value="72"
-                className="bg-slate-900 indigo-500"
+                className="text-gray-400"
               >
                 72 Hours
               </option>
             </select>
           </div>
-          <div>
+          {/* <div>
             <label className="indigo-500/35 text-[10px] font-bold uppercase tracking-wider block mb-1.5">
               Notes
             </label>
@@ -287,7 +363,7 @@ const ConvertBNBModal = ({ auction, onClose, onConfirm, loading }) => {
               rows={2}
               className="w-full px-3 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.1] indigo-500 text-sm indigo-500 focus:border-emerald-400/50 focus:outline-none transition-all resize-none"
             />
-          </div>
+          </div> */}
         </div>
 
         <div className="flex gap-3">
@@ -648,21 +724,27 @@ const DetailDrawer = ({ auction, onClose, onCloseAuction }) => {
 };
 
 /* ─── Main Component ─────────────────────────────────────────────────────── */
+
 export default function AuctionCars() {
   const { addToast } = useToast();
-  const [bnbTarget, setBnbTarget] = useState(null);   // auction row for modal
+  const [bnbTarget, setBnbTarget] = useState(null);
   const [bnbLoading, setBnbLoading] = useState(false);
   const [auctions, setAuctions] = useState([]);
+  const [bnbList, setBnbList] = useState([]);
   const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 10, pages: 1 });
+  const [bnbPagination, setBnbPagination] = useState({ total: 0, page: 1, limit: 10, pages: 1 });
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedAuction, setSelectedAuction] = useState(null);
+  const [selectedBnb, setSelectedBnb] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [bnbLoadingList, setBnbLoadingList] = useState(false);
   const [selectedEnquiryId, setSelectedEnquiryId] = useState(null);
   const [lastRefreshed, setLastRefreshed] = useState(null);
   const [countdown, setCountdown] = useState(REFRESH_INTERVAL / 1000);
+  const [tab, setTab] = useState('auction'); // 'auction' or 'bnb'
 
-  const currentPage = pagination.page;
+  const currentPage = tab === 'auction' ? pagination.page : bnbPagination.page;
   const timerRef = useRef(null);
   const countRef = useRef(null);
 
@@ -671,7 +753,7 @@ export default function AuctionCars() {
     Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
   });
 
-  /* ── Fetch ──────────────────────────────────────────────────────────────── */
+  // Fetch closed auctions
   const fetchAuctions = useCallback(async (page = 1, silent = false) => {
     if (!silent) setLoading(true);
     try {
@@ -686,13 +768,10 @@ export default function AuctionCars() {
       });
       const rawList = res.data?.data ?? [];
       const rawPag = res.data?.pagination ?? null;
-      const normalizedList = rawList.map(normalize);
+      const normalizedList = rawList.map(normalizeAuction);
       setAuctions(normalizedList);
       if (rawPag) setPagination(rawPag);
-      // ✅ FIX 2: Keep drawer in sync after silent refresh
-      setSelectedAuction(prev =>
-        prev ? (normalizedList.find(a => a.id === prev.id) ?? prev) : null
-      );
+      setSelectedAuction(prev => prev ? (normalizedList.find(a => a.id === prev.id) ?? prev) : null);
       setLastRefreshed(new Date());
       setCountdown(REFRESH_INTERVAL / 1000);
     } catch (err) {
@@ -703,24 +782,71 @@ export default function AuctionCars() {
     }
   }, [filterStatus, searchTerm, pagination.limit]);
 
-  useEffect(() => { fetchAuctions(1); }, [filterStatus, searchTerm]);
+  // Fetch closed BNBs (OCB)
+  const fetchBNBs = useCallback(async (page = 1, silent = false) => {
+    if (!silent) setBnbLoadingList(true);
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/ocb/closed`, {
+        headers: authHeader(),
+        params: {
+          page,
+          limit: bnbPagination.limit,
+          ...(searchTerm && { search: searchTerm }),
+        },
+      });
+      const rawList = res.data?.data ?? [];
+      const rawPag = res.data?.pagination ?? null;
+      const normalizedList = rawList.map(normalizeBNB);
+      setBnbList(normalizedList);
+      if (rawPag) setBnbPagination(rawPag);
+      setSelectedBnb(prev => prev ? (normalizedList.find(a => a.id === prev.id) ?? prev) : null);
+      setLastRefreshed(new Date());
+      setCountdown(REFRESH_INTERVAL / 1000);
+    } catch (err) {
+      console.error('fetchBNBs error', err);
+      if (!silent) addToast(err.response?.data?.message || 'Error loading BNBs', 'error');
+    } finally {
+      if (!silent) setBnbLoadingList(false);
+    }
+  }, [searchTerm, bnbPagination.limit]);
 
+  // Tab switch effect
+  useEffect(() => {
+    if (tab === 'auction') {
+      fetchAuctions(1);
+    } else {
+      fetchBNBs(1);
+    }
+  }, [tab, filterStatus, searchTerm]);
+
+  // Auto refresh
   useEffect(() => {
     clearInterval(timerRef.current);
     clearInterval(countRef.current);
-    timerRef.current = setInterval(() => fetchAuctions(currentPage, true), REFRESH_INTERVAL);
+    if (tab === 'auction') {
+      timerRef.current = setInterval(() => fetchAuctions(currentPage, true), REFRESH_INTERVAL);
+    } else {
+      timerRef.current = setInterval(() => fetchBNBs(currentPage, true), REFRESH_INTERVAL);
+    }
     countRef.current = setInterval(() => setCountdown(c => c <= 1 ? REFRESH_INTERVAL / 1000 : c - 1), 1000);
     return () => { clearInterval(timerRef.current); clearInterval(countRef.current); };
-  }, [fetchAuctions, currentPage]);
+  }, [fetchAuctions, fetchBNBs, currentPage, tab]);
 
+  // Pagination change
   const handlePageChange = (newPage) => {
-    if (newPage < 1 || newPage > pagination.pages) return;
-    setPagination(prev => ({ ...prev, page: newPage }));
-    fetchAuctions(newPage);
+    if (tab === 'auction') {
+      if (newPage < 1 || newPage > pagination.pages) return;
+      setPagination(prev => ({ ...prev, page: newPage }));
+      fetchAuctions(newPage);
+    } else {
+      if (newPage < 1 || newPage > bnbPagination.pages) return;
+      setBnbPagination(prev => ({ ...prev, page: newPage }));
+      fetchBNBs(newPage);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  /* ── Close Auction ──────────────────────────────────────────────────────── */
+  // Close Auction
   const handleCloseAuction = async (enquiryDocId, winnerBidId = null) => {
     const payload = winnerBidId ? { winnerBidId } : {};
     await axios.put(
@@ -732,7 +858,8 @@ export default function AuctionCars() {
     setSelectedAuction(null);
     fetchAuctions(currentPage);
   };
-  /* ── Start Auction ───────────────────────────────────────── */
+
+  // Start Auction
   const handleStartAuction = async (enquiryDocId) => {
     try {
       await axios.post(
@@ -742,13 +869,8 @@ export default function AuctionCars() {
           headers: authHeader(),
         }
       );
-
       addToast('Auction started successfully!', 'success');
-
-      // refresh table
       fetchAuctions(currentPage);
-
-      // refresh selected drawer auction
       if (selectedAuction?.enquiryDocId === enquiryDocId) {
         setSelectedAuction(prev => ({
           ...prev,
@@ -756,110 +878,93 @@ export default function AuctionCars() {
           status: 'live_auction',
         }));
       }
-
     } catch (err) {
       console.error('Start auction error:', err);
-
-      addToast(
-        err?.response?.data?.message || 'Failed to start auction',
-        'error'
-      );
+      addToast(err?.response?.data?.message || 'Failed to start auction', 'error');
     }
   };
-  /* ── Start BNB / Convert Auction ───────────────────────── */
-  const handleStartBNB = async ({
-    minimumOfferPrice,
-    expiryHours,
-    notes,
-  }) => {
+
+  // Start BNB
+  const handleStartBNB = async ({ minimumOfferPrice, expiryHours, notes }) => {
     if (!bnbTarget) return;
-
     setBnbLoading(true);
-
     try {
       await axios.post(
         `${import.meta.env.VITE_API_URL}/api/ocb/convert-auction`,
         {
-          auctionId: bnbTarget.id,
-          minimumOfferPrice: String(
-            minimumOfferPrice
-          ),
+          auctionId: bnbTarget.auctionId || bnbTarget.id,
+          minimumOfferPrice: String(minimumOfferPrice),
           expiryHours: String(expiryHours),
           notes: notes || '',
         },
-        {
-          headers: authHeader(),
-        }
+        { headers: authHeader() }
       );
-
-      addToast(
-        'Converted to BNB successfully!',
-        'success'
-      );
-
+      addToast('Converted to BNB successfully!', 'success');
       setBnbTarget(null);
-
-      // refresh table
       fetchAuctions(currentPage);
-
-      // refresh selected drawer
-      if (
-        selectedAuction?.id ===
-        bnbTarget.id
-      ) {
-        setSelectedAuction(prev => ({
-          ...prev,
-          status: 'sold',
-          isLive: false,
-        }));
+      if (selectedAuction?.id === bnbTarget.id) {
+        setSelectedAuction(prev => ({ ...prev, status: 'sold', isLive: false }));
       }
     } catch (err) {
-      console.error(
-        'BNB convert error:',
-        err
-      );
-
-      addToast(
-        err?.response?.data?.message ||
-        'Failed to convert to BNB',
-        'error'
-      );
+      console.error('BNB convert error:', err);
+      addToast(err?.response?.data?.message || 'Failed to convert to BNB', 'error');
     } finally {
       setBnbLoading(false);
     }
   };
 
-  console.log('Auctions:', auctions);
+  // BNB/TNB placeholder (future TNB logic)
+  const handleStartTNB = (enquiryDocId) => {
+    addToast('TNB conversion not implemented yet', 'info');
+  };
 
   if (selectedEnquiryId) {
     return (
       <EnquiryDetailPage
         enquiryId={selectedEnquiryId}
-        onBack={() => setSelectedEnquiryId(null)}  // ← correct setter
+        onBack={() => setSelectedEnquiryId(null)}
       />
     );
   }
 
-  /* ── Stats ──────────────────────────────────────────────────────────────── */
-  const totalAuctions = pagination.total;
-  const liveCount = auctions.filter(a => a.isLive).length;
-  const totalBids = auctions.reduce((s, a) => s + a.bidsCount, 0);
-  const highestBid = auctions.reduce((s, a) => Math.max(s, a.topBid), 0);
+  // Stats for current tab
+  const list = tab === 'auction' ? auctions : bnbList;
+  const pag = tab === 'auction' ? pagination : bnbPagination;
+  const isLoading = tab === 'auction' ? loading : bnbLoadingList;
+  const totalAuctions = pag.total;
+  const liveCount = list.filter(a => a.isLive).length;
+  const totalBids = list.reduce((s, a) => s + a.bidsCount, 0);
+  const highestBid = list.reduce((s, a) => Math.max(s, a.topBid), 0);
 
+  // Tabs for filter
   const filterTabs = ['all', 'open', 'live_auction', 'closed', 'sold'];
+
+  // Table headers
+  const tableHeaders = [
+    'Vehicle',
+    'Seller',
+    tab === 'auction' ? 'Remaining Time' : '—',
+    'Expected Price',
+    tab === 'auction' ? 'Top Bid / Bids' : 'Final Price',
+    'Fuel · Trans',
+    'KMs · Year',
+    'Status',
+    'Date',
+    'Action',
+  ];
 
   return (
     <div className="flex flex-col gap-6 w-full">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold indigo-500">Closed Auctions Cars</h1>
-          <p className="indigo-500/40 text-sm mt-1">Track and manage all live and upcoming vehicle auctions</p>
+          <h1 className="text-3xl font-bold indigo-500">Closed Auctions & BNB Cars</h1>
+          <p className="indigo-500/40 text-sm mt-1">Track and manage all closed auctions and BNB (OCB) conversions</p>
         </div>
         <div className="flex flex-col items-end gap-1 flex-shrink-0">
-          <button onClick={() => fetchAuctions(currentPage)}
+          <button onClick={() => tab === 'auction' ? fetchAuctions(currentPage) : fetchBNBs(currentPage)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.05] border indigo-500 indigo-500/40 hover:indigo-500/70 hover:bg-white/[0.08] transition-all text-xs font-medium">
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
           {lastRefreshed && (
@@ -871,38 +976,56 @@ export default function AuctionCars() {
         </div>
       </div>
 
+      {/* Tabs: Auction / BNB */}
+      <div className="flex gap-2 mb-2">
+        <button
+          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'auction' ? 'bg-indigo-500 text-white shadow' : 'bg-white/[0.05] indigo-500/60 hover:bg-white/[0.09]'}`}
+          onClick={() => setTab('auction')}
+        >
+          Auctions
+        </button>
+        <button
+          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'bnb' ? 'bg-emerald-500 text-white shadow' : 'bg-white/[0.05] indigo-500/60 hover:bg-white/[0.09]'}`}
+          onClick={() => setTab('bnb')}
+        >
+          BNB (OCB)
+        </button>
+      </div>
+
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <StatCard label="Total Auctions" value={totalAuctions} icon={<Car className="w-4 h-4" />} accent="bg-indigo-500" sub="All Time" />
-        <StatCard label="Live Auctions" value={liveCount} icon={<MessageSquare className="w-4 h-4" />} accent="bg-rose-500" sub="Active Now" />
-        <StatCard label="Total Bids" value={totalBids} icon={<DollarSign className="w-4 h-4" />} accent="bg-emerald-500" sub="This Page" />
-        <StatCard label="Highest Bid"
+        <StatCard label="Total" value={totalAuctions} icon={<Car className="w-4 h-4" />} accent="bg-indigo-500" sub="All Time" />
+        <StatCard label={tab === 'auction' ? 'Live Auctions' : '—'} value={tab === 'auction' ? liveCount : '—'} icon={<MessageSquare className="w-4 h-4" />} accent="bg-rose-500" sub={tab === 'auction' ? 'Active Now' : ''} />
+        <StatCard label={tab === 'auction' ? 'Total Bids' : '—'} value={tab === 'auction' ? totalBids : '—'} icon={<DollarSign className="w-4 h-4" />} accent="bg-emerald-500" sub={tab === 'auction' ? 'This Page' : ''} />
+        <StatCard label={tab === 'auction' ? 'Highest Bid' : 'Highest Price'}
           value={highestBid > 0 ? `₹${(highestBid / 100000).toFixed(1)}L` : '—'}
           icon={<Trophy className="w-4 h-4" />} accent="bg-violet-500" sub="This Page" />
       </div>
 
-      {/* Filters + Search */}
-      <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 indigo-500/40" />
-          <input type="text" placeholder="Search car, seller…" value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.06] indigo-500 placeholder-white/30 focus:border-indigo-400/50 focus:outline-none transition-all text-sm" />
+      {/* Filters + Search (only for auction) */}
+      {tab === 'auction' && (
+        <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 indigo-500/40" />
+            <input type="text" placeholder="Search car, seller…" value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.06] indigo-500 placeholder-white/30 focus:border-indigo-400/50 focus:outline-none transition-all text-sm" />
+          </div>
+          <div className="flex items-center gap-1 bg-white/[0.04] rounded-xl p-1 border border-white/[0.06] overflow-x-auto">
+            {filterTabs.map(tabName => (
+              <button key={tabName} onClick={() => setFilterStatus(tabName)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${filterStatus === tabName ? 'bg-indigo-500 indigo-500 shadow-lg shadow-indigo-500/30' : 'indigo-500/35 hover:indigo-500/60'}`}
+              >
+                {tabName === 'all' ? 'All' : tabName.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="flex items-center gap-1 bg-white/[0.04] rounded-xl p-1 border border-white/[0.06] overflow-x-auto">
-          {filterTabs.map(tab => (
-            <button key={tab} onClick={() => setFilterStatus(tab)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${filterStatus === tab ? 'bg-indigo-500 indigo-500 shadow-lg shadow-indigo-500/30' : 'indigo-500/35 hover:indigo-500/60'
-                }`}>
-              {tab === 'all' ? 'All' : tab.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
-            </button>
-          ))}
-        </div>
-      </div>
+      )}
 
       {/* Table */}
       <div className="rounded-2xl bg-white border border-white/[0.06] overflow-hidden">
-        {loading ? (
+        {isLoading ? (
           <div className="divide-y divide-white/[0.04]">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="flex gap-4 px-6 py-4 items-center animate-pulse">
@@ -917,12 +1040,12 @@ export default function AuctionCars() {
               </div>
             ))}
           </div>
-        ) : auctions.length === 0 ? (
+        ) : list.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-12 h-12 rounded-xl bg-white/[0.04] flex items-center justify-center mb-3">
               <Car className="w-5 h-5 indigo-500/20" />
             </div>
-            <p className="indigo-500/30 text-sm font-medium">No auctions found</p>
+            <p className="indigo-500/30 text-sm font-medium">No {tab === 'auction' ? 'auctions' : 'BNB'} found</p>
             <p className="indigo-500/15 text-xs mt-1">Try adjusting your filters</p>
           </div>
         ) : (
@@ -931,13 +1054,13 @@ export default function AuctionCars() {
               <table className="w-full whitespace-nowrap min-w-[960px]">
                 <thead>
                   <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                    {['Vehicle', 'Seller', 'Remaining Time', 'Expected Price', 'Top Bid / Bids', 'Fuel · Trans', 'KMs · Year', 'Status', 'Date', 'Action'].map(h => (
+                    {tableHeaders.map(h => (
                       <th key={h} className="px-4 py-3 text-left text-[10px] font-bold indigo-500/25 uppercase tracking-widest">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.04]">
-                  {auctions.map(a => {
+                  {list.map(a => {
                     const sc = statusConfig[a.status] || statusConfig.new;
                     return (
                       <tr key={a.id} className="hover:bg-white/[0.025] transition-colors duration-150">
@@ -959,57 +1082,60 @@ export default function AuctionCars() {
                             </div>
                           </div>
                         </td>
-
-
-
                         {/* Seller */}
                         <td className="px-4 py-3">
                           <p className="indigo-500/80 text-sm font-medium">{a.customerName}</p>
                           <p className="indigo-500/30 text-xs">{a.customerPhone}</p>
                         </td>
-
-                        {/* ✅ FIX 3: Remaining Time column — was missing, causing all columns to shift */}
+                        {/* Remaining Time (auction) or dash (bnb) */}
                         <td className="px-4 py-3">
-                          {a.isClosed ? (
-                            <span className="indigo-500/20 text-xs">Ended</span>
-                          ) : a.remainingTime ? (
-                            <p className="text-amber-400 font-semibold text-sm tabular-nums">
-                              {String(a.remainingTime.hours).padStart(2, '0')}h{' '}
-                              {String(a.remainingTime.minutes).padStart(2, '0')}m{' '}
-                              {String(a.remainingTime.seconds).padStart(2, '0')}s
-                            </p>
+                          {tab === 'auction' ? (
+                            a.isClosed ? (
+                              <span className="indigo-500/20 text-xs">Ended</span>
+                            ) : a.remainingTime ? (
+                              <p className="text-amber-400 font-semibold text-sm tabular-nums">
+                                {String(a.remainingTime.hours).padStart(2, '0')}h{' '}
+                                {String(a.remainingTime.minutes).padStart(2, '0')}m{' '}
+                                {String(a.remainingTime.seconds).padStart(2, '0')}s
+                              </p>
+                            ) : (
+                              <span className="indigo-500/20 text-xs">—</span>
+                            )
                           ) : (
                             <span className="indigo-500/20 text-xs">—</span>
                           )}
                         </td>
-
                         {/* Expected Price */}
                         <td className="px-4 py-3">
                           <p className="indigo-500 font-semibold text-sm">₹{a.expectedPrice.toLocaleString()}</p>
                         </td>
-
-                        {/* Top Bid / Bids */}
+                        {/* Top Bid / Bids (auction) or Final Price (bnb) */}
                         <td className="px-4 py-3">
-                          {a.topBid > 0 ? (
-                            <p className="text-rose-400 font-bold text-sm">₹{a.topBid.toLocaleString()}</p>
+                          {tab === 'auction' ? (
+                            a.topBid > 0 ? (
+                              <p className="text-rose-400 font-bold text-sm">₹{a.topBid.toLocaleString()}</p>
+                            ) : (
+                              <p className="indigo-500/20 text-xs">No bids</p>
+                            )
                           ) : (
-                            <p className="indigo-500/20 text-xs">No bids</p>
+                            <p className="text-emerald-400 font-bold text-sm">₹{a.winningAmount?.toLocaleString?.() || '—'}</p>
                           )}
-                          <p className="text-indigo-400 text-xs font-semibold mt-0.5">{a.bidsCount} bid{a.bidsCount !== 1 ? 's' : ''}</p>
+                          <p className="text-indigo-400 text-xs font-semibold mt-0.5">
+                            {tab === 'auction' ? `${a.bidsCount} bid${a.bidsCount !== 1 ? 's' : ''}` : a.winner ? 'Sold' : '—'}
+                          </p>
                         </td>
-
                         {/* Fuel · Trans */}
                         <td className="px-4 py-3">
                           <p className="indigo-500/60 text-xs capitalize">{fuelIcon[a.fuelType] || ''} {a.fuelType}</p>
                           <p className="indigo-500/35 text-xs capitalize mt-0.5">{a.transmission}</p>
                         </td>
-
                         {/* KMs · Year */}
                         <td className="px-4 py-3">
-                          <p className="indigo-500/60 text-xs">{a.kmsDriven.toLocaleString()} km</p>
+                          <p className="indigo-500/60 text-xs">
+                            {a.kmsDriven != null ? `${a.kmsDriven.toLocaleString()} km` : '—'}
+                          </p>
                           <p className="indigo-500/35 text-xs mt-0.5">{a.carYear}</p>
                         </td>
-
                         {/* Status */}
                         <td className="px-4 py-3">
                           <span className={`inline-flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-full ${sc.bg} ${sc.text}`}>
@@ -1017,22 +1143,18 @@ export default function AuctionCars() {
                             {sc.label}
                           </span>
                         </td>
-
                         {/* Date */}
                         <td className="px-4 py-3 indigo-500/40 text-xs">{a.startDate}</td>
-
                         {/* Action */}
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1 flex-wrap">
-
                             {/* Details */}
                             <button
-                              onClick={() => setSelectedAuction(a)}
+                              onClick={() => tab === 'auction' ? setSelectedAuction(a) : setSelectedBnb(a)}
                               className="px-3 py-1.5 rounded-lg bg-indigo-500/15 text-indigo-400 hover:bg-indigo-500/25 transition-all text-xs font-semibold"
                             >
                               Details
                             </button>
-
                             {/* View Enquiry */}
                             <button
                               onClick={() => setSelectedEnquiryId(a.enquiryDocId)}
@@ -1040,29 +1162,47 @@ export default function AuctionCars() {
                             >
                               View
                             </button>
-
-                            {/* Start Auction */}
-                            {/* { !a.isClosed && ( */}
-                            <button
-                              onClick={() => handleStartAuction(a.enquiryDocId)}
-                              className="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-all text-xs font-semibold"
-                            >
-                              Start Auction
-                            </button>
-                            <button
-                              onClick={() => setBnbTarget(a)}
-                              className="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-all text-xs font-semibold"
-                            >
-                              Start BNB
-                            </button>
-                            <button
-                              onClick={() => handleStartTNB(a.enquiryDocId)}
-                              className="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-all text-xs font-semibold"
-                            >
-                              Start TNB
-                            </button>
-                            {/* )} */}
-
+                            {/* Start actions */}
+                            {tab === 'auction' && <>
+                              <button
+                                onClick={() => handleStartAuction(a.enquiryDocId)}
+                                className="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-all text-xs font-semibold"
+                              >
+                                Start Auction
+                              </button>
+                              <button
+                                onClick={() => setBnbTarget(a)}
+                                className="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-all text-xs font-semibold"
+                              >
+                                Start BNB
+                              </button>
+                              <button
+                                onClick={() => handleStartTNB(a.enquiryDocId)}
+                                className="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-all text-xs font-semibold"
+                              >
+                                Start TNB
+                              </button>
+                            </>}
+                            {tab === 'bnb' && (
+                              <>
+                                {a.enquiryDocId && (
+                                  <button
+                                    onClick={() => handleStartAuction(a.enquiryDocId)}
+                                    className="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-all text-xs font-semibold"
+                                  >
+                                    Start Auction
+                                  </button>
+                                )}
+                                {a.auctionId && (
+                                  <button
+                                    onClick={() => setBnbTarget(a)}
+                                    className="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-all text-xs font-semibold"
+                                  >
+                                    Start BNB
+                                  </button>
+                                )}
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -1071,11 +1211,12 @@ export default function AuctionCars() {
                 </tbody>
               </table>
             </div>
-            <Pagination pagination={pagination} onPageChange={handlePageChange} />
+            <Pagination pagination={pag} onPageChange={handlePageChange} />
           </>
         )}
       </div>
 
+      {/* BNB Modal (auction only) */}
       {bnbTarget && (
         <ConvertBNBModal
           auction={bnbTarget}
@@ -1084,11 +1225,257 @@ export default function AuctionCars() {
           loading={bnbLoading}
         />
       )}
-      <DetailDrawer
-        auction={selectedAuction}
-        onClose={() => setSelectedAuction(null)}
-        onCloseAuction={handleCloseAuction}
-      />
+      {/* Auction Detail Drawer */}
+      {tab === 'auction' && (
+        <DetailDrawer
+          auction={selectedAuction}
+          onClose={() => setSelectedAuction(null)}
+          onCloseAuction={handleCloseAuction}
+        />
+      )}
+      {/* BNB Detail Drawer (simple) */}
+      {tab === 'bnb' && selectedBnb && (
+        <div className="fixed inset-0 z-[200] flex justify-end" onClick={() => setSelectedBnb(null)}>
+          <div className="absolute inset-0 indigo-500/60 backdrop-blur-sm" />
+          <div className="relative w-full max-w-lg h-full bg-white border-l indigo-500 flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] flex-shrink-0">
+              <div className="min-w-0">
+                <p className="indigo-500/30 text-xs font-mono">{selectedBnb.enquiryId}</p>
+                <h3 className="indigo-500 font-semibold text-base mt-0.5 truncate">
+                  {selectedBnb.carYear} {selectedBnb.carMake} {selectedBnb.carModel}
+                </h3>
+              </div>
+              <button onClick={() => setSelectedBnb(null)}
+                className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center indigo-500/40 hover:indigo-500/70 transition-all flex-shrink-0 ml-3">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-5">
+              {selectedBnb.thumb && (
+                <div className="w-full h-44 rounded-xl overflow-hidden border border-white/[0.06] flex-shrink-0">
+                  <img src={selectedBnb.thumb} alt="Car" className="w-full h-full object-cover" />
+                </div>
+              )}
+              {/* Winner banner */}
+              {selectedBnb.winner && (
+                <div className="rounded-xl bg-gradient-to-r from-amber-500/15 to-yellow-500/10 border border-amber-500/25 p-4 flex items-center gap-3">
+                  <Trophy className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                  <div>
+                    <p className="text-amber-400 text-[10px] font-bold uppercase tracking-wider">BNB Buyer</p>
+                    <p className="indigo-500 font-semibold text-sm mt-0.5">
+                      {selectedBnb.winner.firstName} {selectedBnb.winner.lastName}
+                    </p>
+                    <p className="indigo-500/40 text-xs">{selectedBnb.winner.email} · {selectedBnb.winner.phone}</p>
+                  </div>
+                </div>
+              )}
+              {/* Car Info grid */}
+              <div className="rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 border border-indigo-500/20 p-4">
+                <p className="indigo-500/40 text-xs font-bold mb-3 uppercase tracking-wider">Car Information</p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                  {[
+                    ['Make', selectedBnb.carMake],
+                    ['Model', selectedBnb.carModel],
+                    ['Year', selectedBnb.carYear],
+                    ['Color', selectedBnb.color],
+                    ['Reg No.', selectedBnb.regNumber],
+                    ['Fuel', `${fuelIcon[selectedBnb.fuelType] || ''} ${selectedBnb.fuelType}`],
+                    ['Transmission', selectedBnb.transmission],
+                    ['Ownership', selectedBnb.ownership],
+                    ['KMs Driven', selectedBnb.kmsDriven != null ? `${selectedBnb.kmsDriven.toLocaleString()} km` : '—'],
+                    ['City', selectedBnb.city],
+                  ].map(([k, v]) => (
+                    <div key={k}>
+                      <p className="indigo-500/25 text-[10px] uppercase tracking-wider">{k}</p>
+                      <p className="indigo-500/80 text-xs font-medium capitalize mt-0.5">{v}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Pricing row */}
+              <div className="rounded-xl bg-emerald-500/5 border border-emerald-500/15 p-4">
+                <p className="indigo-500/40 text-xs font-bold mb-3 uppercase tracking-wider">Pricing</p>
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <p className="indigo-500/25 text-[10px] uppercase tracking-wider">Expected</p>
+                    <p className="indigo-500 font-bold text-base mt-0.5">₹{selectedBnb.expectedPrice.toLocaleString()}</p>
+                  </div>
+                  <div className="flex-1">
+                    <p className="indigo-500/25 text-[10px] uppercase tracking-wider">Final Price</p>
+                    <p className="text-emerald-400 font-bold text-base mt-0.5">₹{selectedBnb.winningAmount?.toLocaleString?.() || '—'}</p>
+                  </div>
+                </div>
+              </div>
+              {/* Seller */}
+              <div>
+                <p className="indigo-500/40 text-xs font-bold mb-3 uppercase tracking-wider">Seller Details</p>
+                <div className="space-y-2">
+                  {[
+                    [<User key="u" className="w-4 h-4 indigo-500/40" />, selectedBnb.customerName],
+                    [<Mail key="m" className="w-4 h-4 indigo-500/40" />, selectedBnb.customerEmail],
+                    [<Phone key="p" className="w-4 h-4 indigo-500/40" />, selectedBnb.customerPhone],
+                  ].map(([icon, val], i) => (
+                    <div key={i} className="flex items-center gap-2 p-3 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                      {icon}
+                      <span className="indigo-500/60 text-sm">{val}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Interests */}
+              {selectedBnb.bids && selectedBnb.bids.length > 0 && (
+                <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4">
+                  <p className="indigo-500/40 text-xs font-bold mb-3 uppercase tracking-wider">
+                    Interests ({selectedBnb.bids.length})
+                  </p>
+                  <div className="space-y-2">
+                    {[...selectedBnb.bids]
+                      .sort((a, b) => b.amount - a.amount)
+                      .map((bid, idx) => {
+                        const isTop = idx === 0;
+                        const grad = avatarColors[idx % avatarColors.length];
+                        const initials = `${bid.bider?.firstName?.[0] || '?'}${bid.bider?.lastName?.[0] || ''}`.toUpperCase();
+                        const timeStr = bid.createdAt
+                          ? new Date(bid.createdAt).toLocaleString('en-IN', {
+                            day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+                          })
+                          : '—';
+                        return (
+                          <div
+                            key={bid._id}
+                            className={`relative rounded-xl border p-3 transition-all duration-150 ${isTop
+                              ? 'bg-emerald-500/5 border-emerald-500/20'
+                              : 'bg-white/[0.03] border-white/[0.06]'
+                              }`}
+                          >
+                            {isTop && (
+                              <span className="absolute -top-2 right-3 text-[9px] font-bold bg-emerald-500 text-white px-2 py-0.5 rounded-full">
+                                HIGHEST
+                              </span>
+                            )}
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-9 h-9 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}
+                              >
+                                {initials}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="indigo-500/85 text-sm font-semibold truncate">
+                                  {bid.bider?.firstName} {bid.bider?.lastName}
+                                </p>
+                                <p className="indigo-500/30 text-xs truncate">{bid.bider?.email}</p>
+                                <p className="indigo-500/20 text-[10px] mt-0.5 flex items-center gap-1">
+                                  <Phone className="w-2.5 h-2.5" /> {bid.bider?.phone}
+                                </p>
+                              </div>
+                              <div className="text-right flex-shrink-0">
+                                <p className={`font-bold text-sm ${isTop ? 'text-emerald-400' : 'indigo-500/70'}`}>
+                                  ₹{bid.amount.toLocaleString()}
+                                </p>
+                                <p className="indigo-500/20 text-[10px] mt-0.5">{timeStr}</p>
+                                <span
+                                  className={`inline-block mt-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full ${bid.status === 'accepted'
+                                    ? 'bg-emerald-500/15 text-emerald-400'
+                                    : bid.status === 'rejected'
+                                      ? 'bg-rose-500/15 text-rose-400'
+                                      : 'bg-amber-500/15 text-amber-400'
+                                    }`}
+                                >
+                                  {bid.status || 'pending'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
+
+              {selectedBnb.previousInterests && selectedBnb.previousInterests.length > 0 && (
+                <div className="rounded-xl bg-slate-50 border border-slate-200 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="indigo-500/40 text-xs font-bold uppercase tracking-wider">
+                      Previous Interests ({selectedBnb.previousInterests.length})
+                    </p>
+                    <span className="text-[10px] text-indigo-500/50">Historical BNB interest records</span>
+                  </div>
+                  <div className="space-y-2">
+                    {[...selectedBnb.previousInterests]
+                      .sort((a, b) => new Date(b.movedAt).getTime() - new Date(a.movedAt).getTime())
+                      .map((interest, idx) => {
+                        const prevBidder = interest.biderId && typeof interest.biderId === 'object' ? interest.biderId : {};
+                        const prevName = interest.bidderName || `${prevBidder.firstName || '?'} ${prevBidder.lastName || ''}`.trim() || 'Unknown bidder';
+                        const prevEmail = interest.bidderEmail || prevBidder.email || '—';
+                        const prevPhone = interest.bidderPhone || prevBidder.phone || null;
+                        const movedAt = interest.movedAt
+                          ? new Date(interest.movedAt).toLocaleString('en-IN', {
+                            day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+                          })
+                          : '—';
+                        const status = interest.status || 'pending';
+                        const statusBadge = {
+                          accepted: 'bg-emerald-100 text-emerald-700',
+                          rejected: 'bg-rose-100 text-rose-700',
+                          pending: 'bg-amber-100 text-amber-700',
+                          countered: 'bg-violet-100 text-violet-700',
+                        }[status] || 'bg-slate-100 text-slate-700';
+                        const grad = avatarColors[(idx + 1) % avatarColors.length];
+
+                        return (
+                          <div key={interest._id || `${movedAt}-${idx}`} className="rounded-xl border border-white/[0.06] bg-white p-3">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div
+                                  className={`w-9 h-9 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}
+                                >
+                                  {prevName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="indigo-500/85 text-sm font-semibold truncate">{prevName}</p>
+                                  <p className="indigo-500/30 text-xs truncate">{prevEmail}</p>
+                                  {prevPhone && (
+                                    <p className="indigo-500/20 text-[10px] mt-0.5 flex items-center gap-1">
+                                      <Phone className="w-2.5 h-2.5" /> {prevPhone}
+                                    </p>
+                                  )}
+                                  <p className="indigo-500/20 text-[10px] mt-1">Moved at {movedAt}</p>
+                                </div>
+                              </div>
+                              <div className="text-right flex-shrink-0 space-y-1">
+                                <p className="font-bold text-sm text-indigo-500">₹{(interest.interestAmount || 0).toLocaleString()}</p>
+                                <span className={`inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-full capitalize ${statusBadge}`}>
+                                  {status}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
+
+              {/* Status row */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${statusConfig.closed.bg} ${statusConfig.closed.text}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.closed.dot}`} />
+                  Closed
+                </span>
+                <span className="ml-auto indigo-500/25 text-xs flex items-center gap-1">
+                  <Calendar className="w-3 h-3" /> {selectedBnb.startDate}
+                </span>
+              </div>
+              {selectedBnb.description && (
+                <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4">
+                  <p className="indigo-500/25 text-[10px] font-bold tracking-widest uppercase mb-2">Description</p>
+                  <p className="indigo-500/60 text-sm leading-relaxed">{selectedBnb.description}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

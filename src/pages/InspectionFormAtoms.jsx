@@ -55,7 +55,7 @@ export const Toggle = ({ label, checked, onChange }) => (
 
 export const EditToolbar = ({ onCancel, onSave, saving, error }) => (
   <div className="sticky bottom-0 z-10 flex items-center justify-between gap-3
-    bg-[#0d1117]/90 backdrop-blur border-t border-white/[0.06] px-5 py-3 -mx-1 rounded-b-xl">
+    bg-[#bg-white]/90 backdrop-blur border-t border-white/[0.06] px-5 py-3 -mx-1 rounded-b-xl">
     {error && <p className="text-red-400 text-xs flex-1">{error}</p>}
     {!error && <span />}
     <div className="flex gap-2">

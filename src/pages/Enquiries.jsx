@@ -39,6 +39,37 @@ const StatusDot = ({ status }) => {
     </span>
   );
 };
+const handleDeleteEnquiry = async (enquiryId) => {
+  try {
+    const token = localStorage.getItem("adminToken");
+
+    await axios.delete(
+      `${import.meta.env.VITE_API_URL}/api/enquiries/${enquiryId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    fetchEnquiries();
+
+    // // remove from state instantly
+    // setEnquiries((prev) =>
+    //   prev.filter((item) => item.id !== enquiryId)
+    // );
+
+    // OR refresh data
+    // fetchEnquiries();
+  } catch (err) {
+    console.error(err);
+
+    addToast(
+      err.response?.data?.message ||
+      "Failed to delete enquiry",
+      "error"
+    );
+  }
+};
 
 const ConditionBadge = ({ value }) => {
   const isIssue = value === 'issue' || value === 'na';
@@ -678,7 +709,7 @@ const Enquiries = () => {
       setLoading(true);
       setError(null);
       const token = localStorage.getItem('adminToken');
-      const params = new URLSearchParams({ page, limit });
+      const params = new URLSearchParams({ page, limit, status });
 
       if (filterStatus === 'new') {
         params.set('status', 'assign-to-team');
@@ -759,11 +790,11 @@ const Enquiries = () => {
   const counts = {
     all: pagination?.total ?? enquiries.length,
     new: enquiries.filter(e => e.status === 'assign-to-team').length,
-    open: enquiries.filter(e => e.status === 'inspection').length,
+    // open: enquiries.filter(e => e.status === 'inspection').length,
     assigned: enquiries.filter(e => e.status === 'assigned').length,
     'in-progress': enquiries.filter(e => e.status === 'in-progress').length,
-    resolved: enquiries.filter(e => e.status === 'resolved').length,
-    closed: enquiries.filter(e => e.status === 'closed').length,
+    // resolved: enquiries.filter(e => e.status === 'resolved').length,
+    // closed: enquiries.filter(e => e.status === 'closed').length,
   };
 
   // ── Handlers ─────────────────────────────────────────────────────
@@ -855,11 +886,11 @@ const Enquiries = () => {
   const filterTabs = [
     { key: 'all', label: 'All' },
     { key: 'new', label: 'New' },
-    { key: 'open', label: 'Open' },
+    // { key: 'open', label: 'Open' },
     { key: 'assigned', label: 'Assigned' },
     { key: 'in-progress', label: 'In Progress' },
-    { key: 'resolved', label: 'Resolved' },
-    { key: 'closed', label: 'Closed' },
+    // { key: 'resolved', label: 'Resolved' },
+    // { key: 'closed', label: 'Closed' },
   ];
 
   // ── Grid column definition (single source of truth) ──────────────
@@ -921,9 +952,9 @@ const Enquiries = () => {
                       }`}
                   >
                     {tab.label}
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${filterStatus === tab.key ? 'bg-white/20 indigo-500' : 'bg-white/[0.08] indigo-500/40'}`}>
+                    {/* <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${filterStatus === tab.key ? 'bg-white/20 indigo-500' : 'bg-white/[0.08] indigo-500/40'}`}>
                       {counts[tab.key] ?? 0}
-                    </span>
+                    </span> */}
                   </button>
                 ))}
               </div>
@@ -1075,6 +1106,33 @@ const Enquiries = () => {
                           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
                         </button>
                         <button
+                          onClick={() => {
+                            const isConfirmed = window.confirm(
+                              'Are you sure you want to delete this car enquiry?'
+                            );
+
+                            if (isConfirmed) {
+                              handleDeleteEnquiry(enq.id);
+                            }
+                          }}
+                          className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all"
+                          title="Delete enquiry"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <path d="M3 6h18" />
+                            <path d="M8 6V4h8v2" />
+                            <path d="M19 6l-1 14H6L5 6" />
+                            <path d="M10 11v6" />
+                            <path d="M14 11v6" />
+                          </svg>
+                        </button>
+                        <button
                           onClick={() => openAssignModal(enq)}
                           className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-all"
                           title="Assign Technician"
@@ -1220,14 +1278,14 @@ const Enquiries = () => {
                     <select
                       value={selectedTechId}
                       onChange={e => setSelectedTechId(e.target.value)}
-                      className="w-full bg-gray-800 border border-white/10 rounded-xl px-4 py-3 indigo-500 text-sm outline-none focus:border-indigo-500/60 transition-all appearance-none cursor-pointer"
+                      className="w-full bg-slate-100 border border-white/10 rounded-xl px-4 py-3 indigo-500 text-sm outline-none focus:border-indigo-500/60 transition-all appearance-none cursor-pointer"
                       style={{ colorScheme: 'dark' }}
                     >
-                      <option value="" disabled className="bg-gray-800 indigo-500/50">
+                      <option value="" disabled className="bg-slate-100 indigo-500/50">
                         Choose a technician...
                       </option>
                       {technicians.map(tech => (
-                        <option key={tech.id} value={tech.id} className="bg-gray-800 indigo-500">
+                        <option key={tech.id} value={tech.id} className="bg-slate-100 indigo-500">
                           {tech.name}
                         </option>
                       ))}

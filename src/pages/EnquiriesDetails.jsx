@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useToast } from '../hooks/useToast';
 import EnquiryDetailPage from './Enquirydetailpage';
+import { Factory } from 'lucide-react';
 
 const statusConfig = {
   new: { label: 'New', bg: 'bg-indigo-500/15', text: 'text-indigo-400', dot: 'bg-indigo-400' },
@@ -38,6 +39,12 @@ const normalizeEnquiry = (raw, idx) => ({
   message: raw.description || '',
   status: raw.status || 'new',
   priority: raw.priority || 'medium',
+  ra_name: raw.assignedRa
+    ? `${raw.assignedRa.firstName || ''} ${raw.assignedRa.lastName || ''}`.trim()
+    : 'Unassigned',
+
+  assignedRaId: raw.assignedRa?._id || '',
+
   date: raw.createdAt ? new Date(raw.createdAt).toLocaleDateString() : '—',
   avatar: `${raw.userId?.firstName?.[0] || 'U'}${raw.userId?.lastName?.[0] || ''}`.toUpperCase(),
   estimatedCost: raw.estimatedCost || 0,
@@ -45,6 +52,7 @@ const normalizeEnquiry = (raw, idx) => ({
   enquiryId: raw.enquiryId || raw._id || raw.id || `idx-${idx}`,
   auctionStarted: raw.auctionStarted || false,
 });
+
 
 /* ─── Stat Card ──────────────────────────────────────────────────────────── */
 const StatCard = ({ label, value, icon, accent, sub }) => (
@@ -196,6 +204,10 @@ const StartAuctionModal = ({ enquiry, onClose, onConfirm, loading }) => {
             <span className="indigo-500/35">Status</span>
             <span className="text-teal-400 font-medium capitalize">{enquiry.status}</span>
           </div>
+          <div className="flex justify-between text-xs">
+            <span className="indigo-500/35">RA Name</span>
+            <span className="indigo-500/60 font-medium">{enquiry.ra_name}</span>
+          </div>
         </div>
 
         <p className="indigo-500/25 text-xs text-center mb-5">
@@ -247,6 +259,7 @@ const EnquiriesDetails = () => {
   const [selectedId, setSelectedId] = useState(null);
   const [auctionModal, setAuctionModal] = useState(null);
   const [auctionLoading, setAuctionLoading] = useState(false);
+  const [raList, setRaList] = useState([]);
   const [auctionStarted, setAuctionStarted] = useState(new Set());
 
   // ── Pagination state ──────────────────────────────────────────────────────
@@ -257,6 +270,61 @@ const EnquiriesDetails = () => {
   const token = () => localStorage.getItem('adminToken');
   const authHeader = () => ({ Authorization: `Bearer ${token()}` });
 
+   const assignRA = async (enquiryId,raId) => {
+        try {
+          console.log( "Assigning RA:",{ enquiryId, raId });
+
+          const res = await axios.put(
+            `${import.meta.env.VITE_API_URL
+            }/api/admin/RA/${enquiryId}/${raId}`,
+            {},
+            {
+              headers: {
+                "Content-Type":
+                  "application/json",
+                ...authHeader(),
+              },
+            }
+          );
+
+          console.log(
+            "RA Assigned:",
+            res.data
+          );
+
+          // Update UI instantly
+          setEnquiries((prev) =>
+            prev.map((item) =>
+              item.id === enquiryId
+                ? {
+                  ...item,
+                  assignedRaId: raId,
+                }
+                : item
+            )
+          );
+
+          toast.success?.(
+            "RA assigned successfully"
+          );
+
+          // Optional refresh from API
+          fetchEnquiries(
+            pagination.page
+          );
+        } catch (error) {
+          console.error(
+            "Assign RA Error:",
+            error
+          );
+
+          toast.error?.(
+            error?.response?.data
+              ?.message ||
+            "Failed to assign RA"
+          );
+        }
+      };
   /* ── Fetch ──────────────────────────────────────────────────────────────── */
   const fetchEnquiries = useCallback(async (page = 1) => {
     setLoading(true);
@@ -274,6 +342,7 @@ const EnquiriesDetails = () => {
           },
         }
       );
+     
 
       const rawList = res.data?.data ?? res.data ?? [];
       const rawPagination = res.data?.pagination ?? null;
@@ -332,7 +401,27 @@ const EnquiriesDetails = () => {
       setAuctionLoading(false);
     }
   };
+  const fetchAllRAs = async () => {
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/admin/ra`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeader(),
+          },
+        }
+      );
 
+      setRaList(res.data?.data || []);
+    } catch (err) {
+      console.error('RA fetch error:', err);
+      toast.error?.('Failed to fetch RAs');
+    }
+  };
+  useEffect(() => {
+    fetchAllRAs();
+  }, []);
   /* ── Counts (use pagination.total for "all" so it reflects server count) ── */
   const counts = {
     all: pagination.total,
@@ -423,8 +512,8 @@ const EnquiriesDetails = () => {
         <div className="overflow-x-auto">
           <div className="min-w-[780px]">
             {/* Headers */}
-            <div className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr_180px] gap-4 px-5 py-3 border-b border-white/[0.05] bg-white/[0.02]">
-              {['Sender', 'Subject', 'Priority', 'Status', 'Cost', 'Actions'].map(h => (
+            <div className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr_1fr_180px] gap-4 px-5 py-3 border-b border-white/[0.05] bg-white/[0.02]">
+              {['Sender', 'Subject', 'Priority', 'Status', 'Cost', 'RA', 'Actions'].map(h => (
                 <span key={h} className="indigo-500/25 text-[10px] font-bold tracking-widest uppercase">{h}</span>
               ))}
             </div>
@@ -448,6 +537,7 @@ const EnquiriesDetails = () => {
                     <div className="h-5 bg-white/10 rounded-full w-16" />
                     <div className="h-5 bg-white/10 rounded-full w-20" />
                     <div className="h-5 bg-white/10 rounded w-20" />
+
                     <div className="flex gap-2">
                       <div className="h-7 bg-white/10 rounded-lg w-24" />
                       <div className="h-7 bg-white/10 rounded-lg w-10" />
@@ -481,44 +571,80 @@ const EnquiriesDetails = () => {
 
             {/* Rows */}
             {!loading && filtered.map((enq, idx) => {
-              const sc = statusConfig[enq.status] || { label: enq.status, bg: 'bg-gray-500/15', text: 'text-gray-400', dot: 'bg-gray-400' };
-              const pc = priorityConfig[enq.priority] || { label: enq.priority, bg: 'bg-gray-500/10', text: 'text-gray-400', border: 'border-gray-500/20' };
-              const grad = avatarGradients[idx % avatarGradients.length];
-              const hasAuctionStarted = auctionStarted.has(enq.id) || enq.auctionStarted;
+              const sc = statusConfig[enq.status] || {
+                label: enq.status,
+                bg: 'bg-gray-500/15',
+                text: 'text-gray-400',
+                dot: 'bg-gray-400'
+              };
+
+              const pc = priorityConfig[enq.priority] || {
+                label: enq.priority,
+                bg: 'bg-gray-500/10',
+                text: 'text-gray-400',
+                border: 'border-gray-500/20'
+              };
+
+              const grad =
+                avatarGradients[idx % avatarGradients.length];
+
+              const hasAuctionStarted =
+                auctionStarted.has(enq.id) ||
+                enq.auctionStarted;
 
               return (
                 <div
                   key={enq.id}
-                  className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr_180px] gap-4 px-5 py-4 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.025] transition-colors duration-150 items-center group"
+                  className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr_1fr_180px] gap-4 px-5 py-4 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.025] transition-colors duration-150 items-center group"
                 >
                   {/* Sender */}
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center indigo-500 text-xs font-bold flex-shrink-0`}>
+                    <div
+                      className={`w-8 h-8 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center indigo-500 text-xs font-bold flex-shrink-0`}
+                    >
                       {enq.avatar}
                     </div>
+
                     <div className="min-w-0">
-                      <p className="indigo-500/85 text-sm font-medium truncate">{enq.name}</p>
-                      <p className="indigo-500/30 text-xs truncate">{enq.email}</p>
+                      <p className="indigo-500/85 text-sm font-medium truncate">
+                        {enq.name}
+                      </p>
+                      <p className="indigo-500/30 text-xs truncate">
+                        {enq.email}
+                      </p>
                     </div>
                   </div>
 
                   {/* Subject */}
-                  <div className="min-w-0 cursor-pointer" onClick={() => setSelectedId(enq.id)}>
-                    <p className="indigo-500/70 text-sm truncate hover:text-teal-400 transition-colors">{enq.subject}</p>
-                    <p className="indigo-500/25 text-xs mt-0.5">{enq.date}</p>
+                  <div
+                    className="min-w-0 cursor-pointer"
+                    onClick={() => setSelectedId(enq.id)}
+                  >
+                    <p className="indigo-500/70 text-sm truncate hover:text-teal-400 transition-colors">
+                      {enq.subject}
+                    </p>
+                    <p className="indigo-500/25 text-xs mt-0.5">
+                      {enq.date}
+                    </p>
                   </div>
 
                   {/* Priority */}
                   <div>
-                    <span className={`inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full border ${pc.bg} ${pc.text} ${pc.border}`}>
+                    <span
+                      className={`inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full border ${pc.bg} ${pc.text} ${pc.border}`}
+                    >
                       {pc.label}
                     </span>
                   </div>
 
                   {/* Status */}
                   <div>
-                    <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full ${sc.bg} ${sc.text}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+                    <span
+                      className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full ${sc.bg} ${sc.text}`}
+                    >
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${sc.dot}`}
+                      />
                       {sc.label}
                     </span>
                   </div>
@@ -526,42 +652,97 @@ const EnquiriesDetails = () => {
                   {/* Cost */}
                   <div className="min-w-0">
                     {enq.actualCost > 0 ? (
-                      <p className="text-emerald-400 text-sm font-semibold">₹{enq.actualCost.toLocaleString()}</p>
+                      <p className="text-emerald-400 text-sm font-semibold">
+                        ₹{enq.actualCost.toLocaleString()}
+                      </p>
                     ) : enq.estimatedCost > 0 ? (
-                      <p className="text-amber-400/70 text-xs">Est. ₹{enq.estimatedCost.toLocaleString()}</p>
+                      <p className="text-amber-400/70 text-xs">
+                        Est. ₹
+                        {enq.estimatedCost.toLocaleString()}
+                      </p>
                     ) : (
                       <p className="indigo-500/20 text-xs">—</p>
                     )}
+                  </div>
+
+                  {/* RA */}
+                 
+                  <div className="min-w-0">
+                    <select
+                      value={enq.assignedRaId || ""}
+                      className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                      onChange={(e) => {
+                        const selectedRaId = e.target.value;
+                        assignRA(enq.id, selectedRaId);
+                      }}
+                    >
+                      <option value="">
+                        Unassigned
+                      </option>
+
+                      {raList.map((ra) => (
+                        <option
+                          key={ra._id}
+                          value={ra._id}
+                        >
+                          {ra.firstName}{" "}
+                          {ra.lastName}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   {/* Actions */}
                   <div className="flex items-center gap-2 justify-end">
                     {hasAuctionStarted ? (
                       <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-[11px] font-semibold">
-                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <svg
+                          className="w-3 h-3"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                        >
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                         Auction Live
                       </span>
                     ) : (
                       <button
-                        onClick={e => { e.stopPropagation(); setAuctionModal(enq); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAuctionModal(enq);
+                        }}
                         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-teal-500/10 text-teal-400 hover:bg-teal-500/20 text-[11px] font-semibold transition-all"
                         title="Start Auction"
                       >
-                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg
+                          className="w-3 h-3"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
                           <polygon points="5 3 19 12 5 21 5 3" />
                         </svg>
                         Start Auction
                       </button>
                     )}
+
                     <button
                       onClick={() => setSelectedId(enq.id)}
                       className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.05] indigo-500/40 hover:bg-white/[0.08] hover:indigo-500/70 transition-all"
                       title="View Details"
                     >
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
+                      <svg
+                        className="w-3.5 h-3.5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
                       </svg>
                     </button>
                   </div>

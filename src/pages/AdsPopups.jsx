@@ -72,7 +72,7 @@ const PreviewModal = ({ item, onClose }) => {
         <div className="p-5">
           <div className="rounded-xl bg-white border border-white/6 overflow-hidden">
             {/* Browser chrome */}
-            <div className="flex items-center gap-1.5 px-3 py-2 bg-gray-800 border-b border-white/6">
+            <div className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 border-b border-white/6">
               <span className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
               <span className="w-2.5 h-2.5 rounded-full bg-amber-500/70" />
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
@@ -91,7 +91,7 @@ const PreviewModal = ({ item, onClose }) => {
 
               {/* Popup / Ad overlay */}
               {item.type === 'popup' || item.type === 'overlay' ? (
-                <div className="relative z-10 bg-gray-800 border border-indigo-500/30 rounded-xl shadow-xl p-4 w-64 text-center">
+                <div className="relative z-10 bg-slate-100 border border-indigo-500/30 rounded-xl shadow-xl p-4 w-64 text-center">
                   {item.image && (
                     <img src={item.image} alt={item.title} className="w-full h-24 object-cover rounded-lg mb-3" />
                   )}
@@ -137,7 +137,7 @@ const PreviewModal = ({ item, onClose }) => {
               { label: 'Placement', value: item.placement },
               { label: 'Status', value: item.status },
             ].map(({ label, value }) => (
-              <div key={label} className="bg-gray-800 rounded-xl px-3 py-2 text-center">
+              <div key={label} className="bg-slate-100 rounded-xl px-3 py-2 text-center">
                 <p className="indigo-500/40 text-[10px] uppercase tracking-widest">{label}</p>
                 <p className="indigo-500 text-xs font-semibold mt-0.5 capitalize">{value}</p>
               </div>
@@ -179,7 +179,7 @@ const AdForm = ({ item, onSubmit, onCancel, loading }) => {
     </div>
   );
 
-  const inp = 'w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 text-sm placeholder-white/25 focus:outline-none focus:border-indigo-500/50 transition';
+  const inp = 'w-full px-3 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 text-sm placeholder-white/25 focus:outline-none focus:border-indigo-500/50 transition';
 
   return (
     <form onSubmit={e => { e.preventDefault(); onSubmit(form); }} className="space-y-5">
@@ -204,7 +204,7 @@ const AdForm = ({ item, onSubmit, onCancel, loading }) => {
 
       {/* Image Upload */}
       <Field label="Creative Image (optional)">
-        <label htmlFor="adImage" className="flex items-center gap-3 px-4 py-3 bg-gray-800 border-2 border-dashed border-indigo-500/25 rounded-lg cursor-pointer hover:border-indigo-500/50 transition indigo-500/50 hover:indigo-500/70">
+        <label htmlFor="adImage" className="flex items-center gap-3 px-4 py-3 bg-slate-100 border-2 border-dashed border-indigo-500/25 rounded-lg cursor-pointer hover:border-indigo-500/50 transition indigo-500/50 hover:indigo-500/70">
           <Upload size={18} />
           <span className="text-sm">Click to upload — PNG, JPG up to 5 MB</span>
           <input id="adImage" type="file" accept="image/*" onChange={handleImage} className="hidden" />
@@ -288,7 +288,7 @@ const AdForm = ({ item, onSubmit, onCancel, loading }) => {
           <Megaphone size={16} />
           {loading ? 'Saving...' : item ? 'Update' : 'Create'}
         </button>
-        <button type="button" onClick={onCancel} className="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 indigo-500 text-sm font-semibold rounded-lg transition">
+        <button type="button" onClick={onCancel} className="px-5 py-2.5 bg-slate-100 hover:bg-gray-700 indigo-500 text-sm font-semibold rounded-lg transition">
           Cancel
         </button>
       </div>
@@ -426,7 +426,7 @@ export default function AdsPopups() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 p-8">
+    <div className="min-h-screen from-gray-950 via-gray-900 indigo-500 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
 
         {/* ── Header ── */}
@@ -493,13 +493,13 @@ export default function AdsPopups() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search by title or description..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-800 border border-white/10 indigo-500 text-sm placeholder-white/25 focus:outline-none focus:border-indigo-500/50 transition"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-100 border border-white/10 indigo-500 text-sm placeholder-white/25 focus:outline-none focus:border-indigo-500/50 transition"
             />
           </div>
           <select
             value={filterStatus}
             onChange={e => setFilterStatus(e.target.value)}
-            className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/10 indigo-500 text-sm focus:outline-none focus:border-indigo-500/50 transition"
+            className="px-4 py-2.5 rounded-xl bg-slate-100 border border-white/10 indigo-500 text-sm focus:outline-none focus:border-indigo-500/50 transition"
           >
             <option value="all">All Status</option>
             <option value="active">Active</option>
@@ -522,7 +522,7 @@ export default function AdsPopups() {
               return (
                 <div key={item.id} className="group bg-white border border-white/6 rounded-2xl overflow-hidden hover:border-indigo-500/25 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300">
                   {/* Creative thumbnail */}
-                  <div className="relative h-36 bg-gray-800 overflow-hidden">
+                  <div className="relative h-36 bg-slate-100 overflow-hidden">
                     {item.image ? (
                       <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
@@ -590,7 +590,7 @@ export default function AdsPopups() {
                         { label: 'Clicks', value: item.clicks.toLocaleString() },
                         { label: 'CTR', value: `${ctr}%` },
                       ].map(({ label, value }) => (
-                        <div key={label} className="bg-gray-800/60 rounded-lg px-2 py-1.5 text-center">
+                        <div key={label} className="bg-slate-100/60 rounded-lg px-2 py-1.5 text-center">
                           <p className="indigo-500/35 text-[9px] uppercase tracking-widest">{label}</p>
                           <p className="indigo-500 text-xs font-bold mt-0.5">{value}</p>
                         </div>

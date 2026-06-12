@@ -133,7 +133,7 @@ export default function Loan() {
         <h1 className="text-2xl font-bold">Loan Requests</h1>
         <button
           onClick={fetchLoans}
-          className="flex items-center gap-2 bg-gray-800 px-4 py-2 rounded"
+          className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded"
         >
           <RefreshCcw size={16} /> Refresh
         </button>
@@ -199,7 +199,7 @@ export default function Loan() {
           <select
             value={statusUpdate}
             onChange={(e) => setStatusUpdate(e.target.value)}
-            className="p-2 bg-gray-800 rounded mb-3"
+            className="p-2 bg-slate-100 rounded mb-3"
           >
             {VALID_STATUSES.map((s) => (
               <option key={s}>{s}</option>

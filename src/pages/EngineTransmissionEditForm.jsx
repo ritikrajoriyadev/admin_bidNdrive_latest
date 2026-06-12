@@ -547,7 +547,7 @@ const EngineTransmissionEditForm = ({ initialData = {}, onSave, onCancel, saving
       )}
 
       {/* ── Actions ─────────────────────────────────────────────────────── */}
-      <div className="flex gap-3 pt-2 sticky bottom-0 pb-2 bg-[#0d1117]">
+      <div className="flex gap-3 pt-2 sticky bottom-0 pb-2 bg-white">
         <button type="button" onClick={onCancel}
           className="flex-1 py-2.5 rounded-xl border border-white/[0.08] indigo-500/40 text-sm font-semibold hover:indigo-500/70 hover:border-white/20 transition-all">
           Cancel

@@ -95,7 +95,7 @@ const BannerForm = ({ banner, onSubmit, onCancel, loading }) => {
             value={formData.title}
             onChange={handleChange}
             placeholder="e.g., Summer Sale 2024"
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
+            className="w-full px-3 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
             required
           />
         </div>
@@ -113,7 +113,7 @@ const BannerForm = ({ banner, onSubmit, onCancel, loading }) => {
           onChange={handleChange}
           placeholder="Banner description or call-to-action text"
           rows="3"
-          className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition resize-none"
+          className="w-full px-3 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition resize-none"
         />
       </div>
 
@@ -125,7 +125,7 @@ const BannerForm = ({ banner, onSubmit, onCancel, loading }) => {
           value={formData.link}
           onChange={handleChange}
           placeholder="https://example.com"
-          className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
+          className="w-full px-3 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
         />
       </div>
 
@@ -142,7 +142,7 @@ const BannerForm = ({ banner, onSubmit, onCancel, loading }) => {
           />
           <label
             htmlFor="imageInput"
-            className="w-full px-4 py-3 bg-gray-800 border-2 border-dashed border-indigo-500/30 rounded-lg cursor-pointer hover:border-indigo-500/50 transition flex items-center gap-3 indigo-500/60 hover:indigo-500/80"
+            className="w-full px-4 py-3 bg-slate-100 border-2 border-dashed border-indigo-500/30 rounded-lg cursor-pointer hover:border-indigo-500/50 transition flex items-center gap-3 indigo-500/60 hover:indigo-500/80"
           >
             <Upload size={20} />
             <div>
@@ -154,7 +154,7 @@ const BannerForm = ({ banner, onSubmit, onCancel, loading }) => {
 
         {/* Image Preview */}
         {formData.imagePreview && (
-          <div className="mt-3 rounded-lg overflow-hidden border border-white/10 h-40 bg-gray-800">
+          <div className="mt-3 rounded-lg overflow-hidden border border-white/10 h-40 bg-slate-100">
             <img src={formData.imagePreview} alt="Preview" className="w-full h-full object-cover" />
           </div>
         )}
@@ -168,7 +168,7 @@ const BannerForm = ({ banner, onSubmit, onCancel, loading }) => {
             name="status"
             value={formData.status}
             onChange={handleChange}
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
+            className="w-full px-3 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
           >
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
@@ -186,7 +186,7 @@ const BannerForm = ({ banner, onSubmit, onCancel, loading }) => {
             value={formData.displayOrder}
             onChange={handleChange}
             min="1"
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
+            className="w-full px-3 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
           />
         </div>
       </div>
@@ -200,7 +200,7 @@ const BannerForm = ({ banner, onSubmit, onCancel, loading }) => {
             name="startDate"
             value={formData.startDate}
             onChange={handleChange}
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
+            className="w-full px-3 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
           />
         </div>
 
@@ -212,7 +212,7 @@ const BannerForm = ({ banner, onSubmit, onCancel, loading }) => {
             name="endDate"
             value={formData.endDate}
             onChange={handleChange}
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
+            className="w-full px-3 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
           />
         </div>
       </div>
@@ -229,7 +229,7 @@ const BannerForm = ({ banner, onSubmit, onCancel, loading }) => {
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 bg-gray-800 hover:bg-gray-700 indigo-500 rounded-lg font-medium transition"
+          className="px-4 py-2 bg-slate-100 hover:bg-gray-700 indigo-500 rounded-lg font-medium transition"
         >
           Cancel
         </button>
@@ -413,7 +413,7 @@ export default function Banners() {
   const totalClicks = banners.reduce((sum, b) => sum + b.clicks, 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 p-8">
+    <div className="min-h-screen from-gray-950 via-gray-900 indigo-500 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -468,14 +468,14 @@ export default function Banners() {
               placeholder="Search banners by title or description..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-100 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
             />
           </div>
 
           <select
             value={filterPlacement}
             onChange={(e) => setFilterPlacement(e.target.value)}
-            className="px-4 py-2.5 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
+            className="px-4 py-2.5 rounded-lg bg-slate-100 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
           >
             <option value="all">All Placements</option>
             <option value="homepage">Homepage</option>
@@ -488,7 +488,7 @@ export default function Banners() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2.5 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
+            className="px-4 py-2.5 rounded-lg bg-slate-100 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
           >
             <option value="all">All Status</option>
             <option value="active">Active</option>
@@ -502,7 +502,7 @@ export default function Banners() {
         <div className="bg-white border border-white/[0.06] rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-800/50 border-b border-white/[0.06]">
+              <thead className="bg-slate-100/50 border-b border-white/[0.06]">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold indigo-500/60 uppercase tracking-wider">Banner</th>
 
@@ -515,7 +515,7 @@ export default function Banners() {
               </thead>
               <tbody className="divide-y divide-white/[0.06]">
                 {filteredBanners.map((banner, index) => (
-                  <tr key={banner?.id || banner?._id || `banner-${index}`} className="hover:bg-gray-800/50 transition">
+                  <tr key={banner?.id || banner?._id || `banner-${index}`} className="hover:bg-slate-100/50 transition">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <img src={banner?.image?.url || banner?.image} alt={banner.title} className="w-12 h-12 rounded-lg object-cover border border-white/10" />

@@ -17,7 +17,7 @@ const MODULES = [
   'users',
   'new_enquiries',
   'assigned_enquiries',
-  'enquiries_details',
+  'QC',
   'pdi',
   'loans',
   'sell_cars',
@@ -105,7 +105,7 @@ const PermissionForm = ({ permission, onClose, onSave, saving }) => {
               required
               value={formData.module}
               onChange={(e) => setFormData({ ...formData, module: e.target.value })}
-              className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
+              className="px-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.08] indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
             >
               <option value="">Select Module</option>
               {MODULES.map((m) => (
@@ -121,7 +121,7 @@ const PermissionForm = ({ permission, onClose, onSave, saving }) => {
               required
               value={formData.action}
               onChange={(e) => setFormData({ ...formData, action: e.target.value })}
-              className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
+              className="px-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.08] indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
             >
               <option value="">Select Action</option>
               {ACTIONS.map((a) => (
@@ -136,7 +136,7 @@ const PermissionForm = ({ permission, onClose, onSave, saving }) => {
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all resize-none"
+              className="px-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all resize-none"
               rows="3"
               placeholder="Describe what this permission allows..."
             />
@@ -152,7 +152,7 @@ const PermissionForm = ({ permission, onClose, onSave, saving }) => {
           </button>
           <button
             type="button" onClick={onClose}
-            className="flex-1 px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.06] indigo-500 font-medium hover:bg-gray-700 transition-all"
+            className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.06] indigo-500 font-medium hover:bg-gray-700 transition-all"
           >
             Cancel
           </button>
@@ -237,7 +237,7 @@ const BulkPermissionForm = ({ onClose, onSave, saving }) => {
           <h2 className="text-xl font-bold indigo-500">Bulk Create Permissions</h2>
           <p className="indigo-500/40 text-sm mt-0.5">Select module × action combinations to create all at once</p>
         </div>
-        <button onClick={onClose} className="p-2 rounded-lg bg-gray-800 indigo-500/40 hover:indigo-500 transition-colors">
+        <button onClick={onClose} className="p-2 rounded-lg bg-slate-100 indigo-500/40 hover:indigo-500 transition-colors">
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -246,7 +246,7 @@ const BulkPermissionForm = ({ onClose, onSave, saving }) => {
       <div className="rounded-xl border border-white/[0.06] overflow-hidden overflow-x-auto">
         <table className="w-full min-w-[560px]">
           <thead>
-            <tr className="border-b border-white/[0.06] bg-gray-800/60">
+            <tr className="border-b border-white/[0.06] bg-slate-100/60">
               {/* top-left: select-all */}
               <th className="px-4 py-3 text-left w-44">
                 <button
@@ -311,7 +311,7 @@ const BulkPermissionForm = ({ onClose, onSave, saving }) => {
                           role="checkbox"
                           className={`w-5 h-5 rounded-md border flex items-center justify-center mx-auto transition-all duration-150 ${checked
                             ? 'bg-indigo-500 border-indigo-500'
-                            : 'bg-gray-800 border-white/[0.12] hover:border-indigo-400/40'
+                            : 'bg-slate-100 border-white/[0.12] hover:border-indigo-400/40'
                             }`}
                         >
                           {checked && (
@@ -336,7 +336,7 @@ const BulkPermissionForm = ({ onClose, onSave, saving }) => {
           {selectedList.slice(0, 14).map(({ k, mod, act }) => (
             <span
               key={k}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-800 border border-white/[0.08] text-xs"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 border border-white/[0.08] text-xs"
             >
               <span className="indigo-500 font-medium capitalize">{mod.replace('_', ' ')}</span>
               <span className="indigo-500/30">:</span>
@@ -351,7 +351,7 @@ const BulkPermissionForm = ({ onClose, onSave, saving }) => {
             </span>
           ))}
           {selectedList.length > 14 && (
-            <span className="px-2.5 py-1 rounded-full bg-gray-800 border border-white/[0.08] text-xs indigo-500/40 italic">
+            <span className="px-2.5 py-1 rounded-full bg-slate-100 border border-white/[0.08] text-xs indigo-500/40 italic">
               +{selectedList.length - 14} more
             </span>
           )}
@@ -367,7 +367,7 @@ const BulkPermissionForm = ({ onClose, onSave, saving }) => {
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all resize-none"
+          className="px-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all resize-none"
           rows="2"
           placeholder="Describe what these permissions allow..."
         />
@@ -375,7 +375,7 @@ const BulkPermissionForm = ({ onClose, onSave, saving }) => {
 
       {/* Footer */}
       <div className="flex items-center gap-3 pt-1">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800 border border-white/[0.06]">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 border border-white/[0.06]">
           <Lock className="w-3.5 h-3.5 indigo-500/40" />
           <span className="text-sm indigo-500/60">
             <span className="indigo-500 font-semibold">{selected.size}</span> selected
@@ -384,7 +384,7 @@ const BulkPermissionForm = ({ onClose, onSave, saving }) => {
 
         <button
           onClick={() => setSelected(new Set())}
-          className="px-4 py-2 rounded-xl bg-gray-800 border border-white/[0.06] indigo-500/50 text-sm font-medium hover:indigo-500 hover:bg-gray-700 transition-all"
+          className="px-4 py-2 rounded-xl bg-slate-100 border border-white/[0.06] indigo-500/50 text-sm font-medium hover:indigo-500 hover:bg-gray-700 transition-all"
         >
           Clear all
         </button>
@@ -630,7 +630,7 @@ export default function Permissions() {
             placeholder="Search by module, action, or description..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.06] indigo-500 placeholder-white/40 focus:border-indigo-400/50 focus:outline-none transition-all"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.06] indigo-500 placeholder-white/40 focus:border-indigo-400/50 focus:outline-none transition-all"
           />
         </div>
 
@@ -642,7 +642,7 @@ export default function Permissions() {
                 onClick={() => setFilterModule(mod)}
                 className={`px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200 capitalize ${filterModule === mod
                   ? 'bg-indigo-500/15 border border-indigo-400/25 text-indigo-300'
-                  : 'bg-gray-800 border border-white/[0.06] indigo-500/40 hover:indigo-500/60'
+                  : 'bg-slate-100 border border-white/[0.06] indigo-500/40 hover:indigo-500/60'
                   }`}
               >
                 {mod === 'all' ? 'All' : mod}

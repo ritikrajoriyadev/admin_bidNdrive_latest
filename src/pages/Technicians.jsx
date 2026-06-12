@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '../hooks/useToast';
 
 const StatCard = ({ label, value, icon, accent, change, positive }) => (
@@ -27,6 +28,9 @@ const Technicians = () => {
   const [search, setSearch] = useState('');
   const [filterStatus, setStatus] = useState('all');
   const [selectedTechnician, setSelectedTechnician] = useState(null);
+  const [technicianDetails, setTechnicianDetails] = useState(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [detailsError, setDetailsError] = useState(null);
   const [view, setView] = useState('table');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '', firstName: '', lastName: '', phone: '' });
@@ -92,6 +96,40 @@ const Technicians = () => {
     inactive: { label: 'Inactive', bg: 'bg-white/[0.06]', text: 'indigo-500/40', dot: 'bg-white/30' },
   };
 
+  const fetchTechnicianDetails = async (technicianId) => {
+    try {
+      setDetailsError(null);
+      setDetailsLoading(true);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/admin/technicians/${technicianId}/details`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      console.log("Technician details response:", res.data);
+      if (res.data.success) {
+        setTechnicianDetails(res.data.data);
+      } else {
+        setDetailsError(res.data.message || 'Failed to load technician details.');
+      }
+    } catch (err) {
+      console.error('Error fetching technician details:', err);
+      setDetailsError(err.response?.data?.message || 'Failed to fetch technician details.');
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
+  const handleViewTechnician = async (technician) => {
+    setSelectedTechnician(technician);
+    setTechnicianDetails(null);
+    await fetchTechnicianDetails(technician.id);
+  };
+
   const handleStatusChange = async (technicianId, currentStatus, targetStatus) => {
     // If already in target status, just close
     if (currentStatus === targetStatus) {
@@ -116,7 +154,9 @@ const Technicians = () => {
       if (res.data.success) {
         toast.success(res.data.message || `Technician ${targetStatus === 'active' ? 'activated' : 'deactivated'} successfully`);
         fetchTechnicians();
-        setSelectedTechnician(null);
+        if (selectedTechnician?.id === technicianId) {
+          fetchTechnicianDetails(technicianId);
+        }
       }
     } catch (err) {
       console.error("Error toggling status:", err);
@@ -270,13 +310,13 @@ const Technicians = () => {
         <TableView
           technicians={filteredTechnicians}
           statusConfig={statusConfig}
-          onClick={setSelectedTechnician}
+          onClick={handleViewTechnician}
         />
       ) : (
         <GridView
           technicians={filteredTechnicians}
           statusConfig={statusConfig}
-          onClick={setSelectedTechnician}
+          onClick={handleViewTechnician}
         />
       )}
 
@@ -284,7 +324,14 @@ const Technicians = () => {
       {selectedTechnician && (
         <TechnicianModal
           technician={selectedTechnician}
-          onClose={() => setSelectedTechnician(null)}
+          details={technicianDetails}
+          loading={detailsLoading}
+          error={detailsError}
+          onClose={() => {
+            setSelectedTechnician(null);
+            setTechnicianDetails(null);
+            setDetailsError(null);
+          }}
           onStatusChange={handleStatusChange}
         />
       )}
@@ -402,11 +449,15 @@ const GridView = ({ technicians, statusConfig, onClick }) => (
 );
 
 // ── Improved Modal ──
-const TechnicianModal = ({ technician, onClose, onStatusChange }) => {
+const TechnicianModal = ({ technician, details, loading, error, onClose, onStatusChange }) => {
+  const navigate = useNavigate();
+  const techData = details?.technician || technician;
+  const stats = details?.statistics;
+  const assignedEnquiries = details?.assignedEnquiries || [];
   const sc = {
     active: { label: 'Active', color: 'text-emerald-400' },
     inactive: { label: 'Inactive', color: 'indigo-500/40' },
-  }[technician.status];
+  }[techData.status || technician.status];
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center indigo-500/70 backdrop-blur-sm p-4" onClick={onClose}>
@@ -437,25 +488,83 @@ const TechnicianModal = ({ technician, onClose, onStatusChange }) => {
           <div className="space-y-4 mb-8">
             <div>
               <p className="indigo-500/40 text-xs uppercase tracking-widest">Phone</p>
-              <p className="indigo-500 font-medium">{technician.phone}</p>
+              <p className="indigo-500 font-medium">{techData.phone}</p>
             </div>
             <div>
               <p className="indigo-500/40 text-xs uppercase tracking-widest">Joined</p>
-              <p className="indigo-500 font-medium">{technician.joined}</p>
+              <p className="indigo-500 font-medium">{techData.joined}</p>
             </div>
             <div className="flex items-center gap-6">
               <div>
                 <p className="indigo-500/40 text-xs uppercase tracking-widest">Rating</p>
-                <p className="text-amber-400 font-semibold text-lg">★ {technician.rating}</p>
+                <p className="text-amber-400 font-semibold text-lg">★ {techData.rating}</p>
               </div>
               <div>
                 <p className="indigo-500/40 text-xs uppercase tracking-widest">Jobs</p>
-                <p className="font-semibold">{technician.orders}</p>
+                <p className="font-semibold">{techData.orders}</p>
               </div>
             </div>
           </div>
 
-          <div className="flex gap-3">
+          {loading ? (
+            <div className="rounded-2xl border border-white/[0.08] bg-slate-50 p-4 text-center">
+              <p className="text-sm indigo-500">Loading technician details...</p>
+            </div>
+          ) : error ? (
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-center">
+              <p className="text-sm text-rose-600">{error}</p>
+            </div>
+          ) : (
+            <>
+              {details && (
+                <div className="space-y-6 mb-6">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-2xl border border-white/[0.08] bg-slate-50 p-4">
+                      <p className="text-xs uppercase tracking-widest indigo-500/40 mb-2">Assigned Enquiries</p>
+                      <p className="text-2xl font-semibold indigo-500">{stats?.totalAssigned ?? assignedEnquiries.length}</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/[0.08] bg-slate-50 p-4">
+                      <p className="text-xs uppercase tracking-widest indigo-500/40 mb-2">Completed</p>
+                      <p className="text-2xl font-semibold indigo-500">{stats?.completed ?? 0}</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/[0.08] bg-slate-50 p-4">
+                      <p className="text-xs uppercase tracking-widest indigo-500/40 mb-2">In Progress</p>
+                      <p className="text-2xl font-semibold indigo-500">{stats?.inProgress ?? 0}</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/[0.08] bg-slate-50 p-4">
+                      <p className="text-xs uppercase tracking-widest indigo-500/40 mb-2">Pending</p>
+                      <p className="text-2xl font-semibold indigo-500">{stats?.pending ?? 0}</p>
+                    </div>
+                  </div>
+
+                  {/* <div>
+                    <p className="text-sm uppercase tracking-widest indigo-500/40 mb-3">Latest Assigned Enquiries</p>
+                    {assignedEnquiries.length === 0 ? (
+                      <p className="text-sm indigo-500/70">No enquiries assigned yet.</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {assignedEnquiries.slice(0, 3).map(enquiry => (
+                          <div key={enquiry._id} className="rounded-2xl border border-white/[0.08] bg-white p-4">
+                            <p className="font-semibold indigo-500">{enquiry.customerName || `${enquiry.userId?.firstName || ''} ${enquiry.userId?.lastName || ''}`.trim() || 'Customer'}</p>
+                            <p className="text-sm indigo-500/60">{enquiry.carDetails?.make || 'Unknown'} {enquiry.carDetails?.model || ''} ({enquiry.carDetails?.year || ''})</p>
+                            <p className="text-xs uppercase tracking-widest mt-2 text-indigo-500/40">Status: {enquiry.status}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div> */}
+                </div>
+              )}
+            </>
+          )}
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <button
+              onClick={() => navigate(`/technicians/${technician.id}`)}
+              className="flex-1 py-3 rounded-2xl font-medium bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/15 transition-all border border-indigo-500/10"
+            >
+              View full page
+            </button>
             <button
               onClick={() => onStatusChange(technician.id, technician.status, 'active')}
               className={`flex-1 py-3 rounded-2xl font-medium transition-all border bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/30 text-emerald-400`}

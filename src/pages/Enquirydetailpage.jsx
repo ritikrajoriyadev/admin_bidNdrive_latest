@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import generateInspectionPDF from '../utls/Generateinspectionpdf';
 import PhotoEditorModal from './Photoeditormodal';
+
 import ExteriorTyresEditForm from './ExteriorTyresEditForm';
 import EngineTransmissionEditForm from './EngineTransmissionEditForm';
 import CarDetailsEditForm from './CarDetailsEditForm';
@@ -236,7 +237,7 @@ const PageSkeleton = () => (
 const EditPanel = ({ title, onClose, children }) => (
   <div className="fixed inset-0 z-40 flex">
     <div className="flex-1 indigo-500/60 backdrop-blur-sm" onClick={onClose} />
-    <div className="relative w-full max-w-2xl bg-[#0d1117] border-l border-white/[0.08] flex flex-col h-full shadow-2xl">
+    <div className="relative w-full max-w-2xl bg-[#bg-white] border-l border-white/[0.08] flex flex-col h-full shadow-2xl">
       <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] flex-shrink-0">
         <p className="indigo-500/70 text-sm font-semibold">{title}</p>
         <button
@@ -248,7 +249,7 @@ const EditPanel = ({ title, onClose, children }) => (
           </svg>
         </button>
       </div>
-      <div className="flex-1 overflow-y-auto p-5">{children}</div>
+      <div className=" bg-white flex-1 overflow-y-auto ">{children}</div>
     </div>
   </div>
 );
@@ -309,6 +310,73 @@ function collectAllImages(enq, car) {
   return images;
 }
 
+const PDFPreviewModal = ({ blobUrl, regNo, onClose, onDownload }) => {
+  const [page, setPage] = React.useState(1);
+  const iframeRef = React.useRef(null);
+  const urlWithPage = blobUrl ? `${blobUrl}#page=${page}` : null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)' }}
+    >
+      <div className="relative w-full  sm:max-h-[92vh] h-[92vh] flex flex-col
+                       bg-[#0f0f13] border border-white/[0.08] rounded-t-2xl sm:rounded-2xl overflow-hidden shadow-2xl">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.06] flex-shrink-0">
+          <div className="flex items-center gap-2.5">
+            <svg className="w-4 h-4 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="9" y1="13" x2="15" y2="13" /><line x1="9" y1="17" x2="15" y2="17" />
+            </svg>
+            <span className="text-white/80 text-sm font-semibold">Inspection Report</span>
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-400 font-semibold">
+              {regNo}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onDownload}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-teal-500/15 border border-teal-500/30
+                          text-teal-400 hover:bg-teal-500/25 transition-all text-xs font-semibold"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Download
+            </button>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-xl flex items-center justify-center text-white/40
+                          hover:text-white/80 hover:bg-white/[0.06] transition-all"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* PDF iframe */}
+        <div className="flex-1 bg-[#1a1a22] overflow-hidden">
+          {urlWithPage && (
+            <iframe
+              ref={iframeRef}
+              src={urlWithPage}
+              className="w-full h-full border-0"
+              title="PDF Preview"
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 /* ══════════════════════════════════════════════════════════════════════════
    MAIN COMPONENT
    ══════════════════════════════════════════════════════════════════════════ */
@@ -319,7 +387,8 @@ const EnquiryDetailPage = ({ enquiryId, onBack }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfProgress, setPdfProgress] = useState('');
-
+  const [pdfPreviewUrl, setPdfPreviewUrl] = React.useState(null);
+  const [pdfPreviewOpen, setPdfPreviewOpen] = React.useState(false);
   // Per-image photo editor
   const [editingPhoto, setEditingPhoto] = useState(null);
 
@@ -345,6 +414,47 @@ const EnquiryDetailPage = ({ enquiryId, onBack }) => {
 
   const enq = detail?.data?.enquiryId ? detail.data : detail?.data;
   const car = detail?.carDetails || detail?.data?.carDetails;
+  const handlePreviewPDF = async () => {
+    if (!enq) return;
+    setPdfLoading(true);
+    setPdfProgress('Generating preview…');
+    try {
+      const url = await generateInspectionPDF(enq, car, (msg) => setPdfProgress(msg), 'preview');
+      if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);  // free old blob
+      setPdfPreviewUrl(url);
+      setPdfPreviewOpen(true);
+    } catch (err) {
+      console.error('PDF preview failed:', err);
+      setPdfProgress('Failed');
+    } finally {
+      setPdfLoading(false);
+      setPdfProgress('');
+    }
+  };
+  const fetchDetail = useCallback(() => {
+    if (!enquiryId) return;
+    setLoading(true);
+    setError(null);
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/api/admin/enquiries/byID/${enquiryId}`, { headers: authHeader() })
+      .then(res => setDetail(res.data))
+      .catch(err => { console.error(err); setError('Failed to load enquiry details. Please try again.'); })
+      .finally(() => setLoading(false));
+  }, [enquiryId]);
+
+  useEffect(() => {
+    fetchDetail();
+  }, [fetchDetail]);
+  const handleDownloadFromPreview = () => {
+    if (!enq) return;
+    generateInspectionPDF(enq, car, () => { }, 'download');
+  };
+
+  const closePdfPreview = () => {
+    setPdfPreviewOpen(false);
+    if (pdfPreviewUrl) { URL.revokeObjectURL(pdfPreviewUrl); setPdfPreviewUrl(null); }
+  };
+
 
   /* ── PDF download ───────────────────────────────────────────────────── */
   const handleDownloadPDF = async () => {
@@ -370,11 +480,12 @@ const EnquiryDetailPage = ({ enquiryId, onBack }) => {
     form.append('enquiryId', enquiryId);
 
     // ── Section → endpoint ──────────────────────────────────────────
+    console.log('Editing :', car?.enquiry_id);
     const endpointMap = {
-      'Car Details': `assigned-enquiries/admin/${car?._id}/car-details`,
-      'Exterior': `assigned-enquiries/admin/${car?._id}/exterior-tyres`,
-      'Interior': `assigned-enquiries/admin/${car?._id}/electricals-interior`,
-      'Engine': `assigned-enquiries/admin/${car?._id}/engine-transmission`,
+      'Car Details': `assigned-enquiries/admin/${car?.enquiry_id}/car-details`,
+      'Exterior': `assigned-enquiries/admin/${car?.enquiry_id}/exterior-tyres`,
+      'Interior': `assigned-enquiries/admin/${car?.enquiry_id}/electricals-interior`,
+      'Engine': `assigned-enquiries/admin/${car?.enquiry_id}/engine-transmission`,
     };
 
     // ── Part string → multer field name ─────────────────────────────
@@ -488,10 +599,10 @@ const EnquiryDetailPage = ({ enquiryId, onBack }) => {
     setEditError('');
 
     const endpointMap = {
-      exterior: `assigned-enquiries/admin/${car?._id}/exterior-tyres`,
-      carDetails: `assigned-enquiries/admin/${car?._id}/car-details`,
-      interior: `assigned-enquiries/admin/${car?._id}/electricals-interior`,
-      engine: `assigned-enquiries/admin/${car?._id}/engine-transmission`,
+      exterior: `assigned-enquiries/admin/${car?.enquiry_id}/exterior-tyres`,
+      carDetails: `assigned-enquiries/admin/${car?.enquiry_id}/car-details`,
+      interior: `assigned-enquiries/admin/${car?.enquiry_id}/electricals-interior`,
+      engine: `assigned-enquiries/admin/${car?.enquiry_id}/engine-transmission`,
     };
 
     const endpoint = endpointMap[section];
@@ -535,7 +646,7 @@ const EnquiryDetailPage = ({ enquiryId, onBack }) => {
 
         return next;
       });
-
+      fetchDetail();
       setEditSection(null);
     } catch (err) {
       console.error('Save failed:', err);
@@ -554,6 +665,8 @@ const EnquiryDetailPage = ({ enquiryId, onBack }) => {
     { key: 'exterior', label: 'Exterior' },
     { key: 'interior', label: 'Interior' },
     { key: 'engine', label: 'Engine' },
+    { key: 'air_conditioning', label: 'Air Conditioning' },
+
     { key: 'journey', label: 'Journey' },
   ];
 
@@ -646,9 +759,18 @@ const EnquiryDetailPage = ({ enquiryId, onBack }) => {
             </div>
           )}
         </div>
+        {pdfPreviewOpen && pdfPreviewUrl && (
+          <PDFPreviewModal
+            blobUrl={pdfPreviewUrl}
+            regNo={enq?.enquiryId || 'Report'}
+            onClose={closePdfPreview}
+            onDownload={handleDownloadFromPreview}
+          />
+        )}
         {!loading && !error && enq && (
           <button
-            onClick={handleDownloadPDF}
+            // onClick={handleDownloadPDF}
+            onClick={handlePreviewPDF}
             disabled={pdfLoading}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-500/15 border border-teal-500/30
               text-teal-400 hover:bg-teal-500/25 hover:border-teal-500/50 active:scale-95 transition-all
@@ -667,7 +789,7 @@ const EnquiryDetailPage = ({ enquiryId, onBack }) => {
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                   <polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
-                Download PDF
+                preview /Download PDF
               </>
             )}
           </button>
@@ -858,43 +980,114 @@ const EnquiryDetailPage = ({ enquiryId, onBack }) => {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <Card>
                       <div className="flex items-center mb-3">
-                        <SectionLabel>Registration & Identity</SectionLabel>
+                        <SectionLabel>Vehicle Details</SectionLabel>
                         <SectionEditBtn onClick={() => setEditSection('carDetails')} />
                       </div>
+
                       <InfoRow label="Make" value={car.car_details?.make} />
                       <InfoRow label="Model" value={car.car_details?.model} />
                       <InfoRow label="Variant" value={car.car_details?.variant} />
-                      <InfoRow label="Year of Mfg" value={car.car_details?.year_of_manufacturing} />
-                      <InfoRow label="Mfg Month/Year" value={`${car.car_details?.manufacturing_month || '—'} ${car.car_details?.manufacturing_year || ''}`} />
-                      {/* <InfoRow label="Reg No."           value={car.car_details?.registration_number?.toUpperCase()} /> */}
-                      <InfoRow label="Reg Month/Year" value={`${car.car_details?.registration_month || '—'} ${car.car_details?.registration_year || ''}`} />
-                      <InfoRow label="Chassis Number" value={car.car_details?.chassis_number} />
-                      <InfoRow label="Chassis Embossing" value={car.car_details?.chassis_embossing} />
-                      <InfoRow label="Odometer" value={car.car_details?.odometer_reading != null ? `${car.car_details.odometer_reading.toLocaleString()} km` : null} />
+                      <InfoRow label="Body Type" value={car.car_details?.body_type} />
+                      <InfoRow label="Color" value={car.car_details?.color} />
                       <InfoRow label="Fuel Type" value={car.car_details?.fuel_type} />
+                      <InfoRow label="Cubic Capacity" value={`${car.car_details?.cubic_capacity} CC`} />
+                      <InfoRow label="No. of Cylinders" value={car.car_details?.no_cylinders} />
+                      <InfoRow label="Seat Capacity" value={car.car_details?.seat_capacity} />
+                      <InfoRow label="Vehicle Category" value={car.car_details?.vehicle_category} />
+                      <InfoRow label="Vehicle Weight" value={`${car.car_details?.vehicle_gross_weight} Kg`} />
+                      <InfoRow label="Unladen Weight" value={`${car.car_details?.unladen_weight} Kg`} />
+
+                      <InfoRow label="Year of Manufacturing" value={car.car_details?.year_of_manufacturing} />
+                      <InfoRow
+                        label="Manufacturing Date"
+                        value={`${car.car_details?.manufacturing_month || "—"} ${car.car_details?.manufacturing_year || ""}`}
+                      />
+
+                      <InfoRow
+                        label="Registration Date"
+                        value={
+                          car.car_details?.registration_date
+                            ? new Date(car.car_details.registration_date).toLocaleDateString()
+                            : null
+                        }
+                      />
+
+                      <InfoRow
+                        label="Registration Month/Year"
+                        value={`${car.car_details?.registration_month || "—"} ${car.car_details?.registration_year || ""}`}
+                      />
+
+                      <InfoRow label="Odometer Reading" value={
+                        car.car_details?.odometer_reading
+                          ? `${car.car_details.odometer_reading.toLocaleString()} km`
+                          : null
+                      } />
+
                       <InfoRow label="No. of Owners" value={car.car_details?.no_of_owners} />
                       <InfoRow label="Branch" value={car.car_details?.branch} />
                       <InfoRow label="Inspection At" value={car.car_details?.inspection_at} />
+                      <InfoRow label="Chassis Embossing" value={car.car_details?.chassis_embossing} />
                     </Card>
 
                     <Card>
-                      <SectionLabel>RTO, Tax & Compliance</SectionLabel>
-                      <InfoRow label="RTO" value={car.car_details?.rto} />
-                      <InfoRow label="City" value={car.car_details?.reg_city} />
-                      <InfoRow label="State" value={car.car_details?.reg_state} />
-                      <InfoRow label="Road Tax" value={car.car_details?.road_tax_paid} />
-                      <InfoRow label="Tax Validity" value={car.car_details?.road_tax_validity ? new Date(car.car_details.road_tax_validity).toLocaleDateString() : null} />
-                      <InfoRow label="Fitness Upto" value={car.car_details?.fitness_upto ? new Date(car.car_details.fitness_upto).toLocaleDateString() : null} />
-                      <InfoRow label="Insurance" value={car.car_details?.insurance_type} />
+                      <SectionLabel>Insurance & Compliance</SectionLabel>
+
+                      <InfoRow label="Insurance Company" value={car.car_details?.insurance_company} />
+                      <InfoRow label="Insurance Type" value={car.car_details?.insurance_type} />
+
+                      <InfoRow
+                        label="Insurance Valid Upto"
+                        value={
+                          car.car_details?.insurance_upto
+                            ? new Date(car.car_details.insurance_upto).toLocaleDateString()
+                            : null
+                        }
+                      />
+                      
+
+                      <InfoRow
+                        label="Fitness Upto"
+                        value={
+                          car.car_details?.fitness_upto
+                            ? new Date(car.car_details.fitness_upto).toLocaleDateString()
+                            : null
+                        }
+                      />
+
+                      <InfoRow label="Road Tax Paid" value={car.car_details?.road_tax_paid} />
+
+                      <InfoRow
+                        label="Road Tax Validity"
+                        value={
+                          car.car_details?.road_tax_validity
+                            ? new Date(car.car_details.road_tax_validity).toLocaleDateString()
+                            : null
+                        }
+                      />
+
                       <InfoRow label="RC Availability" value={car.car_details?.rc_availability} />
+                      <InfoRow label="RC Status" value={car.car_details?.rc_status} />
                       <InfoRow label="RC Condition" value={car.car_details?.rc_condition} />
-                      <InfoRow label="Mismatch in RC" value={car.car_details?.mismatch_in_rc ? 'Yes' : 'No'} />
-                      <InfoRow label="Under Hyp." value={car.car_details?.under_hypothecation ? 'Yes' : 'No'} />
-                      <InfoRow label="RTO NOC Issued" value={car.car_details?.rto_noc_issued ? 'Yes' : 'No'} />
-                      <InfoRow label="CNG/LPG in RC" value={car.car_details?.cng_lpg_fitment_in_rc ? 'Yes' : 'No'} />
-                      <InfoRow label="Duplicate Key" value={car.car_details?.duplicate_key ? 'Yes' : 'No'} />
-                      <InfoRow label="Source" value={car.source} />
-                      <InfoRow label="To Be Scrapped" value={car.car_details?.to_be_scrapped ? 'Yes' : 'No'} />
+
+                      <InfoRow label="Financed" value={car.car_details?.financed ? "Yes" : "No"} />
+                      <InfoRow label="Financer" value={car.car_details?.financer} />
+                      <InfoRow label="Under Hypothecation" value={car.car_details?.under_hypothecation ? "Yes" : "No"} />
+
+                      <InfoRow label="Mismatch In RC" value={car.car_details?.mismatch_in_rc ? "Yes" : "No"} />
+                      <InfoRow label="RTO NOC Issued" value={car.car_details?.rto_noc_issued ? "Yes" : "No"} />
+                      <InfoRow label="Duplicate Key" value={car.car_details?.duplicate_key ? "Yes" : "No"} />
+                      <InfoRow label="CNG/LPG Fitment" value={car.car_details?.cng_lpg_fitment_in_rc ? "Yes" : "No"} />
+                      <InfoRow label="To Be Scrapped" value={car.car_details?.to_be_scrapped ? "Yes" : "No"} />
+                    </Card>
+
+                    <Card>
+                      <SectionLabel>RTO Details</SectionLabel>
+
+                      <InfoRow label="RTO" value={car.car_details?.rto} />
+                      <InfoRow label="RTO Code" value={car.car_details?.rto_code} />
+                      <InfoRow label="Registration City" value={car.car_details?.reg_city} />
+                      <InfoRow label="Registration State" value={car.car_details?.reg_state} />
+                      <InfoRow label="Vehicle Category Description" value={car.car_details?.vehicle_category_description} />
                     </Card>
                   </div>
 
@@ -1000,33 +1193,126 @@ const EnquiryDetailPage = ({ enquiryId, onBack }) => {
                   <TabEditBar label="Edit Interior & Electricals" onClick={() => setEditSection('interior')} />
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <Card>
-                      <SectionLabel>Electricals & Features</SectionLabel>
-                      {[
-                        ['Power Windows', car.electricals_interior.power_windows, `${car.electricals_interior.no_of_power_windows || '—'} windows`],
-                        ['ABS', car.electricals_interior.abs?.status, null],
-                        ['Airbags', car.electricals_interior.airbag_feature, `${car.electricals_interior.no_of_airbags || '—'} airbags`],
-                        ['Music System', car.electricals_interior.music_system?.status, null],
-                        ['Sunroof', car.electricals_interior.sunroof, null],
-                        ['Door Trim', car.electricals_interior.door_trim?.status, null],
-                        ['Leather Seat', car.electricals_interior.leather_seat?.status, null],
-                        ['Fabric Seat', car.electricals_interior.fabric_seat, null],
-                        ['Roof Lining', car.electricals_interior.roof_lining?.status, null],
-                        ['Rear Defogger', car.electricals_interior.rear_defogger, null],
-                        ['Reverse Camera', car.electricals_interior.reverse_camera, null],
-                        ['Parking Sensor', car.electricals_interior.parking_sensor, null],
-                        ['Navigation', car.electricals_interior.navigation_chip, null],
-                        ['Steering Audio', car.electricals_interior.steering_mounted_audio_control, null],
-                        ['Electrical', car.electricals_interior.electrical, null],
-                      ].map(([lbl, val, extra]) => (
-                        <div key={lbl} className="flex justify-between items-center py-2 border-b border-white/[0.04] last:border-0">
-                          <div>
-                            <span className="indigo-500/40 text-xs">{lbl}</span>
-                            {extra && <span className="indigo-500/20 text-[10px] ml-2">{extra}</span>}
-                          </div>
-                          <ConditionBadge value={val} />
-                        </div>
-                      ))}
+                    <Card className="p-5">
+                      <SectionLabel>
+                        Electricals & Features
+                      </SectionLabel>
+
+                      <div className="space-y-5 mt-4">
+                        {Object.entries(
+                          car.electricals_interior || {}
+                        ).map(([sectionKey, sectionValue]) => {
+
+                          // Skip images
+                          if (sectionKey === "images") {
+                            return null;
+                          }
+
+                          // Skip empty values
+                          if (
+                            sectionValue === null ||
+                            sectionValue === undefined ||
+                            sectionValue === ""
+                          ) {
+                            return null;
+                          }
+
+                          // Primitive values
+                          if (
+                            typeof sectionValue !== "object" ||
+                            Array.isArray(sectionValue)
+                          ) {
+                            return (
+                              <div
+                                key={sectionKey}
+                                className="flex justify-between border-b pb-2"
+                              >
+                                <div>
+                                  <span className="font-medium capitalize">
+                                    {sectionKey.replace(/_/g, " ")}
+                                  </span>
+
+                                  {/* Extra Info */}
+                                  {sectionKey === "power_windows" && (
+                                    <span className="text-xs text-gray-500 ml-2">
+                                      (
+                                      {car.electricals_interior
+                                        ?.no_of_power_windows || 0}
+                                      {" "}windows)
+                                    </span>
+                                  )}
+
+                                  {sectionKey === "airbag_feature" && (
+                                    <span className="text-xs text-gray-500 ml-2">
+                                      (
+                                      {car.electricals_interior
+                                        ?.no_of_airbags || 0}
+                                      {" "}airbags)
+                                    </span>
+                                  )}
+                                </div>
+
+                                <span className="text-gray-700">
+                                  {typeof sectionValue === "boolean"
+                                    ? sectionValue
+                                      ? "Yes"
+                                      : "No"
+                                    : Array.isArray(sectionValue)
+                                      ? sectionValue.join(", ")
+                                      : sectionValue.toString()}
+                                </span>
+                              </div>
+                            );
+                          }
+
+                          // Nested object rendering
+                          return (
+                            <div
+                              key={sectionKey}
+                              className="border rounded-xl p-4 bg-gray-50"
+                            >
+                              <h3 className="font-semibold text-lg mb-4 capitalize">
+                                {sectionKey.replace(/_/g, " ")}
+                              </h3>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {Object.entries(sectionValue).map(
+                                  ([key, value]) => {
+
+                                    // Skip nested images
+                                    if (key === "images") {
+                                      return null;
+                                    }
+
+                                    return (
+                                      <div
+                                        key={key}
+                                        className="flex justify-between border-b pb-2"
+                                      >
+                                        <span className="text-sm font-medium capitalize">
+                                          {key.replace(/_/g, " ")}
+                                        </span>
+
+                                        <span className="text-sm text-gray-700 text-right">
+                                          {Array.isArray(value)
+                                            ? value.length
+                                              ? value.join(", ")
+                                              : "-"
+                                            : typeof value === "boolean"
+                                              ? value
+                                                ? "Yes"
+                                                : "No"
+                                              : value?.toString() || "-"}
+                                        </span>
+                                      </div>
+                                    );
+                                  }
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </Card>
 
                     <div className="space-y-5">
@@ -1086,28 +1372,330 @@ const EnquiryDetailPage = ({ enquiryId, onBack }) => {
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className="space-y-5">
-                      <Card>
+                      <Card className="p-5">
                         <SectionLabel>Engine & Transmission</SectionLabel>
-                        <InfoRow label="Engine Status" value={car.engine_transmission.engine?.status} />
-                        <InfoRow label="MIL Light" value={car.engine_transmission.engine?.mil_light_glowing ? 'Glowing' : 'OK'} />
-                        <InfoRow label="Wiring Damaged" value={car.engine_transmission.engine?.electrical_wiring_damaged ? 'Yes' : 'No'} />
-                        <InfoRow label="Air Filter Box" value={car.engine_transmission.engine?.air_filter_box_damaged ? 'Damaged' : 'OK'} />
-                        <InfoRow label="Battery Status" value={car.engine_transmission.battery?.status} />
-                        <InfoRow label="Battery Leakage" value={car.engine_transmission.battery?.acid_leakage ? 'Yes' : 'No'} />
-                        <InfoRow label="Oil Status" value={car.engine_transmission.engine_oil?.status} />
-                        <InfoRow label="Oil Leakage" value={car.engine_transmission.engine_oil?.leakage_from_tappet_cover ? 'Yes' : 'No'} />
-                        <InfoRow label="Coolant Status" value={car.engine_transmission.coolant?.status} />
-                        <InfoRow label="Coolant Dirty" value={car.engine_transmission.coolant?.dirty ? 'Yes' : 'No'} />
-                        <InfoRow label="Coolant Level" value={car.engine_transmission.coolant?.level_low ? 'Low' : 'OK'} />
-                        <InfoRow label="Engine Mounting" value={car.engine_transmission.engine_mounting?.status} />
-                        <InfoRow label="Engine Sound" value={car.engine_transmission.engine_sound?.status} />
-                        <InfoRow label="Exhaust Smoke" value={car.engine_transmission.exhaust_smoke?.status} />
-                        <InfoRow label="Clutch" value={car.engine_transmission.clutch?.status} />
-                        <InfoRow label="Gear Shifting" value={car.engine_transmission.gear_shifting?.status} />
-                        <InfoRow label="Turbo Charger" value={car.engine_transmission.turbo_charger?.status} />
-                        <InfoRow label="Fuel Injector" value={car.engine_transmission.fuel_injector?.status} />
-                        <InfoRow label="Radiator Fan" value={car.engine_transmission.radiator_fan_motor?.status} />
-                        <InfoRow label="Towing Recommended" value={car.engine_transmission.towing_recommended ? '⚠ Yes' : 'No'} />
+
+                        <div className="space-y-5 mt-4">
+                          {Object.entries(car.engine_transmission || {}).map(
+                            ([sectionKey, sectionValue]) => {
+
+                              if (
+                                sectionValue === null ||
+                                sectionValue === undefined ||
+                                sectionValue === ""
+                              ) {
+                                return null;
+                              }
+
+                              // Top-level primitive values
+                              if (typeof sectionValue !== "object") {
+                                return (
+                                  <div
+                                    key={sectionKey}
+                                    className="flex justify-between border-b pb-2"
+                                  >
+                                    <span className="font-medium capitalize">
+                                      {sectionKey.replace(/_/g, " ")}
+                                    </span>
+
+                                    <span className="text-gray-700">
+                                      {typeof sectionValue === "boolean"
+                                        ? sectionValue
+                                          ? "Yes"
+                                          : "No"
+                                        : sectionValue.toString()}
+                                    </span>
+                                  </div>
+                                );
+                              }
+
+                              return (
+                                <div
+                                  key={sectionKey}
+                                  className="border rounded-xl p-4 bg-gray-50"
+                                >
+                                  <h3 className="font-semibold text-lg mb-4 capitalize">
+                                    {sectionKey.replace(/_/g, " ")}
+                                  </h3>
+
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {Object.entries(sectionValue).map(([key, value]) => {
+
+                                      // Skip images/videos
+                                      if (
+                                        key === "images" ||
+                                        key === "videos"
+                                      ) {
+                                        return null;
+                                      }
+
+                                      return (
+                                        <div
+                                          key={key}
+                                          className="flex justify-between border-b pb-2"
+                                        >
+                                          <span className="text-sm font-medium capitalize">
+                                            {key.replace(/_/g, " ")}
+                                          </span>
+
+                                          <span className="text-sm text-gray-700 text-right">
+                                            {Array.isArray(value)
+                                              ? value.length
+                                                ? value.join(", ")
+                                                : "-"
+                                              : typeof value === "boolean"
+                                                ? value
+                                                  ? "Yes"
+                                                  : "No"
+                                                : value?.toString() || "-"}
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
+                      </Card>
+                      {(() => {
+                        const videos = [
+                          ...(car.engine_transmission?.engine?.videos || [])
+                        ];
+
+                        return videos.length > 0 ? (
+                          <Card>
+                            <SectionLabel>
+                              Engine Videos ({videos.length})
+                            </SectionLabel>
+
+                            <div className="grid grid-cols-3 gap-4">
+                              {videos.map((video, index) => (
+                                <div
+                                  key={index}
+                                  className="overflow-hidden rounded-xl border bg-white"
+                                >
+                                  <video
+                                    controls
+                                    className="h-48 w-full object-cover"
+                                  >
+                                    <source
+                                      src={video.url}
+                                      type={
+                                        video.mime_type ||
+                                        "video/mp4"
+                                      }
+                                    />
+                                  </video>
+                                </div>
+                              ))}
+                            </div>
+                          </Card>
+                        ) : null;
+                      })()}
+
+                      {(() => {
+                        const imgs = [
+                          ...(car.engine_transmission?.engine?.images || []),
+                          ...(car.engine_transmission?.battery?.images || []),
+                        ];
+                        return imgs.length > 0 ? (
+                          <Card>
+                            <SectionLabel>Engine Photos ({imgs.length})</SectionLabel>
+                            <ImageGrid images={imgs} cols={3} onEditPhoto={handleEditPhoto} section="Engine" />
+                          </Card>
+
+                        ) : null;
+                      })()}
+                    </div>
+
+                    <Card className="p-5">
+                      <SectionLabel>
+                        Steering, Suspension & Brakes
+                      </SectionLabel>
+
+                      <div className="space-y-5 mt-4">
+                        {Object.entries(
+                          car.steering_suspension_brakes || {}
+                        ).map(([sectionKey, sectionValue]) => {
+
+                          // Skip images
+                          if (sectionKey === "images") {
+                            return null;
+                          }
+
+                          // Skip null/empty values
+                          if (
+                            sectionValue === null ||
+                            sectionValue === undefined ||
+                            sectionValue === ""
+                          ) {
+                            return null;
+                          }
+
+                          // Top-level primitive values
+                          if (typeof sectionValue !== "object") {
+                            return (
+                              <div
+                                key={sectionKey}
+                                className="flex justify-between border-b pb-2"
+                              >
+                                <span className="font-medium capitalize">
+                                  {sectionKey.replace(/_/g, " ")}
+                                </span>
+
+                                <span className="text-gray-700">
+                                  {typeof sectionValue === "boolean"
+                                    ? sectionValue
+                                      ? "Yes"
+                                      : "No"
+                                    : sectionValue.toString()}
+                                </span>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div
+                              key={sectionKey}
+                              className="border rounded-xl p-4 bg-gray-50"
+                            >
+                              <h3 className="font-semibold text-lg mb-4 capitalize">
+                                {sectionKey.replace(/_/g, " ")}
+                              </h3>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {Object.entries(sectionValue).map(
+                                  ([key, value]) => (
+                                    <div
+                                      key={key}
+                                      className="flex justify-between border-b pb-2"
+                                    >
+                                      <span className="text-sm font-medium capitalize">
+                                        {key.replace(/_/g, " ")}
+                                      </span>
+
+                                      <span className="text-sm text-gray-700 text-right">
+                                        {Array.isArray(value)
+                                          ? value.length
+                                            ? value.join(", ")
+                                            : "-"
+                                          : typeof value === "boolean"
+                                            ? value
+                                              ? "Yes"
+                                              : "No"
+                                            : value?.toString() || "-"}
+                                      </span>
+                                    </div>
+                                  )
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </Card>
+                  </div>
+                </>
+              )
+          )}
+          {activeTab === 'air_conditioning' && (
+            !car?.air_conditioning
+              ? <div className="text-center py-16 indigo-500/30 text-sm">No engine data available</div>
+              : (
+                <>
+                  <TabEditBar label="Edit Air Conditioning" onClick={() => setEditSection('engine')} />
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="space-y-5">
+                      <Card>
+                        <SectionLabel>Air Conditioning</SectionLabel>
+
+                        <InfoRow
+                          label="AC Cooling"
+                          value={
+                            car.air_conditioning?.ac_cooling?.ineffective
+                              ? 'Ineffective'
+                              : car.air_conditioning?.ac_cooling?.status || 'OK'
+                          }
+                        />
+
+                        <InfoRow
+                          label="Heater"
+                          value={
+                            car.air_conditioning?.heater?.not_working
+                              ? 'Not Working'
+                              : car.air_conditioning?.heater?.status || 'OK'
+                          }
+                        />
+
+                        <InfoRow
+                          label="Direction Control Knob"
+                          value={
+                            car.air_conditioning?.direction_control_knob?.working
+                              ? 'Working'
+                              : 'Not Working'
+                          }
+                        />
+
+                        <InfoRow
+                          label="AC Vent"
+                          value={
+                            car.air_conditioning?.ac_vent?.damaged
+                              ? 'Damaged'
+                              : 'OK'
+                          }
+                        />
+
+                        <InfoRow
+                          label="Blower Motor"
+                          value={
+                            car.air_conditioning?.blower_motor?.noise
+                              ? 'Noise Detected'
+                              : 'OK'
+                          }
+                        />
+
+                        <InfoRow
+                          label="Climate Control AC"
+                          value={car.air_conditioning?.climate_control_ac || 'N/A'}
+                        />
+
+                        <InfoRow
+                          label="Comments"
+                          value={car.air_conditioning?.comments || 'No Comments'}
+                        />
+
+                        {/* Images */}
+                        {car.air_conditioning?.images?.length > 0 && (
+                          <div className="mt-4">
+                            <h4 className="text-sm font-semibold mb-2">
+                              Air Conditioning Images
+                            </h4>
+
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                              {car.air_conditioning.images.map((img, index) => (
+                                <div
+                                  key={index}
+                                  className="rounded-lg overflow-hidden border border-gray-200"
+                                >
+                                  <img
+                                    src={img.url}
+                                    alt={img.caption}
+                                    className="w-full h-32 object-cover"
+                                  />
+
+                                  <div className="p-2">
+                                    <p className="text-xs text-gray-500 truncate">
+                                      {img.caption}
+                                    </p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </Card>
 
                       {(() => {
@@ -1149,7 +1737,6 @@ const EnquiryDetailPage = ({ enquiryId, onBack }) => {
                 </>
               )
           )}
-
           {/* ════ JOURNEY ═════════════════════════════════════════════════ */}
           {activeTab === 'journey' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

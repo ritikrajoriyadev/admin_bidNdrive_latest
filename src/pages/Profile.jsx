@@ -79,7 +79,7 @@ const Profile = () => {
 
           <div className="px-8 -mt-12 pb-8">
             <div className="flex flex-col items-center">
-              <div className="w-24 h-24 rounded-2xl bg-gray-800 border-4 border-gray-900 flex items-center justify-center text-4xl font-bold shadow-xl overflow-hidden">
+              <div className="w-24 h-24 rounded-2xl bg-slate-100 border-4 border-gray-900 flex items-center justify-center text-4xl font-bold shadow-xl overflow-hidden">
                 {profile.avatar ? (
                   <img
                     src={profile.avatar}

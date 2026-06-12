@@ -117,7 +117,7 @@ const SubAdminForm = ({ admin, onClose, onSave, saving, roles }) => {
                 required={required}
                 value={formData[key]}
                 onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-                className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
+                className="px-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
                 placeholder={ph}
               />
             </div>
@@ -131,7 +131,7 @@ const SubAdminForm = ({ admin, onClose, onSave, saving, roles }) => {
               type="tel"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
+              className="px-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
               placeholder="+1-555-0000"
             />
           </div>
@@ -143,7 +143,7 @@ const SubAdminForm = ({ admin, onClose, onSave, saving, roles }) => {
               type="password"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
+              className="px-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
               placeholder="Enter a secure password"
               required={!admin}
             />
@@ -153,7 +153,7 @@ const SubAdminForm = ({ admin, onClose, onSave, saving, roles }) => {
             <select
               value={formData.status}
               onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
+              className="px-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.08] indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
             >
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
@@ -184,7 +184,7 @@ const SubAdminForm = ({ admin, onClose, onSave, saving, roles }) => {
                     onClick={() => setFormData({ ...formData, role: rid })}
                     className={`p-3 rounded-xl border-2 transition-all text-left ${formData.role === rid
                       ? 'bg-indigo-500/15 border-indigo-400/50'
-                      : 'bg-gray-800/50 border-white/[0.08] hover:border-white/[0.12]'
+                      : 'bg-slate-100/50 border-white/[0.08] hover:border-white/[0.12]'
                       }`}
                   >
                     <p className="indigo-500 font-medium text-sm">{role.name}</p>
@@ -207,7 +207,7 @@ const SubAdminForm = ({ admin, onClose, onSave, saving, roles }) => {
             <label className="indigo-500/60 text-sm font-medium">
               Permissions included with this role
             </label>
-            <div className="flex flex-wrap gap-2 p-3 rounded-xl bg-gray-800/30 border border-white/[0.06]">
+            <div className="flex flex-wrap gap-2 p-3 rounded-xl bg-slate-100/30 border border-white/[0.06]">
               {rolePermissions.map((perm) => {
                 const label = typeof perm === 'object'
                   ? `${perm.module}${perm.action ? `: ${perm.action}` : ''}`
@@ -238,7 +238,7 @@ const SubAdminForm = ({ admin, onClose, onSave, saving, roles }) => {
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.06] indigo-500 font-medium hover:bg-gray-700 transition-all"
+            className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.06] indigo-500 font-medium hover:bg-gray-700 transition-all"
           >
             Cancel
           </button>
@@ -261,15 +261,52 @@ export default function SubAdmin() {
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    limit: 10,
+    pages: 1,
+  });
+  const [serverPagination, setServerPagination] = useState(false);
 
   /* ── Fetch subadmins ───────────────────────────────────────────────────── */
   const fetchSubAdmins = async () => {
     setLoading(true);
     try {
-      const { data } = await axios.get(`${API_URL}/api/admin/list`, { headers: getAuthHeaders() });
-      const raw = data?.data ?? data ?? [];
-      const admins = Array.isArray(raw) ? raw : raw.admins ?? raw.users ?? [];
-      setSubAdmins(admins.map(normalizeAdmin));
+      const { data } = await axios.get(
+        `${API_URL}/api/admin/list?page=${page}&limit=${limit}`,
+        { headers: getAuthHeaders() }
+      );
+
+      const raw = data?.data ?? data ?? {};
+      const admins = Array.isArray(raw)
+        ? raw
+        : raw.admins ?? raw.users ?? raw.items ?? [];
+      const paginationMeta = raw.pagination || raw.meta || data?.pagination || data?.meta || null;
+
+      const normalizedAdmins = admins.map(normalizeAdmin);
+      setSubAdmins(normalizedAdmins);
+
+      if (paginationMeta && typeof paginationMeta === 'object') {
+        setServerPagination(true);
+        setPagination({
+          total: paginationMeta.total ?? paginationMeta.count ?? normalizedAdmins.length,
+          page: paginationMeta.page ?? page,
+          limit: paginationMeta.limit ?? limit,
+          pages: paginationMeta.pages ?? Math.max(1, Math.ceil((paginationMeta.total ?? normalizedAdmins.length) / limit)),
+        });
+      } else {
+        setServerPagination(false);
+        const totalCount = normalizedAdmins.length;
+        setPagination({
+          total: totalCount,
+          page,
+          limit,
+          pages: Math.max(1, Math.ceil(totalCount / limit)),
+        });
+      }
     } catch (error) {
       addToast(error?.response?.data?.message || 'Error loading subadmins', 'error');
     } finally {
@@ -290,7 +327,8 @@ export default function SubAdmin() {
     }
   };
 
-  useEffect(() => { fetchSubAdmins(); fetchRoles(); }, []);
+  useEffect(() => { fetchSubAdmins(); }, [page]);
+  useEffect(() => { fetchRoles(); }, []);
 
   /* ── Filter ────────────────────────────────────────────────────────────── */
   useEffect(() => {
@@ -302,6 +340,10 @@ export default function SubAdmin() {
       })
     );
   }, [subAdmins, searchTerm, filterStatus]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, filterStatus]);
 
   /* ── Assign role to existing user  PUT /:userId/assign-role ────────────── */
   const assignRoleToUser = async (userId, roleId) => {
@@ -336,7 +378,7 @@ export default function SubAdmin() {
       // 2. If a role was selected, assign it immediately
       if (formData.role) {
         try {
-          const updated = await assignRoleToUser(createdAdmin.id, formData.role);
+          const updated = await assignRoleToUser(createdAdmin.adminId, formData.role);
           createdAdmin = normalizeAdmin(updated);
         } catch {
           // Non-fatal — admin is created; role can be assigned later via edit
@@ -436,13 +478,18 @@ export default function SubAdmin() {
   const handleEdit = (admin) => { setEditingId(admin.id); setShowForm(true); };
 
   /* ── Derived stats ──────────────────────────────────────────────────────── */
-  const totalAdmins = subAdmins.length;
+  const totalAdmins = pagination.total;
   const activeAdmins = subAdmins.filter((a) => a.status === 'active').length;
   // Count admins whose role name includes "manager" (case-insensitive) or match by id
   const managerCount = subAdmins.filter((a) => {
     const rn = (a.roleName || roles.find((r) => (r._id || r.id) === a.role)?.name || '').toLowerCase();
     return rn.includes('manager');
   }).length;
+
+  const displayedAdmins = serverPagination
+    ? filteredAdmins
+    : filteredAdmins.slice((page - 1) * limit, page * limit);
+  const totalPages = serverPagination ? pagination.pages : Math.max(1, Math.ceil(filteredAdmins.length / limit));
 
   return (
     <div className="flex flex-col gap-6">
@@ -491,7 +538,7 @@ export default function SubAdmin() {
             placeholder="Search subadmins..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.06] indigo-500 placeholder-white/40 focus:border-indigo-400/50 focus:outline-none transition-all"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.06] indigo-500 placeholder-white/40 focus:border-indigo-400/50 focus:outline-none transition-all"
           />
         </div>
         <div className="flex gap-2">
@@ -501,7 +548,7 @@ export default function SubAdmin() {
               onClick={() => setFilterStatus(status)}
               className={`px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 ${filterStatus === status
                 ? 'bg-indigo-500/15 border border-indigo-400/25 text-indigo-300'
-                : 'bg-gray-800 border border-white/[0.06] indigo-500/40 hover:indigo-500/60'
+                : 'bg-slate-100 border border-white/[0.06] indigo-500/40 hover:indigo-500/60'
                 }`}
             >
               {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -529,7 +576,7 @@ export default function SubAdmin() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.06]">
-                {filteredAdmins.map((admin, idx) => {
+                {displayedAdmins.map((admin, idx) => {
                   const sc = statusConfig[admin.status] || statusConfig.active;
                   const dbRole = roles.find((r) => (r._id || r.id) === admin.role);
                   const roleLabel = admin.roleName || dbRole?.name || admin.role || '—';
@@ -568,7 +615,7 @@ export default function SubAdmin() {
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(admin.id)}
+                            onClick={() => handleDelete(admin.id || admin.adminId)}
                             className="p-2 rounded-lg bg-red-500/15 text-red-400 hover:bg-red-500/25 transition-all"
                             title="Delete"
                           >
@@ -583,6 +630,41 @@ export default function SubAdmin() {
             </table>
           </div>
         )}
+      </div>
+      <div className="flex flex-col md:flex-row items-center justify-between gap-3 rounded-2xl bg-white border border-white/[0.06] p-4">
+        <p className="text-sm indigo-500/60">
+          Showing {displayedAdmins.length} of {filteredAdmins.length} filtered records · Total {pagination.total}
+        </p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            disabled={page === 1}
+            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+            className={`px-4 py-2 rounded-xl border text-sm font-medium transition ${page === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-100'}`}
+          >
+            Previous
+          </button>
+
+          {[...Array(totalPages)].map((_, index) => {
+            const pageNum = index + 1;
+            return (
+              <button
+                key={pageNum}
+                onClick={() => setPage(pageNum)}
+                className={`w-10 h-10 rounded-xl text-sm font-medium transition ${page === pageNum ? 'bg-indigo-500 text-white' : 'border border-white/[0.08] hover:bg-slate-100'}`}
+              >
+                {pageNum}
+              </button>
+            );
+          })}
+
+          <button
+            disabled={page === totalPages}
+            onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+            className={`px-4 py-2 rounded-xl border text-sm font-medium transition ${page === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-100'}`}
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );

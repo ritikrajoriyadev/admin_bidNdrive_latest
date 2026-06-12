@@ -187,14 +187,14 @@ const NotificationForm = ({ notification, onSubmit, onCancel, loading }) => {
           <input
             type="text" name="title" value={formData.title} onChange={handleChange}
             placeholder="e.g., New Car Model Launch"
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
+            className="w-full px-3 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
             required
           />
         </div>
         <div>
           <label className="block text-sm font-medium indigo-500/80 mb-2">Notification Type</label>
           <select name="type" value={formData.type} onChange={handleChange}
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition">
+            className="w-full px-3 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition">
             <option value="info">Info</option>
             <option value="promotion">Promotion</option>
             <option value="alert">Alert</option>
@@ -211,7 +211,7 @@ const NotificationForm = ({ notification, onSubmit, onCancel, loading }) => {
           name="message" value={formData.message} onChange={handleChange}
           placeholder="Enter your notification message here..."
           rows="4"
-          className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition resize-none"
+          className="w-full px-3 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition resize-none"
           required
         />
       </div>
@@ -220,7 +220,7 @@ const NotificationForm = ({ notification, onSubmit, onCancel, loading }) => {
       <div>
         <label className="block text-sm font-medium indigo-500/80 mb-2">Target Audience</label>
         <select name="targetType" value={formData.targetType} onChange={handleChange}
-          className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition">
+          className="w-full px-3 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition">
           <option value="broadcast">Broadcast to All Users</option>
           <option value="broadcast-biders">Broadcast to All Bidders</option>
           <option value="send-to-user">Specific User</option>
@@ -239,7 +239,7 @@ const NotificationForm = ({ notification, onSubmit, onCancel, loading }) => {
           <input
             type="text" name="targetId" value={formData.targetId} onChange={handleChange}
             placeholder="Enter ID…"
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
+            className="w-full px-3 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
             required
           />
         </div>
@@ -255,7 +255,7 @@ const NotificationForm = ({ notification, onSubmit, onCancel, loading }) => {
           <input
             type="text" name="targetIds" value={formData.targetIds} onChange={handleChange}
             placeholder="id1, id2, id3…"
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
+            className="w-full px-3 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
             required
           />
         </div>
@@ -269,7 +269,7 @@ const NotificationForm = ({ notification, onSubmit, onCancel, loading }) => {
         <input
           type="url" name="actionUrl" value={formData.actionUrl} onChange={handleChange}
           placeholder="https://example.com"
-          className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
+          className="w-full px-3 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
         />
       </div>
 
@@ -277,7 +277,7 @@ const NotificationForm = ({ notification, onSubmit, onCancel, loading }) => {
       <div>
         <label className="block text-sm font-medium indigo-500/80 mb-2">Send</label>
         <select name="scheduling" value={formData.scheduling} onChange={handleChange}
-          className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition">
+          className="w-full px-3 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition">
           <option value="now">Send Now</option>
           <option value="scheduled">Schedule for Later</option>
           <option value="draft">Save as Draft</option>
@@ -290,13 +290,13 @@ const NotificationForm = ({ notification, onSubmit, onCancel, loading }) => {
           <div>
             <label className="block text-sm font-medium indigo-500/80 mb-2">Date</label>
             <input type="date" name="scheduledDate" value={formData.scheduledDate} onChange={handleChange}
-              className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
+              className="w-full px-3 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
               required />
           </div>
           <div>
             <label className="block text-sm font-medium indigo-500/80 mb-2">Time</label>
             <input type="time" name="scheduledTime" value={formData.scheduledTime} onChange={handleChange}
-              className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
+              className="w-full px-3 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition"
               required />
           </div>
         </div>
@@ -310,7 +310,7 @@ const NotificationForm = ({ notification, onSubmit, onCancel, loading }) => {
           {loading ? 'Sending…' : notification ? 'Update' : 'Send Notification'}
         </button>
         <button type="button" onClick={onCancel}
-          className="px-4 py-2 bg-gray-800 hover:bg-gray-700 indigo-500 rounded-lg font-medium transition">
+          className="px-4 py-2 bg-slate-100 hover:bg-gray-700 indigo-500 rounded-lg font-medium transition">
           Cancel
         </button>
       </div>
@@ -441,7 +441,7 @@ export default function Notifications() {
     : '0';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 p-8">
+    <div className="min-h-screen  from-gray-950 via-gray-900 indigo-500 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
 
         {/* ── Header ── */}
@@ -489,11 +489,11 @@ export default function Notifications() {
             <input
               type="text" placeholder="Search notifications…" value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-100 border border-white/10 indigo-500 placeholder-white/30 focus:outline-none focus:border-indigo-500/50 transition"
             />
           </div>
           <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
-            className="px-4 py-2.5 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition">
+            className="px-4 py-2.5 rounded-lg bg-slate-100 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition">
             <option value="all">All Types</option>
             <option value="info">Info</option>
             <option value="promotion">Promotion</option>
@@ -502,7 +502,7 @@ export default function Notifications() {
             <option value="reminder">Reminder</option>
           </select>
           <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2.5 rounded-lg bg-gray-800 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition">
+            className="px-4 py-2.5 rounded-lg bg-slate-100 border border-white/10 indigo-500 focus:outline-none focus:border-indigo-500/50 transition">
             <option value="all">All Status</option>
             <option value="sent">Sent</option>
             <option value="pending">Pending</option>

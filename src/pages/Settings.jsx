@@ -56,7 +56,7 @@ const Input = ({ type = 'text', value, onChange, placeholder, disabled, icon: Ic
       onChange={onChange}
       placeholder={placeholder}
       disabled={disabled}
-      className={`w-full ${Icon ? 'pl-9' : 'pl-3'} pr-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/25 text-sm focus:outline-none focus:border-indigo-500/50 transition disabled:opacity-40 disabled:cursor-not-allowed`}
+      className={`w-full ${Icon ? 'pl-9' : 'pl-3'} pr-3 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 placeholder-white/25 text-sm focus:outline-none focus:border-indigo-500/50 transition disabled:opacity-40 disabled:cursor-not-allowed`}
     />
   </div>
 );
@@ -66,7 +66,7 @@ const Select = ({ value, onChange, children }) => (
   <select
     value={value}
     onChange={onChange}
-    className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 text-sm focus:outline-none focus:border-indigo-500/50 transition"
+    className="w-full px-3 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 text-sm focus:outline-none focus:border-indigo-500/50 transition"
   >
     {children}
   </select>
@@ -89,7 +89,7 @@ const ThemeOption = ({ icon: Icon, label, active, onClick }) => (
     onClick={onClick}
     className={`flex flex-col items-center gap-2 px-5 py-3 rounded-xl border text-sm font-medium transition ${active
       ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
-      : 'bg-gray-800 border-white/10 indigo-500/50 hover:indigo-500/70 hover:bg-gray-700'
+      : 'bg-slate-100 border-white/10 indigo-500/50 hover:indigo-500/70 hover:bg-gray-700'
       }`}
   >
     <Icon size={20} />
@@ -168,7 +168,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 p-8">
+    <div className="min-h-screen  from-gray-950 via-gray-900 indigo-500 p-8">
       <div className="max-w-4xl mx-auto space-y-8">
 
         {/* ── Page Header ── */}
@@ -177,7 +177,7 @@ export default function Settings() {
             <h1 className="text-3xl font-bold indigo-500 mb-1">Settings</h1>
             <p className="indigo-500/50">Manage your platform preferences and configurations</p>
           </div>
-          <span className="flex items-center gap-2 text-xs indigo-500/30 bg-gray-800 border border-white/[0.06] px-3 py-1.5 rounded-lg">
+          <span className="flex items-center gap-2 text-xs indigo-500/30 bg-slate-100 border border-white/[0.06] px-3 py-1.5 rounded-lg">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             System Online
           </span>
@@ -254,11 +254,11 @@ export default function Settings() {
                   A
                 </div>
                 <div className="flex gap-2">
-                  <label className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-white/10 indigo-500/70 text-xs rounded-lg cursor-pointer transition">
+                  <label className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-gray-700 border border-white/10 indigo-500/70 text-xs rounded-lg cursor-pointer transition">
                     <Upload size={14} /> Upload
                     <input type="file" accept="image/*" className="hidden" />
                   </label>
-                  <button className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-white/10 text-red-400 text-xs rounded-lg transition">
+                  <button className="px-3 py-1.5 bg-slate-100 hover:bg-gray-700 border border-white/10 text-red-400 text-xs rounded-lg transition">
                     Remove
                   </button>
                 </div>
@@ -296,7 +296,7 @@ export default function Settings() {
                   value={currentPassword}
                   onChange={e => setCurrentPassword(e.target.value)}
                   placeholder="Enter current password"
-                  className="w-full pl-3 pr-10 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/25 text-sm focus:outline-none focus:border-indigo-500/50 transition"
+                  className="w-full pl-3 pr-10 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 placeholder-white/25 text-sm focus:outline-none focus:border-indigo-500/50 transition"
                 />
                 <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 indigo-500/40 hover:indigo-500/70 transition">
                   {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -310,7 +310,7 @@ export default function Settings() {
                   value={newPassword}
                   onChange={e => setNewPassword(e.target.value)}
                   placeholder="Min. 8 characters"
-                  className="w-full pl-3 pr-10 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/25 text-sm focus:outline-none focus:border-indigo-500/50 transition"
+                  className="w-full pl-3 pr-10 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 placeholder-white/25 text-sm focus:outline-none focus:border-indigo-500/50 transition"
                 />
                 <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 indigo-500/40 hover:indigo-500/70 transition">
                   {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -324,7 +324,7 @@ export default function Settings() {
                   value={confirmPassword}
                   onChange={e => setConfirmPassword(e.target.value)}
                   placeholder="Repeat new password"
-                  className="w-full pl-3 pr-10 py-2 rounded-lg bg-gray-800 border border-white/10 indigo-500 placeholder-white/25 text-sm focus:outline-none focus:border-indigo-500/50 transition"
+                  className="w-full pl-3 pr-10 py-2 rounded-lg bg-slate-100 border border-white/10 indigo-500 placeholder-white/25 text-sm focus:outline-none focus:border-indigo-500/50 transition"
                 />
                 <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 indigo-500/40 hover:indigo-500/70 transition">
                   {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -504,10 +504,10 @@ export default function Settings() {
             <div className="h-px bg-white/[0.06]" />
             <p className="text-xs font-semibold indigo-500/30 uppercase tracking-widest">Data & Backup</p>
             <div className="grid sm:grid-cols-2 gap-3 pt-1">
-              <button className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 indigo-500/70 text-sm font-medium border border-white/10 hover:border-white/20 transition">
+              <button className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-gray-700 indigo-500/70 text-sm font-medium border border-white/10 hover:border-white/20 transition">
                 <Download size={16} className="text-indigo-400" /> Export All Data
               </button>
-              <button className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 indigo-500/70 text-sm font-medium border border-white/10 hover:border-white/20 transition">
+              <button className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-gray-700 indigo-500/70 text-sm font-medium border border-white/10 hover:border-white/20 transition">
                 <RefreshCw size={16} className="text-emerald-400" /> Trigger Backup Now
               </button>
             </div>

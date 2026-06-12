@@ -602,7 +602,7 @@ export default function AuctionCars() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 indigo-500/40" />
           <input type="text" placeholder="Search car, seller…" value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.06] indigo-500 placeholder-white/30 focus:border-indigo-400/50 focus:outline-none transition-all text-sm" />
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.06] indigo-500 placeholder-white/30 focus:border-indigo-400/50 focus:outline-none transition-all text-sm" />
         </div>
         <div className="flex items-center gap-1 bg-white/[0.04] rounded-xl p-1 border border-white/[0.06] overflow-x-auto">
           {filterTabs.map(tab => (

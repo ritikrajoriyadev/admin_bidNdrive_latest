@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useToast } from '../hooks/useToast';
 import EnquiryDetailPage from './Enquirydetailpage';
 
+
 const statusConfig = {
   new: { label: 'New', bg: 'bg-indigo-500/15', text: 'text-indigo-400', dot: 'bg-indigo-400' },
   open: { label: 'Open', bg: 'bg-amber-500/15', text: 'text-amber-400', dot: 'bg-amber-400' },
@@ -233,7 +234,7 @@ const EnquiryDetailModal = ({ enquiry, onClose, onReschedule, onStatusUpdate }) 
     <>
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center indigo-500/70 backdrop-blur-sm" onClick={onClose}>
         <div
-          className="relative w-full max-w-2xl bg-[#0d1117] border border-white/[0.08] rounded-t-2xl sm:rounded-2xl flex flex-col shadow-2xl max-h-[92vh]"
+          className="relative w-full max-w-2xl bg-white border border-white/[0.08] rounded-t-2xl sm:rounded-2xl flex flex-col shadow-2xl max-h-[92vh]"
           onClick={e => e.stopPropagation()}
         >
           {/* ── Header ── */}
@@ -360,7 +361,7 @@ const EnquiryDetailModal = ({ enquiry, onClose, onReschedule, onStatusUpdate }) 
                     <InfoRow label="Model" value={enquiry.carDetails.model} />
                     <InfoRow label="Year" value={enquiry.carDetails.year} />
                     <InfoRow label="Color" value={enquiry.carDetails.color} />
-                    <InfoRow label="Registration No." value={enquiry.carDetails.registrationNumber} />
+                    {/* <InfoRow label="Registration No." value={enquiry.carDetails.registrationNumber} /> */}
                     <InfoRow label="Mileage" value={enquiry.carDetails.mileage != null ? `${Number(enquiry.carDetails.mileage).toLocaleString()} km` : null} />
                   </>
                 ) : (
@@ -404,7 +405,7 @@ const EnquiryDetailModal = ({ enquiry, onClose, onReschedule, onStatusUpdate }) 
                       <div className="absolute left-2 top-0 bottom-0 w-px bg-white/10" />
                       {enquiry.customerJourney.timeline.map((step, i) => (
                         <div key={i} className="relative mb-4 last:mb-0">
-                          <div className="absolute -left-4 top-1 w-2 h-2 rounded-full bg-teal-500 ring-2 ring-[#0d1117]" />
+                          <div className="absolute -left-4 top-1 w-2 h-2 rounded-full bg-teal-500 ring-2 ring-[#bg-white]" />
                           <p className="indigo-500/60 text-xs font-semibold capitalize">{step.step || step.status || '—'}</p>
                           {step.description && <p className="indigo-500/30 text-xs mt-0.5">{step.description}</p>}
                           {step.timestamp && <p className="indigo-500/20 text-[10px] mt-0.5">{new Date(step.timestamp).toLocaleString()}</p>}
@@ -482,6 +483,252 @@ const EnquiryDetailModal = ({ enquiry, onClose, onReschedule, onStatusUpdate }) 
     </>
   );
 };
+const CreateEnquiryModal = ({ onClose, onSuccess }) => {
+  const [form, setForm] = useState({
+    customerName: '',
+    customerEmail: '',
+    contactNumber: '',
+    enquiryType: '',
+    title: '',
+    description: '',
+    severity: '',
+    priority: 'medium',
+    carDetails: {
+      make: '', model: '', year: '', color: '', mileage: '', registrationNumber: ''
+    },
+    sellingDetails: {
+      expectedPrice: '', city: '', fuelType: '', transmission: '', ownership: '', kilometersDriven: '', accidentHistory: '', serviceHistoryAvailable: false
+    },
+    scheduleDate: '',
+    scheduleTime: '',
+    inspectionType: '',
+    additionalInfo: '',
+  });
+
+  const [files, setFiles] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const token = localStorage.getItem("adminToken");
+
+  const handleFileChange = (e) => {
+    const f = Array.from(e.target.files || []);
+    setFiles(f);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!form.description) {
+      alert('Description is required');
+      return;
+    }
+
+    const fd = new FormData();
+
+    // simple scalar fields
+    const fields = ['customerName', 'customerEmail', 'contactNumber', 'enquiryType', 'title', 'description', 'severity', 'priority', 'scheduleDate', 'scheduleTime', 'inspectionType', 'additionalInfo'];
+    fields.forEach(k => { if (form[k]) fd.append(k, form[k]); });
+
+    // nested objects as JSON
+    try {
+      fd.append('carDetails', JSON.stringify(form.carDetails));
+      fd.append('sellingDetails', JSON.stringify(form.sellingDetails));
+    } catch (err) {
+      // ignore
+    }
+
+    // append files
+    files.forEach((f) => {
+      fd.append('files', f);
+    });
+
+    try {
+      setLoading(true);
+
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/enquiries/admin`,
+        fd,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            // Let browser set Content-Type with boundary
+          }
+        }
+      );
+
+      onSuccess();
+      onClose();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to create enquiry");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl p-6 w-full max-w-2xl mx-4 overflow-y-auto max-h-[90vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-xl font-bold mb-5">Create New Enquiry</h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">Customer Name</label>
+              <input type="text" value={form.customerName} onChange={e => setForm({ ...form, customerName: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Customer Email</label>
+              <input type="email" value={form.customerEmail} onChange={e => setForm({ ...form, customerEmail: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">Contact Number</label>
+              <input type="text" value={form.contactNumber} onChange={e => setForm({ ...form, contactNumber: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Enquiry Type</label>
+              <select value={form.enquiryType} onChange={e => setForm({ ...form, enquiryType: e.target.value })} className="w-full border rounded-lg px-3 py-2">
+                <option value="">Select type</option>
+                <option value="status">Status</option>
+                <option value="health">Health</option>
+                <option value="service">Service</option>
+                <option value="maintenance">Maintenance</option>
+                <option value="damage">Damage</option>
+                <option value="sell">Sell</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Description</label>
+            <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="w-full border rounded-lg px-3 py-2 h-24" required />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">Severity</label>
+              <select value={form.severity} onChange={e => setForm({ ...form, severity: e.target.value })} className="w-full border rounded-lg px-3 py-2">
+                <option value="">Select</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Priority</label>
+              <select value={form.priority} onChange={e => setForm({ ...form, priority: e.target.value })} className="w-full border rounded-lg px-3 py-2">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Inspection Type</label>
+              <select value={form.inspectionType} onChange={e => setForm({ ...form, inspectionType: e.target.value })} className="w-full border rounded-lg px-3 py-2">
+                <option value="">Select</option>
+                <option value="home">Home</option>
+                <option value="center">Center</option>
+                <option value="virtual">Virtual</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="rounded-lg border p-3 bg-white/[0.02]">
+            <p className="text-xs font-semibold mb-2">Vehicle Details (optional)</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <input type="text" placeholder="Make" value={form.carDetails.make} onChange={e => setForm({ ...form, carDetails: { ...form.carDetails, make: e.target.value } })} className="w-full border rounded-lg px-3 py-2" />
+              <input type="text" placeholder="Model" value={form.carDetails.model} onChange={e => setForm({ ...form, carDetails: { ...form.carDetails, model: e.target.value } })} className="w-full border rounded-lg px-3 py-2" />
+              <input type="text" placeholder="Year" value={form.carDetails.year} onChange={e => setForm({ ...form, carDetails: { ...form.carDetails, year: e.target.value } })} className="w-full border rounded-lg px-3 py-2" />
+              <input type="text" placeholder="Color" value={form.carDetails.color} onChange={e => setForm({ ...form, carDetails: { ...form.carDetails, color: e.target.value } })} className="w-full border rounded-lg px-3 py-2" />
+              <input type="text" placeholder="Mileage" value={form.carDetails.mileage} onChange={e => setForm({ ...form, carDetails: { ...form.carDetails, mileage: e.target.value } })} className="w-full border rounded-lg px-3 py-2" />
+              <input type="text" placeholder="Registration No." value={form.carDetails.registrationNumber} onChange={e => setForm({ ...form, carDetails: { ...form.carDetails, registrationNumber: e.target.value } })} className="w-full border rounded-lg px-3 py-2" />
+            </div>
+          </div>
+
+          <div className="rounded-lg border p-3 bg-white/[0.02]">
+            <p className="text-xs font-semibold mb-2">Selling Details (optional)</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <input type="text" placeholder="Expected Price" value={form.sellingDetails.expectedPrice} onChange={e => setForm({ ...form, sellingDetails: { ...form.sellingDetails, expectedPrice: e.target.value } })} className="w-full border rounded-lg px-3 py-2" />
+              <input type="text" placeholder="City" value={form.sellingDetails.city} onChange={e => setForm({ ...form, sellingDetails: { ...form.sellingDetails, city: e.target.value } })} className="w-full border rounded-lg px-3 py-2" />
+              <select value={form.sellingDetails.fuelType} onChange={e => setForm({ ...form, sellingDetails: { ...form.sellingDetails, fuelType: e.target.value } })} className="w-full border rounded-lg px-3 py-2">
+                <option value="">Fuel Type</option>
+                <option value="petrol">Petrol</option>
+                <option value="diesel">Diesel</option>
+                <option value="cng">CNG</option>
+                <option value="electric">Electric</option>
+                <option value="hybrid">Hybrid</option>
+                <option value="other">Other</option>
+              </select>
+              <select value={form.sellingDetails.transmission} onChange={e => setForm({ ...form, sellingDetails: { ...form.sellingDetails, transmission: e.target.value } })} className="w-full border rounded-lg px-3 py-2">
+                <option value="">Transmission</option>
+                <option value="manual">Manual</option>
+                <option value="automatic">Automatic</option>
+                <option value="amt">AMT</option>
+                <option value="cvt">CVT</option>
+                <option value="dct">DCT</option>
+                <option value="other">Other</option>
+              </select>
+              <select value={form.sellingDetails.ownership} onChange={e => setForm({ ...form, sellingDetails: { ...form.sellingDetails, ownership: e.target.value } })} className="w-full border rounded-lg px-3 py-2">
+                <option value="">Ownership</option>
+                <option value="first">First</option>
+                <option value="second">Second</option>
+                <option value="third">Third</option>
+                <option value="fourth_or_more">Fourth or more</option>
+                <option value="other">Other</option>
+              </select>
+              <input type="text" placeholder="KM Driven" value={form.sellingDetails.kilometersDriven} onChange={e => setForm({ ...form, sellingDetails: { ...form.sellingDetails, kilometersDriven: e.target.value } })} className="w-full border rounded-lg px-3 py-2" />
+            </div>
+            <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <input type="text" placeholder="Accident History" value={form.sellingDetails.accidentHistory} onChange={e => setForm({ ...form, sellingDetails: { ...form.sellingDetails, accidentHistory: e.target.value } })} className="w-full border rounded-lg px-3 py-2" />
+              <label className="flex items-center gap-2"><input type="checkbox" checked={form.sellingDetails.serviceHistoryAvailable} onChange={e => setForm({ ...form, sellingDetails: { ...form.sellingDetails, serviceHistoryAvailable: e.target.checked } })} /> <span className="text-sm">Service history available</span></label>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">Schedule Date</label>
+              <input type="date" value={form.scheduleDate} onChange={e => setForm({ ...form, scheduleDate: e.target.value })} className="w-full border rounded-lg px-3 py-2" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Schedule Time</label>
+              <input type="time" value={form.scheduleTime} onChange={e => setForm({ ...form, scheduleTime: e.target.value })} className="w-full border rounded-lg px-3 py-2" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Additional Info</label>
+            <textarea value={form.additionalInfo} onChange={e => setForm({ ...form, additionalInfo: e.target.value })} className="w-full border rounded-lg px-3 py-2 h-20" />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Attachments (images)</label>
+            <input type="file" multiple accept="image/*" onChange={handleFileChange} className="w-full" />
+            {files.length > 0 && <p className="text-xs mt-2 text-indigo-500">{files.length} file(s) selected</p>}
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={onClose} className="flex-1 border rounded-lg py-2">Cancel</button>
+            <button type="submit" disabled={loading} className="flex-1 bg-teal-500 text-white rounded-lg py-2">{loading ? 'Creating...' : 'Create Enquiry'}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
 
 /* ─── Main Component ─────────────────────────────────────────────────────── */
 const Telecaller = () => {
@@ -492,21 +739,50 @@ const Telecaller = () => {
   const [selectedId, setSelectedId] = useState(null);
   const [detailModal, setDetailModal] = useState(null);   // full detail modal
   const [statusModal, setStatusModal] = useState(null);   // quick status update
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const toast = useToast();
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    limit: 10,
+    pages: 1,
+  });
 
   const token = () => localStorage.getItem('adminToken');
   const authHeader = () => ({ Authorization: `Bearer ${token()}` });
 
   const fetchEnquiries = async () => {
     setLoading(true);
+
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/enquiries/pending`, {
-        headers: { 'Content-Type': 'application/json', ...authHeader() },
-      });
-      const rawList = res.data?.data ?? res.data ?? [];
-      const list = Array.isArray(rawList) ? rawList : [];
-      const active = list.filter(r => ACTIVE_STATUSES.includes(r.status));
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/admin/enquiries/pending?page=${page}&limit=${limit}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeader(),
+          },
+        }
+      );
+
+      const rawList = res.data?.data ?? [];
+      const paginationData = res.data?.pagination ?? {};
+
+      const active = rawList.filter((r) =>
+        ACTIVE_STATUSES.includes(r.status)
+      );
+
       setEnquiries(active.map(normalizeEnquiry));
+
+      setPagination({
+        total: paginationData.total || 0,
+        page: paginationData.page || 1,
+        limit: paginationData.limit || 10,
+        pages: paginationData.pages || 1,
+      });
     } catch (err) {
       console.error('fetchEnquiries error', err);
       toast.error?.('Failed to fetch enquiries');
@@ -515,7 +791,9 @@ const Telecaller = () => {
     }
   };
 
-  useEffect(() => { fetchEnquiries(); }, []);
+  useEffect(() => {
+    fetchEnquiries();
+  }, [page]);
 
   const handleStatusUpdate = async (enquiryId, newStatus, note) => {
     try {
@@ -584,9 +862,32 @@ const Telecaller = () => {
 
   return (
     <div className="w-full">
-      <div className="mb-6">
-        <h1 className="indigo-500 text-xl font-bold">Telecaller Dashboard</h1>
-        <p className="indigo-500/35 text-sm mt-0.5">Manage new requests, transfers, and status updates</p>
+      <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="indigo-500 text-xl font-bold">
+            Telecaller Dashboard
+          </h1>
+          <p className="indigo-500/35 text-sm mt-0.5">
+            Manage new requests, transfers, and status updates
+          </p>
+        </div>
+
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="flex items-center gap-2 px-5 py-2.5 bg-teal-500 hover:bg-teal-600 text-white rounded-xl font-semibold shadow-lg shadow-teal-500/20 transition-all"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+
+          Create New Enquiry
+        </button>
       </div>
 
       {/* Stats */}
@@ -762,12 +1063,57 @@ const Telecaller = () => {
             })}
 
             {/* Footer */}
+            {/* Footer + Pagination */}
             {!loading && filtered.length > 0 && (
-              <div className="px-5 py-3 border-t border-white/[0.05] flex items-center justify-between bg-white/[0.01]">
+              <div className="px-5 py-4 border-t border-white/[0.05] flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/[0.01]">
+
                 <span className="indigo-500/25 text-xs">
-                  Showing {filtered.length} of {enquiries.length} active enquiries
-                  {filterStatus !== 'all' && ` · filtered by "${filterStatus}"`}
+                  Showing page {pagination.page} of {pagination.pages}
+                  {' '}· Total {pagination.total} enquiries
                 </span>
+
+                <div className="flex items-center gap-2">
+                  {/* Previous */}
+                  <button
+                    onClick={() => setPage(prev => prev - 1)}
+                    disabled={page === 1}
+                    className="px-3 py-2 rounded-lg bg-white/[0.05] border border-white/[0.08]
+        indigo-500/60 text-xs font-medium hover:bg-white/[0.08]
+        disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+
+                  {/* Page Numbers */}
+                  {[...Array(pagination.pages)].map((_, idx) => {
+                    const pageNo = idx + 1;
+
+                    return (
+                      <button
+                        key={pageNo}
+                        onClick={() => setPage(pageNo)}
+                        className={`w-9 h-9 rounded-lg text-xs font-semibold transition-all
+              ${page === pageNo
+                            ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/30'
+                            : 'bg-white/[0.05] indigo-500/50 hover:bg-white/[0.08]'
+                          }`}
+                      >
+                        {pageNo}
+                      </button>
+                    );
+                  })}
+
+                  {/* Next */}
+                  <button
+                    onClick={() => setPage(prev => prev + 1)}
+                    disabled={page === pagination.pages}
+                    className="px-3 py-2 rounded-lg bg-white/[0.05] border border-white/[0.08]
+        indigo-500/60 text-xs font-medium hover:bg-white/[0.08]
+        disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -790,6 +1136,15 @@ const Telecaller = () => {
           enquiry={statusModal}
           onClose={() => setStatusModal(null)}
           onUpdate={handleStatusUpdate}
+        />
+      )}
+      {showCreateModal && (
+        <CreateEnquiryModal
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={() => {
+            fetchEnquiries();
+            toast.success?.("Enquiry created successfully");
+          }}
         />
       )}
     </div>

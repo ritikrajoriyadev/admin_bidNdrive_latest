@@ -179,7 +179,7 @@ const DetailDrawer = ({ enquiryId, onClose }) => {
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto p-5">
+        <div className="flex-1 overflow-y-auto  p-5">
           {loading ? (
             <div className="space-y-3">
               {[...Array(6)].map((_, i) => (
@@ -280,7 +280,7 @@ const DetailDrawer = ({ enquiryId, onClose }) => {
                     <InfoRow label="Mfg Month/Year" value={`${car.car_details?.manufacturing_month} ${car.car_details?.manufacturing_year}`} />
                     <InfoRow label="Reg Number" value={car.car_details?.registration_number?.toUpperCase()} />
                     <InfoRow label="Reg Month/Year" value={`${car.car_details?.registration_month} ${car.car_details?.registration_year}`} />
-                    <InfoRow label="Chassis Number" value={car.car_details?.chassis_number} />
+                    {/* <InfoRow label="Chassis Number" value={car.car_details?.chassis_number} /> */}
                     <InfoRow label="Odometer" value={`${car.car_details?.odometer_reading?.toLocaleString()} km`} />
                     <InfoRow label="Fuel Type" value={car.car_details?.fuel_type} />
                     <InfoRow label="No. of Owners" value={car.car_details?.no_of_owners} />
@@ -294,7 +294,7 @@ const DetailDrawer = ({ enquiryId, onClose }) => {
                     <InfoRow label="Fitness Upto" value={car.car_details?.fitness_upto ? new Date(car.car_details.fitness_upto).toLocaleDateString() : '—'} />
                     <InfoRow label="Insurance Type" value={car.car_details?.insurance_type} />
                     <InfoRow label="Inspection At" value={car.car_details?.inspection_at} />
-                    <InfoRow label="Source" value={car.source} />
+                    {/* <InfoRow label="Source" value={car.source} /> */}
                   </Card>
                   <Card>
                     <SectionLabel>Flags & Conditions</SectionLabel>
@@ -951,11 +951,11 @@ const RA_Assigned = () => {
                   <div>
                     <label className="block text-xs font-bold indigo-500/40 uppercase tracking-widest mb-2">Select Technician</label>
                     <select value={selectedTechId} onChange={e => setSelectedTechId(e.target.value)}
-                      className="w-full bg-gray-800 border border-white/10 rounded-xl px-4 py-3 indigo-500 text-sm outline-none focus:border-indigo-500/60 transition-all appearance-none cursor-pointer"
+                      className="w-full bg-slate-100 border border-white/10 rounded-xl px-4 py-3 indigo-500 text-sm outline-none focus:border-indigo-500/60 transition-all appearance-none cursor-pointer"
                       style={{ colorScheme: 'dark' }}>
-                      <option value="" disabled className="bg-gray-800 indigo-500/50">Choose a technician...</option>
+                      <option value="" disabled className="bg-slate-100 indigo-500/50">Choose a technician...</option>
                       {technicians.map(tech => (
-                        <option key={tech.id} value={tech.id} className="bg-gray-800 indigo-500">{tech.name}</option>
+                        <option key={tech.id} value={tech.id} className="bg-slate-100 indigo-500">{tech.name}</option>
                       ))}
                     </select>
                   </div>

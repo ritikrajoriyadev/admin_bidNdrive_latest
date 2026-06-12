@@ -314,7 +314,7 @@ const PhotoEditorModal = ({ photo, onClose, onSaveSuccess, uploadFn }) => {
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="relative flex flex-col bg-[#0f1117] border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden"
+        className="relative flex flex-col bg-white border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden"
         style={{ width: 'min(96vw, 1100px)', maxHeight: '96vh' }}
       >
 
@@ -457,7 +457,7 @@ const PhotoEditorModal = ({ photo, onClose, onSaveSuccess, uploadFn }) => {
         )}
 
         {/* ── Canvas area ── */}
-        <div className="flex-1 overflow-auto bg-[#080a0e] flex items-center justify-center p-4 min-h-0">
+        <div className="flex-1 overflow-auto bg-white flex items-center justify-center p-4 min-h-0">
           {!imgLoaded && (
             <div className="flex flex-col items-center gap-3">
               <svg className="w-8 h-8 indigo-500/20 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

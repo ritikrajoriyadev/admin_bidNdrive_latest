@@ -1,23 +1,50 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Lock, Eye, EyeOff, Loader } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Loader,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { usePermissions } from "../context/PermissionsContext";
+import { i } from "framer-motion/client";
 
 export default function AdminLogin() {
+  const { refreshPermissions } = usePermissions();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [password, setPassword] =
+    useState("");
+  const [showPassword, setShowPassword] =
+    useState(false);
+  const [rememberMe, setRememberMe] =
+    useState(false);
+  const [loading, setLoading] =
+    useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const [success, setSuccess] =
+    useState(false);
 
-  const Navigate = useNavigate();
+  const navigate = useNavigate();
 
-  if (localStorage.getItem("adminToken")) {
-    Navigate("/dashboard");
-  }
+  useEffect(() => {
+    const token =
+      localStorage.getItem("adminToken");
+    const savedEmail =
+      localStorage.getItem("adminEmail");
+
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+
+    refreshPermissions();
+    // if (token) {
+    //   navigate("/dashboard");
+    // }
+  }, [navigate, refreshPermissions]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,95 +60,151 @@ export default function AdminLogin() {
 
       const res = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/admin/login`,
-        { email, password }
+        {
+          email,
+          password,
+        }
       );
 
-      const accessToken = res.data.data.accessToken;
-      const refreshToken = res.data.data.refreshToken;
+      const accessToken =
+        res.data.data.accessToken;
+      const refreshToken =
+        res.data.data.refreshToken;
       const role = res.data.data.role;
 
-      localStorage.setItem("adminToken", accessToken);
-      localStorage.setItem("adminRefreshToken", refreshToken);
-      localStorage.setItem("role", role); // Store role for potential future use
+      localStorage.setItem(
+        "adminToken",
+        accessToken
+      );
+      localStorage.setItem(
+        "adminRefreshToken",
+        refreshToken
+      );
+      localStorage.setItem("role", role);
 
       if (rememberMe) {
-        localStorage.setItem("adminEmail", email);
+        localStorage.setItem(
+          "adminEmail",
+          email
+        );
+      } else {
+        localStorage.removeItem(
+          "adminEmail"
+        );
       }
 
+      refreshPermissions();
       setSuccess(true);
-      setTimeout(() => Navigate("/dashboard"), 500);
 
+      if (role === "super-admin") {
+        navigate("/dashboard");
+      }
+      if (role === "admin") {
+        navigate("/dashboard");
+      } if (role === "retail-associate") {
+        navigate("/radashboard");
+      }
+      // setTimeout(() => {
+      //   navigate("/dashboard");
+      // }, 500);
     } catch (error) {
       console.error(error);
-      setError(error?.response?.data?.message || "Login failed. Please try again.");
+
+      setError(
+        error?.response?.data?.message ||
+          "Login failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   };
 
   const containerVariants = {
-    hidden: { opacity: 0, y: 30 },
+    hidden: {
+      opacity: 0,
+      y: 30,
+    },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.6, ease: "easeOut" }
-    }
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+      },
+    },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: {
+      opacity: 0,
+      y: 20,
+    },
     visible: (i) => ({
       opacity: 1,
       y: 0,
-      transition: { delay: i * 0.1, duration: 0.4 }
-    })
+      transition: {
+        delay: i * 0.1,
+        duration: 0.4,
+      },
+    }),
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-950 via-gray-900 to-black relative overflow-hidden">
-      {/* Animated background blobs */}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-indigo-50 relative overflow-hidden px-4">
+
+      {/* Background Blur */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-violet-500/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-indigo-400/20 rounded-full blur-[120px]" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-violet-400/20 rounded-full blur-[120px]" />
       </div>
 
       <motion.div
         initial="hidden"
         animate="visible"
         variants={containerVariants}
-        className="relative z-10 w-full max-w-md px-4"
+        className="relative z-10 w-full max-w-md"
       >
-        {/* Card Container */}
-        <div className="rounded-3xl bg-white/40 backdrop-blur-2xl border border-white/[0.08] shadow-2xl overflow-hidden">
+        {/* Main Card */}
+        <div className="rounded-[32px] bg-white border border-slate-200 shadow-[0_20px_60px_rgba(15,23,42,0.08)] overflow-hidden">
 
-          {/* Header Section */}
-          <div className="relative p-8 bg-gradient-to-b from-indigo-500/10 to-transparent border-b border-white/[0.08]">
-            <motion.div custom={0} variants={itemVariants} className="flex flex-col items-center gap-3 mb-2">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+          {/* Header */}
+          <div className="p-8 border-b border-slate-200 bg-gradient-to-b from-indigo-50 to-white">
+            <motion.div
+              custom={0}
+              variants={itemVariants}
+              className="flex flex-col items-center text-center"
+            >
+              <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 mb-4">
+                <Lock className="w-8 h-8 text-white" />
               </div>
-              <div className="text-center">
-                <h1 className="text-3xl font-bold indigo-500">Admin Panel</h1>
-                <p className="indigo-500/40 text-sm mt-1">BidNDrive Management</p>
-              </div>
+
+              <h1 className="text-3xl font-bold text-slate-900">
+                Admin Panel
+              </h1>
+
+              <p className="text-slate-500 mt-2 text-sm">
+                Welcome back to
+                BidNDrive Dashboard
+              </p>
             </motion.div>
           </div>
 
-          {/* Form Section */}
+          {/* Form */}
           <div className="p-8">
 
             {/* Error Message */}
             {error && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-5 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium flex items-center gap-2"
+                initial={{
+                  opacity: 0,
+                  y: -10,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-red-600 text-sm"
               >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
                 {error}
               </motion.div>
             )}
@@ -129,76 +212,120 @@ export default function AdminLogin() {
             {/* Success Message */}
             {success && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-5 px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium flex items-center gap-2"
+                initial={{
+                  opacity: 0,
+                }}
+                animate={{
+                  opacity: 1,
+                }}
+                className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-600 text-sm"
               >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                Logging in...
+                Login successful...
               </motion.div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Email Field */}
-              <motion.div custom={1} variants={itemVariants} className="flex flex-col gap-2">
-                <label className="indigo-500/60 text-sm font-medium">Email Address</label>
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-5"
+            >
+              {/* Email */}
+              <motion.div
+                custom={1}
+                variants={itemVariants}
+              >
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Email Address
+                </label>
+
                 <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 indigo-500/30 group-focus-within:text-indigo-400 transition-colors" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-500 transition" />
+
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) =>
+                      setEmail(
+                        e.target.value
+                      )
+                    }
                     disabled={loading}
-                    required
-                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-gray-800/50 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:bg-gray-800/80 focus:outline-none transition-all duration-200 disabled:opacity-50"
                     placeholder="admin@example.com"
+                    className="w-full h-14 rounded-2xl bg-slate-50 border border-slate-300 pl-12 pr-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all"
                   />
                 </div>
               </motion.div>
 
-              {/* Password Field */}
-              <motion.div custom={2} variants={itemVariants} className="flex flex-col gap-2">
-                <label className="indigo-500/60 text-sm font-medium">Password</label>
+              {/* Password */}
+              <motion.div
+                custom={2}
+                variants={itemVariants}
+              >
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Password
+                </label>
+
                 <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 indigo-500/30 group-focus-within:text-indigo-400 transition-colors" />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-500 transition" />
+
                   <input
-                    type={showPassword ? "text" : "password"}
+                    type={
+                      showPassword
+                        ? "text"
+                        : "password"
+                    }
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) =>
+                      setPassword(
+                        e.target.value
+                      )
+                    }
                     disabled={loading}
-                    required
-                    className="w-full pl-12 pr-12 py-3 rounded-xl bg-gray-800/50 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:bg-gray-800/80 focus:outline-none transition-all duration-200 disabled:opacity-50"
                     placeholder="••••••••"
+                    className="w-full h-14 rounded-2xl bg-slate-50 border border-slate-300 pl-12 pr-14 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all"
                   />
+
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={() =>
+                      setShowPassword(
+                        !showPassword
+                      )
+                    }
                     disabled={loading}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 indigo-500/30 hover:indigo-500/60 transition-colors disabled:opacity-50"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-indigo-500 transition"
                   >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </motion.div>
 
-              {/* Remember Me & Forgot Password */}
-              <motion.div custom={3} variants={itemVariants} className="flex items-center justify-between">
-                <label className="flex items-center gap-2 cursor-pointer group">
+              {/* Remember Me */}
+              <motion.div
+                custom={3}
+                variants={itemVariants}
+                className="flex items-center justify-between"
+              >
+                <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    disabled={loading}
-                    className="w-4 h-4 rounded bg-gray-800 border border-white/[0.08] checked:bg-indigo-500 checked:border-indigo-400 focus:outline-none cursor-pointer disabled:opacity-50"
+                    onChange={(e) =>
+                      setRememberMe(
+                        e.target.checked
+                      )
+                    }
+                    className="accent-indigo-600"
                   />
-                  <span className="indigo-500/40 text-sm group-hover:indigo-500/60 transition-colors">Remember me</span>
+                  Remember me
                 </label>
+
                 <button
                   type="button"
-                  disabled={loading}
-                  className="indigo-500/40 hover:text-indigo-400 text-sm font-medium transition-colors disabled:opacity-50"
+                  className="text-sm text-indigo-600 hover:text-violet-500 transition"
                 >
                   Forgot password?
                 </button>
@@ -209,8 +336,10 @@ export default function AdminLogin() {
                 custom={4}
                 variants={itemVariants}
                 type="submit"
-                disabled={loading || success}
-                className="w-full py-3 mt-6 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 indigo-500 font-semibold hover:shadow-lg hover:shadow-indigo-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+                disabled={
+                  loading || success
+                }
+                className="w-full h-14 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-500 text-white font-semibold hover:scale-[1.02] hover:shadow-[0_12px_30px_rgba(99,102,241,0.25)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -223,42 +352,30 @@ export default function AdminLogin() {
               </motion.button>
             </form>
 
-            {/* Divider */}
-            <motion.div custom={5} variants={itemVariants} className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/[0.08]" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white/40 indigo-500/40">Need help?</span>
-              </div>
-            </motion.div>
-
-            {/* Contact Info */}
-            <motion.div custom={6} variants={itemVariants} className="text-center">
-              <p className="indigo-500/40 text-sm">
-                Contact support at{" "}
-                <a href="mailto:support@bidndrive.com" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
-                  support@bidndrive.com
-                </a>
-              </p>
-            </motion.div>
+            {/* Support */}
+            <div className="mt-8 text-center text-sm text-slate-500">
+              Need help?{" "}
+              <a
+                href="mailto:support@bidndrive.com"
+                className="text-indigo-600 hover:text-violet-500 font-medium transition"
+              >
+                support@bidndrive.com
+              </a>
+            </div>
           </div>
 
           {/* Footer */}
-          <div className="px-8 py-4 border-t border-white/[0.08] indigo-500/20">
-            <p className="text-center text-xs indigo-500/30">
-              © 2026 BidNDrive • All rights reserved
-            </p>
+          <div className="border-t border-slate-200 py-5 text-center text-xs text-slate-500">
+            © 2026 BidNDrive • All rights
+            reserved
           </div>
         </div>
 
         {/* Security Notice */}
-        <motion.div custom={7} variants={itemVariants} className="mt-6 flex items-center justify-center gap-2 text-xs indigo-500/40">
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-          </svg>
-          Your connection is secure and encrypted
-        </motion.div>
+        <div className="mt-5 text-center text-xs text-slate-500">
+          🔒 Your connection is secure
+          and encrypted
+        </div>
       </motion.div>
     </div>
   );

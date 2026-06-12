@@ -480,7 +480,7 @@ const ExteriorTyresEditForm = ({ initialData = {}, onSave, onCancel, saving = fa
       )}
 
       {/* Action buttons */}
-      <div className="flex gap-3 pt-2 sticky bottom-0 pb-2 bg-[#0d1117]">
+      <div className="flex gap-3 pt-2 sticky bottom-0 pb-2 bg-[#bg-white]">
         <button
           type="button"
           onClick={onCancel}

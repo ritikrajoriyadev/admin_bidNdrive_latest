@@ -99,7 +99,7 @@ const RAForm = ({ admin, onClose, onSave, saving }) => {
                                 required={required}
                                 value={formData[key]}
                                 onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-                                className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
+                                className="px-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
                                 placeholder={ph}
                             />
                         </div>
@@ -113,7 +113,7 @@ const RAForm = ({ admin, onClose, onSave, saving }) => {
                             type="tel"
                             value={formData.phone}
                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                            className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
+                            className="px-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
                             placeholder="+1-555-0000"
                         />
                     </div>
@@ -125,7 +125,7 @@ const RAForm = ({ admin, onClose, onSave, saving }) => {
                             type="password"
                             value={formData.password}
                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                            className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
+                            className="px-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
                             placeholder="Enter a secure password"
                             required={!admin}
                         />
@@ -135,7 +135,7 @@ const RAForm = ({ admin, onClose, onSave, saving }) => {
                         <select
                             value={formData.status}
                             onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                            className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
+                            className="px-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.08] indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
                         >
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
@@ -156,7 +156,7 @@ const RAForm = ({ admin, onClose, onSave, saving }) => {
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex-1 px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.06] indigo-500 font-medium hover:bg-gray-700 transition-all"
+                        className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.06] indigo-500 font-medium hover:bg-gray-700 transition-all"
                     >
                         Cancel
                     </button>
@@ -344,7 +344,7 @@ export default function RA() {
                         placeholder="Search RAs..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.06] indigo-500 placeholder-white/40 focus:border-indigo-400/50 focus:outline-none transition-all"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.06] indigo-500 placeholder-white/40 focus:border-indigo-400/50 focus:outline-none transition-all"
                     />
                 </div>
                 <div className="flex gap-2">
@@ -354,7 +354,7 @@ export default function RA() {
                             onClick={() => setFilterStatus(status)}
                             className={`px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 ${filterStatus === status
                                 ? 'bg-indigo-500/15 border border-indigo-400/25 text-indigo-300'
-                                : 'bg-gray-800 border border-white/[0.06] indigo-500/40 hover:indigo-500/60'
+                                : 'bg-slate-100 border border-white/[0.06] indigo-500/40 hover:indigo-500/60'
                                 }`}
                         >
                             {status.charAt(0).toUpperCase() + status.slice(1)}

@@ -138,7 +138,7 @@ const DetailDrawer = ({ enquiry, onClose, onStatusChange }) => {
             <select
               value={enquiry.status}
               onChange={(e) => onStatusChange(enquiry.id, e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-white/[0.08] indigo-500 text-sm focus:border-indigo-400/50 focus:outline-none"
+              className="w-full px-3 py-2 rounded-lg bg-slate-100 border border-white/[0.08] indigo-500 text-sm focus:border-indigo-400/50 focus:outline-none"
             >
               {Object.entries(statusConfig).map(([key, value]) => (
                 <option key={key} value={key}>{value.label}</option>
@@ -289,7 +289,7 @@ export default function SellCarEnquiries() {
             placeholder="Search cars or customers..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.06] indigo-500 placeholder-white/40 focus:border-indigo-400/50 focus:outline-none transition-all"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.06] indigo-500 placeholder-white/40 focus:border-indigo-400/50 focus:outline-none transition-all"
           />
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -299,7 +299,7 @@ export default function SellCarEnquiries() {
               onClick={() => setFilterStatus(status)}
               className={`px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 ${filterStatus === status
                 ? 'bg-indigo-500/15 border border-indigo-400/25 text-indigo-300'
-                : 'bg-gray-800 border border-white/[0.06] indigo-500/40 hover:indigo-500/60'
+                : 'bg-slate-100 border border-white/[0.06] indigo-500/40 hover:indigo-500/60'
                 }`}
             >
               {status === 'all' ? 'All' : status.replace('_', ' ').toUpperCase()}
@@ -353,10 +353,10 @@ export default function SellCarEnquiries() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="indigo-500 font-semibold">${enq.carPrice.toLocaleString()}</p>
+                        <p className="indigo-500 font-semibold">{enq.carPrice.toLocaleString()}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-emerald-400 font-semibold">${enq.offeredPrice.toLocaleString()}</p>
+                        <p className="text-emerald-400 font-semibold">{enq.offeredPrice.toLocaleString()}</p>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-full ${sc.bg} ${sc.text}`}>

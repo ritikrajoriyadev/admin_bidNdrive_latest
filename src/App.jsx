@@ -8,12 +8,14 @@ import Enquiries from './pages/Enquiries';
 
 import EnquiriesDetails from './pages/EnquiriesDetails';
 import Technicians from './pages/Technicians';
+import TechnicianDetails from './pages/TechnicianDetails';
 import Profile from './pages/Profile';
 import Layout from './components/Layout';
 import Analytics from './pages/Analytics';
 import SellCars from './pages/SellCars';
 import SellCarEnquiries from './pages/SellCarEnquiries';
 import SubAdmin from './pages/SubAdmin';
+import ClosedDeals from './pages/ClosedDeals';
 import Roles from './pages/Roles';
 import Permissions from './pages/Permissions';
 import Banners from './pages/Banners';
@@ -32,6 +34,7 @@ import Bidders from './pages/Adminbidermanagement ';
 import BNB_TNB from './pages/BNB_TNB';
 import RA_Assigned from './pages/RA-Assigned';
 import RetailAssociate from './pages/RetailAssociate';
+import RaDashboard from './pages/RA/RaDashboard'
 
 
 function App() {
@@ -75,6 +78,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Layout><WinnerList /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/closed-deals"
+              element={
+                <ProtectedRoute>
+                  <Layout><ClosedDeals /></Layout>
                 </ProtectedRoute>
               }
             />
@@ -127,10 +138,26 @@ function App() {
               }
             />
             <Route
+              path="/RaDashboard"
+              element={
+                <ProtectedRoute>
+                  <Layout><RaDashboard /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/technicians"
               element={
                 <ProtectedRoute>
                   <Layout><Technicians /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/technicians/:id"
+              element={
+                <ProtectedRoute>
+                  <Layout><TechnicianDetails /></Layout>
                 </ProtectedRoute>
               }
             />

@@ -263,6 +263,14 @@ const User = () => {
   const [filterStatus, setStatus] = useState('all');
   const [selectedUser, setSelectedUser] = useState(null);
   const [view, setView] = useState('table');
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    totalPages: 1,
+  });
 
   const token = localStorage.getItem('adminToken');
   const toast = useToast();
@@ -280,11 +288,21 @@ const User = () => {
     try {
       setLoading(true);
       setError(null);
+
       const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/admin/users`,
-        { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }
+        `${import.meta.env.VITE_API_URL}/api/admin/users?page=${page}&limit=${limit}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
       );
-      const mapped = res.data.data.users.map(u => ({
+
+      const responseData = res.data?.data || {};
+      const usersData = responseData.users || [];
+
+      const mapped = usersData.map(u => ({
         id: u._id,
         name: `${u.firstName} ${u.lastName}`.trim(),
         email: u.email,
@@ -295,7 +313,15 @@ const User = () => {
         avatar: `${u.firstName?.[0] ?? ''}${u.lastName?.[0] ?? ''}`.toUpperCase(),
         avatarGrad: getAvatarGradient(u.role),
       }));
+
       setUsers(mapped);
+
+      setPagination({
+        total: responseData.total || 0,
+        page: responseData.page || 1,
+        totalPages: responseData.totalPages || 1,
+      });
+
     } catch (err) {
       console.error(err);
       setError('Failed to load users. Please try again.');
@@ -304,7 +330,9 @@ const User = () => {
     }
   };
 
-  useEffect(() => { fetchUsers(); }, []);
+  useEffect(() => {
+    fetchUsers();
+  }, [page]);
 
   const filteredUsers = users.filter(u => {
     const q = search.toLowerCase();
@@ -345,7 +373,7 @@ const User = () => {
   /* ── Render ── */
   return (
     <div className="min-h-screen bg-white indigo-500">
-      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <div className=" mx-auto px-4 sm:px-6 py-8 space-y-6">
 
         {/* Stat Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
@@ -382,7 +410,10 @@ const User = () => {
             {['all', 'super-admin', 'admin', 'manager', 'user'].map(r => (
               <button
                 key={r}
-                onClick={() => setRole(r)}
+                onClick={() => {
+                  setRole(r);
+                  setPage(1);
+                }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all whitespace-nowrap ${filterRole === r
                   ? 'bg-indigo-600 indigo-500 shadow'
                   : 'indigo-500/45 hover:indigo-500/80'
@@ -445,11 +476,64 @@ const User = () => {
         </p>
 
         {/* Table / Grid */}
+        
         {view === 'table'
           ? <TableView users={filteredUsers} onUserClick={setSelectedUser} />
           : <GridView users={filteredUsers} onUserClick={setSelectedUser} />
         }
       </div>
+      <div className="flex items-center justify-between mt-6 flex-wrap gap-4">
+  <p className="text-sm text-gray-500">
+    Page {pagination.page} of {pagination.totalPages}
+  </p>
+
+  <div className="flex items-center gap-2">
+    {/* Previous */}
+    <button
+      disabled={page === 1}
+      onClick={() => setPage(prev => prev - 1)}
+      className={`px-4 py-2 rounded-lg border text-sm font-medium transition
+      ${page === 1
+          ? 'opacity-50 cursor-not-allowed'
+          : 'hover:bg-gray-100'
+        }`}
+    >
+      Previous
+    </button>
+
+    {/* Page Numbers */}
+    {[...Array(pagination.totalPages)].map((_, index) => {
+      const pageNum = index + 1;
+
+      return (
+        <button
+          key={pageNum}
+          onClick={() => setPage(pageNum)}
+          className={`w-10 h-10 rounded-lg text-sm font-medium transition
+          ${page === pageNum
+              ? 'bg-indigo-600 text-white'
+              : 'border hover:bg-gray-100'
+            }`}
+        >
+          {pageNum}
+        </button>
+      );
+    })}
+
+    {/* Next */}
+    <button
+      disabled={page === pagination.totalPages}
+      onClick={() => setPage(prev => prev + 1)}
+      className={`px-4 py-2 rounded-lg border text-sm font-medium transition
+      ${page === pagination.totalPages
+          ? 'opacity-50 cursor-not-allowed'
+          : 'hover:bg-gray-100'
+        }`}
+    >
+      Next
+    </button>
+  </div>
+</div>
 
       {/* Modal */}
       {selectedUser && (

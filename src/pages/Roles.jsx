@@ -65,7 +65,7 @@ const ModulePermissionRow = ({ module, perms, selectedIds, onToggle }) => {
   };
 
   return (
-    <div className="flex items-center gap-4 px-4 py-3 rounded-xl bg-gray-800/40 border border-white/[0.05] hover:border-white/[0.08] transition-all">
+    <div className="flex items-center gap-4 px-4 py-3 rounded-xl bg-slate-100/40 border border-white/[0.05] hover:border-white/[0.08] transition-all">
       {/* Module name + select-all checkbox */}
       <div className="flex items-center gap-2.5 min-w-[140px]">
         <input
@@ -91,15 +91,15 @@ const ModulePermissionRow = ({ module, perms, selectedIds, onToggle }) => {
           const isChecked = selectedIds.includes(id);
 
           const actionColors = {
-            create: isChecked ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300' : 'bg-gray-800 border-white/[0.08] indigo-500/40',
-            read: isChecked ? 'bg-sky-500/20 border-sky-500/40 text-sky-300' : 'bg-gray-800 border-white/[0.08] indigo-500/40',
-            update: isChecked ? 'bg-amber-500/20 border-amber-500/40 text-amber-300' : 'bg-gray-800 border-white/[0.08] indigo-500/40',
-            delete: isChecked ? 'bg-red-500/20 border-red-500/40 text-red-300' : 'bg-gray-800 border-white/[0.08] indigo-500/40',
+            create: isChecked ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300' : 'bg-slate-100 border-white/[0.08] indigo-500/40',
+            read: isChecked ? 'bg-sky-500/20 border-sky-500/40 text-sky-300' : 'bg-slate-100 border-white/[0.08] indigo-500/40',
+            update: isChecked ? 'bg-amber-500/20 border-amber-500/40 text-amber-300' : 'bg-slate-100 border-white/[0.08] indigo-500/40',
+            delete: isChecked ? 'bg-red-500/20 border-red-500/40 text-red-300' : 'bg-slate-100 border-white/[0.08] indigo-500/40',
           };
 
           const colorClass = actionColors[action] || (isChecked
             ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300'
-            : 'bg-gray-800 border-white/[0.08] indigo-500/40');
+            : 'bg-slate-100 border-white/[0.08] indigo-500/40');
 
           return (
             <label
@@ -173,7 +173,7 @@ const RoleForm = ({ role, onClose, onSave, saving, permissions }) => {
               type="text" required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
+              className="px-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
               placeholder="e.g., Content Manager"
             />
           </div>
@@ -183,7 +183,7 @@ const RoleForm = ({ role, onClose, onSave, saving, permissions }) => {
               type="text"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
+              className="px-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.08] indigo-500 indigo-500 focus:border-indigo-400/50 focus:outline-none transition-all"
               placeholder="Describe the purpose of this role..."
             />
           </div>
@@ -215,7 +215,7 @@ const RoleForm = ({ role, onClose, onSave, saving, permissions }) => {
           </div>
 
           {/* Module rows */}
-          <div className="space-y-2 p-4 rounded-xl bg-gray-800/20 border border-white/[0.05]">
+          <div className="space-y-2 p-4 rounded-xl bg-slate-100/20 border border-white/[0.05]">
             {modules.length === 0 ? (
               <p className="indigo-500/30 text-sm text-center py-4">No permissions available</p>
             ) : (
@@ -242,7 +242,7 @@ const RoleForm = ({ role, onClose, onSave, saving, permissions }) => {
           </button>
           <button
             type="button" onClick={onClose}
-            className="flex-1 px-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.06] indigo-500 font-medium hover:bg-gray-700 transition-all"
+            className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.06] indigo-500 font-medium hover:bg-gray-700 transition-all"
           >
             Cancel
           </button>
@@ -509,7 +509,7 @@ export default function Roles() {
           placeholder="Search roles..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-800 border border-white/[0.06] indigo-500 placeholder-white/40 focus:border-indigo-400/50 focus:outline-none transition-all"
+          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.06] indigo-500 placeholder-white/40 focus:border-indigo-400/50 focus:outline-none transition-all"
         />
       </div>
 
