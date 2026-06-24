@@ -730,7 +730,7 @@ const Enquiries = () => {
 
       const mapped = dataList.map(enquiry => ({
         id: enquiry._id,
-        name: `${enquiry.userId?.firstName || 'Unknown'} ${enquiry.userId?.lastName || ''}`,
+        name: `${enquiry.userId?.firstName || enquiry.customerName || 'Unknown'} ${enquiry.userId?.lastName || ''}`,
         email: enquiry.userId?.email || 'N/A',
         phone: enquiry.contactNumber,
         subject: enquiry.title,
@@ -749,6 +749,9 @@ const Enquiries = () => {
         estimatedCost: enquiry.estimatedCost || 0,
         actualCost: enquiry.actualCost || 0,
         customerJourney: enquiry.customerJourney ?? null,
+        customerName: enquiry.customerName || 'Unknown',
+        scheduleDate: enquiry.scheduleDate || null,
+        scheduleTime: enquiry.scheduleTime || null,
       }));
 
       setEnquiries(mapped);
@@ -980,7 +983,7 @@ const Enquiries = () => {
 
                 {/* Header */}
                 <div className={`grid ${GRID} gap-4 px-5 py-3 border-b border-white/[0.05] bg-white/[0.02]`}>
-                  {['Enquiry ID', 'Sender', 'Car Details', 'Subject', 'Priority', 'Status', 'Action'].map(h => (
+                  {['Enquiry ID', 'Sender', 'Car Details', 'Schedule', 'Priority', 'Status', 'Action'].map(h => (
                     <span key={h} className="indigo-500/25 text-[10px] font-bold tracking-widest uppercase">{h}</span>
                   ))}
                 </div>
@@ -1057,7 +1060,11 @@ const Enquiries = () => {
                           {enq.avatar}
                         </div>
                         <div className="min-w-0">
-                          <p className="indigo-500/85 text-sm font-medium truncate">{enq.name}</p>
+                          <p className="indigo-500/85 text-sm font-medium truncate">
+                            {enq.userId
+                              ? `${enq.userId.firstName} ${enq.userId.lastName || ""}`
+                              : enq.customerName}
+                          </p>
                           <p className="indigo-500/30 text-xs truncate">{enq.email}</p>
                           <p className="indigo-500/25 text-xs truncate">{enq.phone}</p>
                         </div>
@@ -1066,14 +1073,15 @@ const Enquiries = () => {
                       {/* Car Details */}
                       <div className="min-w-0">
                         <p className="indigo-500/75 text-sm font-medium truncate">
-                          {enq.make} {enq.model}
+                           {enq.model}
                         </p>
                         <p className="indigo-500/30 text-xs mt-0.5">{enq.year}</p>
                       </div>
 
-                      {/* Subject */}
+                      {/* Schedule */}
                       <div className="min-w-0">
-                        <p className="indigo-500/70 text-sm truncate">{enq.subject}</p>
+                        <p className="indigo-500/70 text-sm truncate">{enq.scheduleDate} </p>
+                        <p className="indigo-500/25 text-xs mt-0.5">{enq.scheduleTime}</p>
                       </div>
 
                       {/* Priority */}

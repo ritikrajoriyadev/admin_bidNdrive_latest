@@ -1,989 +1,428 @@
-// import React, { useState, useEffect } from 'react';
-// import axios from 'axios';
-// import { useToast } from '../hooks/useToast';
-// import { decryptResponse } from '../utls/decryptResponse';
-// import {
-//   Search, Trophy, User, Phone, Mail, Hash, Car,
-//   RefreshCw, DollarSign, Calendar, ChevronDown, ChevronUp
-// } from 'lucide-react';
-// import { useNavigate } from 'react-router-dom';
-// import EnquiryDetailPage from './Enquirydetailpage';
-
-// /* ─── API ─────────────────────────────────────────────────────────────────── */
-// const API_URL = import.meta.env.VITE_API_URL || '';
-// const api = axios.create({ baseURL: API_URL });
-// const getAuthHeaders = () => ({
-//   Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
-// });
-
-// const avatarColors = [
-//   'from-indigo-500 to-violet-600',
-//   'from-pink-500 to-rose-600',
-//   'from-amber-500 to-orange-600',
-//   'from-emerald-500 to-teal-600',
-//   'from-sky-500 to-blue-600',
-//   'from-violet-500 to-purple-600',
-// ];
-
-// /* ─── Safe name helper ────────────────────────────────────────────────────── */
-// const safeName = (obj) =>
-//   obj ? `${obj.firstName || ''} ${obj.lastName || ''}`.trim() || 'Unknown' : 'Unknown';
-
-// /* ─── Avatar ─────────────────────────────────────────────────────────────── */
-// const Avatar = ({ src, name, size = 'md', colorIdx = 0 }) => {
-//   const [err, setErr] = useState(false);
-//   const initials = name
-//     ? name.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2)
-//     : '?';
-//   const sz = size === 'lg' ? 'w-11 h-11 text-sm' : 'w-9 h-9 text-xs';
-//   const grad = avatarColors[colorIdx % avatarColors.length];
-
-//   if (src && !err) {
-//     return (
-//       <img
-//         src={src}
-//         alt={name}
-//         onError={() => setErr(true)}
-//         className={`${sz} rounded-full object-cover ring-2 ring-white/10 flex-shrink-0`}
-//       />
-//     );
-//   }
-//   return (
-//     <div className={`${sz} rounded-full bg-gradient-to-br ${grad} flex items-center justify-center flex-shrink-0 ring-2 ring-white/10`}>
-//       <span className="text-white font-bold">{initials}</span>
-//     </div>
-//   );
-// };
-
-// /* ─── Stat Card ──────────────────────────────────────────────────────────── */
-// const StatCard = ({ label, value, icon, accent, sub }) => (
-//   <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-100 p-5 hover:border-gray-200 transition-all duration-300 group shadow-sm">
-//     <div className={`absolute -top-5 -right-5 w-20 h-20 rounded-full blur-2xl opacity-20 group-hover:opacity-30 transition-opacity ${accent}`} />
-//     <div className="flex items-center justify-between mb-3">
-//       <span className={`w-9 h-9 rounded-xl flex items-center justify-center ${accent} bg-opacity-20`}>{icon}</span>
-//       <span className="text-gray-400 text-xs font-medium">{sub}</span>
-//     </div>
-//     <p className="text-gray-800 text-2xl font-bold tracking-tight">{value}</p>
-//     <p className="text-gray-400 text-xs font-medium mt-0.5 tracking-wide uppercase">{label}</p>
-//   </div>
-// );
-
-// /* ─── Bidder Row ─────────────────────────────────────────────────────────── */
-// const BidderRow = ({ bidder, bidAmount, bidTime, rank }) => {
-//   const name = safeName(bidder);
-//   const time = bidTime
-//     ? new Date(bidTime).toLocaleString('en-IN', {
-//       day: '2-digit',
-//       month: 'short',
-//       hour: '2-digit',
-//       minute: '2-digit',
-//     })
-//     : '—';
-//   return (
-//     <div
-//       className={`flex items-center gap-3 px-3 py-2 rounded-xl ${rank === 0
-//         ? 'bg-amber-50 border border-amber-200'
-//         : 'bg-gray-50 border border-gray-100'
-//         }`}
-//     >
-//       <div
-//         className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${rank === 0 ? 'bg-amber-500 text-white' : 'bg-gray-200 text-gray-500'
-//           }`}
-//       >
-//         {rank + 1}
-//       </div>
-//       <Avatar name={name} size="sm" colorIdx={rank} />
-//       <div className="flex-1 min-w-0">
-//         <p className="text-gray-700 text-xs font-semibold truncate">{name}</p>
-//         <p className="text-gray-400 text-[10px] truncate">{bidder?.email || '—'}</p>
-//         <p className="text-gray-400 text-[10px] truncate">{bidder?.phone || '—'}</p>
-//       </div>
-//       <div className="text-right flex-shrink-0">
-//         <p className={`font-bold text-sm ${rank === 0 ? 'text-amber-500' : 'text-gray-500'}`}>
-//           ₹{bidAmount?.toLocaleString() || '—'}
-//         </p>
-//         <p className="text-gray-300 text-[10px]">{time}</p>
-//       </div>
-//     </div>
-//   );
-// };
-
-// /* ─── Winner Card (Grid) ─────────────────────────────────────────────────── */
-// const WinnerCard = ({ item, index }) => {
-//   const [expanded, setExpanded] = useState(false);
-//   const navigate = useNavigate();
-
-//   const winner = item.winner || {};
-//   const user = item.user || {};
-//   const car = item.carDetails || {};
-
-//   const winnerName = safeName(winner);
-//   const ownerName = safeName(user);
-
-//   return (
-//     <div className="rounded-2xl bg-white border border-gray-100 overflow-hidden hover:border-gray-200 hover:shadow-md transition-all duration-300 shadow-sm">
-//       <div className="h-1 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600" />
-
-//       <div className="p-5">
-//         {/* Rank + Auction ID */}
-//         <div className="flex items-center justify-between mb-4">
-//           <div className="flex items-center gap-2">
-//             <div className="w-7 h-7 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center">
-//               <span className="text-amber-500 text-xs font-bold">#{index + 1}</span>
-//             </div>
-//             <span className="text-gray-300 text-[10px] font-mono">
-//               {(item.auctionId || '').slice(-8).toUpperCase()}
-//             </span>
-//           </div>
-//           <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 text-[10px] font-semibold uppercase">
-//             {item.status || '—'}
-//           </span>
-//         </div>
-
-//         {/* Winner */}
-//         <div className="flex items-center gap-3 mb-4">
-//           <Avatar src={winner.profileImage} name={winnerName} size="lg" colorIdx={index} />
-//           <div className="min-w-0">
-//             <div className="flex items-center gap-1.5 mb-0.5">
-//               <Trophy className="w-3 h-3 text-amber-500 flex-shrink-0" />
-//               <span className="text-amber-500 text-[10px] font-bold uppercase tracking-wide">Winner</span>
-//             </div>
-//             <p className="text-gray-800 font-semibold text-sm truncate">{winnerName}</p>
-//             <p className="text-gray-400 text-xs truncate">{winner.email || '—'}</p>
-//           </div>
-//         </div>
-
-//         {/* Winner contact */}
-//         <div className="flex items-center gap-2 mb-4">
-//           <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-50 border border-gray-100 flex-1 min-w-0">
-//             <Phone className="w-3 h-3 text-gray-400 flex-shrink-0" />
-//             <span className="text-gray-500 text-xs truncate">{winner.phone || '—'}</span>
-//           </div>
-//         </div>
-
-//         {/* Winning amount — uses highestBid (mapped as winningAmount) */}
-//         <div className="flex items-center justify-between p-3 rounded-xl bg-amber-50 border border-amber-100 mb-4">
-//           <span className="text-gray-500 text-xs font-medium">Winning Bid</span>
-//           <span className="text-amber-500 font-bold text-lg">
-//             ₹{(item.winningAmount || 0).toLocaleString()}
-//           </span>
-//         </div>
-
-//         {/* Bid stats */}
-//         <div className="flex items-center justify-between p-3 rounded-xl bg-indigo-50 border border-indigo-100 mb-4">
-//           <span className="text-gray-500 text-xs font-medium">Total Bids</span>
-//           <span className="text-indigo-600 font-bold text-base">
-//             {item.totalBids || 0}
-//           </span>
-//         </div>
-
-//         {/* Car Details */}
-//         <div className="rounded-xl bg-gray-50 border border-gray-100 p-3 mb-4">
-//           <div className="flex items-center gap-1.5 mb-3">
-//             <Car className="w-3.5 h-3.5 text-indigo-500" />
-//             <span className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Vehicle</span>
-//           </div>
-//           <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-//             {[
-//               ['Make', car.make],
-//               ['Model', car.model],
-//               ['Year', car.year],
-//               ['Color', car.color],
-//               ['Reg No.', car.registrationNumber || '—'],
-//               ['Mileage', car.mileage != null ? `${car.mileage.toLocaleString()} km` : '—'],
-//             ].map(([k, v]) => (
-//               <div key={k}>
-//                 <p className="text-gray-300 text-[9px] uppercase tracking-wider">{k}</p>
-//                 <p className="text-gray-600 text-xs font-medium mt-0.5 truncate" title={v}>{v || '—'}</p>
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-
-//         {/* Car Owner */}
-//         <div className="rounded-xl bg-gray-50 border border-gray-100 p-3 mb-4">
-//           <div className="flex items-center gap-1.5 mb-2">
-//             <User className="w-3.5 h-3.5 text-violet-500" />
-//             <span className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Car Owner</span>
-//           </div>
-//           <p className="text-gray-700 text-sm font-medium">{ownerName}</p>
-//           <p className="text-gray-400 text-xs mt-0.5">{user.phone || '—'}</p>
-//           <p className="text-gray-300 text-xs">{user.email || '—'}</p>
-//         </div>
-
-//         {/* Meta */}
-//         <div className="flex items-center justify-between text-[10px] text-gray-300 mb-3">
-//           <span className="flex items-center gap-1">
-//             <Calendar className="w-3 h-3" />
-//             {item.createdAt
-//               ? new Date(item.createdAt).toLocaleDateString('en-IN', {
-//                 day: '2-digit',
-//                 month: 'short',
-//                 year: 'numeric',
-//               })
-//               : '—'}
-//           </span>
-//           <span className="font-mono">{(item.enquiryId || '').slice(-8).toUpperCase()}</span>
-//         </div>
-
-//         {/* View button */}
-//         <button
-//           onClick={() => navigate(`/auctions/${item.auctionId}`, { state: item })}
-//           className="w-full mb-3 py-2 rounded-xl bg-indigo-500 text-white hover:bg-indigo-600 transition-all text-xs font-semibold"
-//         >
-//           View Details
-//         </button>
-
-//         {/* Expand bidders — uses topFiveBidders (mapped as lastFiveBidders) */}
-//         {item.lastFiveBidders?.length > 0 && (
-//           <button
-//             onClick={() => setExpanded(e => !e)}
-//             className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-gray-50 border border-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all text-xs font-semibold"
-//           >
-//             {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-//             {expanded ? 'Hide' : 'Show'} Bidders ({item.lastFiveBidders.length})
-//           </button>
-//         )}
-//       </div>
-
-//       {expanded && item.lastFiveBidders?.length > 0 && (
-//         <div className="px-5 pb-5 space-y-2 border-t border-gray-100 pt-4">
-//           <p className="text-gray-300 text-[10px] font-bold uppercase tracking-widest mb-3">
-//             Top {item.lastFiveBidders.length} Bids
-//           </p>
-//           {item.lastFiveBidders.map((b, i) => (
-//             <BidderRow key={i} rank={i} bidder={b.bidder} bidAmount={b.bidAmount} bidTime={b.bidTime} />
-//           ))}
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// /* ─── Table Row Expanded Bidders ─────────────────────────────────────────── */
-// const ExpandedBidders = ({ bidders }) => (
-//   <tr>
-//     <td colSpan={10} className="px-6 pb-4 pt-0">
-//       <div className="rounded-xl bg-gray-50 border border-gray-100 p-3">
-//         <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-3">
-//           Top {bidders.length} Bids
-//         </p>
-//         <div className="space-y-2">
-//           {bidders.map((b, i) => (
-//             <BidderRow key={i} rank={i} bidder={b.bidder} bidAmount={b.bidAmount} bidTime={b.bidTime} />
-//           ))}
-//         </div>
-//       </div>
-//     </td>
-//   </tr>
-// );
-
-
-// /* ─── Main Component ─────────────────────────────────────────────────────── */
-// export default function Winners() {
-//   const { addToast } = useToast();
-//   const [winners, setWinners] = useState([]);
-//   const [filtered, setFiltered] = useState([]);
-//   const [searchTerm, setSearchTerm] = useState('');
-//   const [loading, setLoading] = useState(false);
-//   const [selectedId, setSelectedId] = useState(null);
-//   const [viewMode, setViewMode] = useState('table');
-//   const [expandedRows, setExpandedRows] = useState(new Set());
-//   const navigate = useNavigate();
-
-//   /* ── Fetch ─────────────────────────────────────────────────────────────── */
-//   const fetchWinners = async () => {
-//     setLoading(true);
-//     try {
-//       const { data } = await api.get('/api/admin/enquiries/winners', {
-//         headers: getAuthHeaders(),
-//       });
-
-//       const firstDecrypt = decryptResponse(data);
-//       const secondDecrypt = firstDecrypt?.data?.iv
-//         ? decryptResponse(firstDecrypt.data)
-//         : firstDecrypt;
-
-//       const list = secondDecrypt?.data || [];
-
-//       // Filter nulls, then map API field names → component field names
-//       // API sends: highestBid, topFiveBidders, totalBids
-//       const safe = Array.isArray(list)
-//         ? list
-//           .filter(item => item && item.user && item.carDetails) // removed `item.winner` check
-//           .map(item => ({
-//             ...item,
-//             winningAmount: item.highestBid,
-//             lastFiveBidders: item.topFiveBidders,
-//           }))
-//           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // ← latest first
-//         : [];
-
-//       setWinners(safe);
-//     } catch (err) {
-//       addToast(err?.response?.data?.message || 'Error loading winners', 'error');
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   useEffect(() => { fetchWinners(); }, []);
-
-
-//   /* ── Filter ────────────────────────────────────────────────────────────── */
-//   /* ── Filter ── */
-//   useEffect(() => {
-//     const t = searchTerm.toLowerCase();
-//     setFiltered(
-//       winners.filter(item => {
-//         const w = item.winner;   // may be null
-//         const u = item.user;
-//         const c = item.carDetails;
-//         return [
-//           w?.firstName, w?.lastName, w?.email, w?.phone,   // ← optional chaining
-//           u?.firstName, u?.lastName, u?.phone, u?.email,
-//           c?.make, c?.model, c?.registrationNumber,
-//           item.auctionId, item.enquiryId,
-//         ]
-//           .filter(Boolean)
-//           .join(' ')
-//           .toLowerCase()
-//           .includes(t);
-//       })
-//     );
-//   }, [winners, searchTerm]);
-//    if (selectedId) {
-//   return (
-//     <EnquiryDetailPage
-//       enquiryId={selectedId}
-//       onBack={() => setSelectedId(null)}
-//     />
-//   );
-// }
-
-//   /* ── Stats ── */
-//   const totalBidAmount = winners.reduce((s, w) => s + (w.winningAmount || 0), 0);
-//   const uniqueWinners = new Set(
-//     winners.filter(w => w.winner).map(w => w.winner._id)   // ← filter nulls first
-//   ).size;
-//   const totalBids = winners.reduce((s, w) => s + (w.totalBids || 0), 0);  /* ── Row toggle ────────────────────────────────────────────────────────── */
-//   const toggleRow = (id) => {
-//     setExpandedRows(prev => {
-//       const next = new Set(prev);
-//       next.has(id) ? next.delete(id) : next.add(id);
-//       return next;
-//     });
-//   };
-
-//   return (
-//     <div className="flex flex-col gap-6">
-//       {/* Header */}
-//       <div className="flex items-start justify-between gap-4">
-//         <div>
-//           <h1 className="text-3xl font-bold text-gray-800">Auction Winners</h1>
-//           <p className="text-gray-400 text-sm mt-1">All closed auction winners and bidding history</p>
-//         </div>
-//         <button
-//           onClick={fetchWinners}
-//           className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-all text-xs font-medium flex-shrink-0 shadow-sm"
-//         >
-//           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-//           Refresh
-//         </button>
-//       </div>
-
-//       {/* Stats */}
-//       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-//         <StatCard
-//           label="Total Auctions Won"
-//           value={winners.length}
-//           icon={<Trophy className="w-4 h-4 text-amber-500" />}
-//           accent="bg-amber-500"
-//           sub="All Time"
-//         />
-//         <StatCard
-//           label="Unique Winners"
-//           value={uniqueWinners}
-//           icon={<User className="w-4 h-4 text-indigo-500" />}
-//           accent="bg-indigo-500"
-//           sub="Distinct"
-//         />
-//         <StatCard
-//           label="Total Bid Amount"
-//           value={`₹${(totalBidAmount / 100000).toFixed(1)}L`}
-//           icon={<DollarSign className="w-4 h-4 text-emerald-500" />}
-//           accent="bg-emerald-500"
-//           sub="Combined"
-//         />
-//         <StatCard
-//           label="Bids Tracked"
-//           value={totalBids}
-//           icon={<Hash className="w-4 h-4 text-violet-500" />}
-//           accent="bg-violet-500"
-//           sub="Total"
-//         />
-//       </div>
-
-//       {/* Search + View Toggle */}
-//       <div className="flex items-center gap-3">
-//         <div className="relative flex-1 max-w-md">
-//           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-//           <input
-//             type="text"
-//             placeholder="Search winner, owner, car, reg no…"
-//             value={searchTerm}
-//             onChange={e => setSearchTerm(e.target.value)}
-//             className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 placeholder-gray-400 focus:border-indigo-400 focus:outline-none transition-all text-sm shadow-sm"
-//           />
-//         </div>
-//         <div className="flex items-center gap-1 p-1 rounded-xl bg-gray-100 border border-gray-200">
-//           {['table', 'grid'].map(mode => (
-//             <button
-//               key={mode}
-//               onClick={() => setViewMode(mode)}
-//               className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${viewMode === mode
-//                 ? 'bg-indigo-500 text-white shadow-sm'
-//                 : 'text-gray-400 hover:text-gray-600'
-//                 }`}
-//             >
-//               {mode}
-//             </button>
-//           ))}
-//         </div>
-//       </div>
-
-//       {/* Content */}
-//       {loading ? (
-//         <div className="rounded-2xl bg-white border border-gray-100 p-12 flex items-center justify-center shadow-sm">
-//           <div className="flex items-center gap-3 text-gray-400">
-//             <RefreshCw className="w-5 h-5 animate-spin" />
-//             <span>Loading winners…</span>
-//           </div>
-//         </div>
-//       ) : filtered.length === 0 ? (
-//         <div className="rounded-2xl bg-white border border-gray-100 p-16 flex flex-col items-center justify-center gap-3 shadow-sm">
-//           <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center">
-//             <Trophy className="w-5 h-5 text-gray-300" />
-//           </div>
-//           <p className="text-gray-400 text-sm font-medium">No winners found</p>
-//           <p className="text-gray-300 text-xs">Try adjusting your search</p>
-//         </div>
-//       ) : viewMode === 'grid' ? (
-//         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-//           {filtered.map((item, i) => (
-//             <WinnerCard key={item.auctionId} item={item} index={i} />
-//           ))}
-//         </div>
-//       ) : (
-//         <div className="rounded-2xl bg-white border border-gray-100 overflow-hidden shadow-sm">
-//           <div className="overflow-x-auto">
-//             <table className="w-full whitespace-nowrap min-w-[1000px]">
-//               <thead>
-//                 <tr className="border-b border-gray-100 bg-gray-50">
-//                   {['#','', 'Winner', 'Car Owner', 'Vehicle', 'Reg No.', 'Winning Bid', 'Total Bids', 'Date', 'Action', ''].map(h => (
-//                     <th
-//                       key={h}
-//                       className="px-4 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest"
-//                     >
-//                       {h}
-//                     </th>
-//                   ))}
-//                 </tr>
-//               </thead>
-//               <tbody className="divide-y divide-gray-50">
-//                 {filtered.map((item, index) => {
-//                   const winner = item.winner;
-//                   const user = item.user;
-//                   const car = item.carDetails;
-//                   const winnerName = safeName(winner);
-//                   const ownerName = safeName(user);
-//                   const isExpanded = expandedRows.has(item.auctionId);
-//                   const hasBidders = item.lastFiveBidders?.length > 0;
-
-//                   return (
-//                     <React.Fragment key={item.auctionId}>
-//                       <tr className={`hover:bg-gray-50 transition-colors ${isExpanded ? 'bg-gray-50/50' : ''}`}>
-
-//                         {/* Rank */}
-//                         <td className="px-4 py-3">
-//                           <div className="w-7 h-7 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center">
-//                             <span className="text-amber-500 text-xs font-bold">{index + 1}</span>
-//                           </div>
-//                         </td>
-
-//                         {/* Winner */}
-
-//                         <td className="px-4 py-3">
-//                           <div className="flex items-center gap-2.5">
-//                             <Avatar src={winner?.profileImage} name={winnerName} colorIdx={index} />
-//                             <div className="min-w-0">
-//                               {winner ? (
-//                                 <>
-//                                   <div className="flex items-center gap-1 mb-0.5">
-//                                     <Trophy className="w-3 h-3 text-amber-500 flex-shrink-0" />
-//                                     <p className="text-gray-800 font-semibold text-sm truncate">{winnerName}</p>
-//                                   </div>
-//                                   <p className="text-gray-400 text-xs truncate max-w-[160px]">{winner.email || '—'}</p>
-//                                   <p className="text-gray-300 text-xs">{winner.phone || '—'}</p>
-//                                 </>
-//                               ) : (
-//                                 <span className="text-gray-300 text-xs italic">No winner yet</span>
-//                               )}
-//                             </div>
-//                           </div>
-//                         </td>
-
-//                         {/* Car Owner */}
-//                         <td className="px-4 py-3">
-//                           <p className="text-gray-700 text-sm font-medium">{ownerName}</p>
-//                           <p className="text-gray-400 text-xs">{user.phone || '—'}</p>
-//                           <p className="text-gray-300 text-xs truncate max-w-[140px]">{user.email || '—'}</p>
-//                         </td>
-
-//                         {/* Vehicle */}
-//                         <td className="px-4 py-3">
-//                           <p className="text-gray-700 text-sm font-medium capitalize truncate max-w-[140px]">{car.make || '—'}</p>
-//                           <p className="text-gray-400 text-xs truncate max-w-[140px]">{car.model || '—'}</p>
-//                           <p className="text-gray-300 text-xs">{car.year || '—'} · {car.color || '—'}</p>
-//                         </td>
-
-//                         {/* Reg No */}
-//                         <td className="px-4 py-3">
-//                           <span className="font-mono text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100">
-//                             {car.registrationNumber || '—'}
-//                           </span>
-//                           <p className="text-gray-300 text-xs mt-1">
-//                             {car.mileage != null ? `${car.mileage.toLocaleString()} km` : '—'}
-//                           </p>
-//                         </td>
-
-//                         {/* Winning Bid — from highestBid mapped as winningAmount */}
-//                         <td className="px-4 py-3">
-//                           <span className="text-amber-500 font-bold text-base">
-//                             ₹{(item.winningAmount || 0).toLocaleString()}
-//                           </span>
-//                         </td>
-
-//                         {/* Total Bids — from API's totalBids field */}
-//                         <td className="px-4 py-3">
-//                           <span className="text-indigo-500 font-semibold text-sm">
-//                             {item.totalBids || 0}
-//                           </span>
-//                           <p className="text-gray-300 text-[10px]">total</p>
-//                         </td>
-
-//                         {/* Date */}
-//                         <td className="px-4 py-3 text-gray-400 text-xs">
-//                           {item.createdAt
-//                             ? new Date(item.createdAt).toLocaleDateString('en-IN', {
-//                               day: '2-digit',
-//                               month: 'short',
-//                               year: 'numeric',
-//                             })
-//                             : '—'}
-//                         </td>
-
-//                         {/* View Button — fixed: inside its own <td> */}
-//                         {console.log('Rendering View button for enquiryId:', item.enquiryId)}   
-//                         <td className="px-4 py-3">
-//                           <button
-//                             onClick={() => setSelectedId(item.enquiryId)}
-//                             className="px-3 py-1.5 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 transition-all text-xs font-semibold"
-//                           >
-//                             View
-//                           </button>
-//                         </td>
-
-//                         {/* Expand Bidders */}
-//                         <td className="px-4 py-3">
-//                           {hasBidders && (
-//                             <button
-//                               onClick={() => toggleRow(item.auctionId)}
-//                               className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${isExpanded
-//                                 ? 'bg-indigo-100 text-indigo-600 border border-indigo-200'
-//                                 : 'bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-gray-600 border border-gray-100'
-//                                 }`}
-//                             >
-//                               {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-//                               Bids
-//                             </button>
-//                           )}
-//                         </td>
-//                       </tr>
-
-//                       {isExpanded && hasBidders && (
-//                         <ExpandedBidders bidders={item.lastFiveBidders} />
-//                       )}
-//                     </React.Fragment>
-//                   );
-//                 })}
-//               </tbody>
-//             </table>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
-
-
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useToast } from '../hooks/useToast';
 import { decryptResponse } from '../utls/decryptResponse';
 import {
-  Search, Trophy, User, Phone, Mail, Hash, Car,
-  RefreshCw, DollarSign, Calendar, ChevronDown, ChevronUp
+  Search, Trophy, User, RefreshCw, DollarSign, LayoutGrid, List,
+  ArrowUpRight, Gavel, History, ChevronDown, ChevronUp, Phone, Mail, Car, Tag
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import EnquiryDetailPage from './Enquirydetailpage';
 
 /* ─── API ─────────────────────────────────────────────────────────────────── */
 const API_URL = import.meta.env.VITE_API_URL || '';
 const api = axios.create({ baseURL: API_URL });
-const getAuthHeaders = () => ({
-  Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
-});
+const getAuthHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('adminToken')}` });
 
-const avatarColors = [
-  'from-indigo-500 to-violet-600',
-  'from-pink-500 to-rose-600',
-  'from-amber-500 to-orange-600',
-  'from-emerald-500 to-teal-600',
-  'from-sky-500 to-blue-600',
-  'from-violet-500 to-purple-600',
-];
-
-/* ─── Safe name helper ────────────────────────────────────────────────────── */
+/* ─── Helpers ─────────────────────────────────────────────────────────────── */
 const safeName = (obj) =>
   obj ? `${obj.firstName || ''} ${obj.lastName || ''}`.trim() || 'Unknown' : 'Unknown';
 
+
+
+const fmtDate = (d) =>
+  d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+
+const fmtTimeShort = (d) =>
+  d ? new Date(d).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '—';
+
 /* ─── Avatar ─────────────────────────────────────────────────────────────── */
+const PALETTES = [
+  ['#6366f1', '#8b5cf6'], ['#ec4899', '#f43f5e'], ['#f59e0b', '#f97316'],
+  ['#10b981', '#14b8a6'], ['#3b82f6', '#0ea5e9'],
+];
 const Avatar = ({ src, name, size = 'md', colorIdx = 0 }) => {
   const [err, setErr] = useState(false);
-  const initials = name
-    ? name.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2)
-    : '?';
-  const sz = size === 'lg' ? 'w-11 h-11 text-sm' : 'w-9 h-9 text-xs';
-  const grad = avatarColors[colorIdx % avatarColors.length];
-
-  if (src && !err) {
-    return (
-      <img
-        src={src}
-        alt={name}
-        onError={() => setErr(true)}
-        className={`${sz} rounded-full object-cover ring-2 ring-white/10 flex-shrink-0`}
-      />
-    );
-  }
+  const initials = name ? name.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2) : '?';
+  const dim = { xl: 44, lg: 36, md: 32, sm: 26 }[size] || 32;
+  const fs  = { xl: 15, lg: 13, md: 11, sm: 9  }[size] || 11;
+  const [c1, c2] = PALETTES[colorIdx % PALETTES.length];
+  if (src && !err)
+    return <img src={src} alt={name} onError={() => setErr(true)}
+      style={{ width: dim, height: dim, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />;
   return (
-    <div className={`${sz} rounded-full bg-gradient-to-br ${grad} flex items-center justify-center flex-shrink-0 ring-2 ring-white/10`}>
-      <span className="text-white font-bold">{initials}</span>
-    </div>
+    <div style={{
+      width: dim, height: dim, borderRadius: '50%', flexShrink: 0,
+      background: `linear-gradient(135deg,${c1},${c2})`,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      color: '#fff', fontWeight: 700, fontSize: fs,
+    }}>{initials}</div>
   );
 };
 
 /* ─── Stat Card ──────────────────────────────────────────────────────────── */
-const StatCard = ({ label, value, icon, accent, sub }) => (
-  <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-100 p-5 hover:border-gray-200 transition-all duration-300 group shadow-sm">
-    <div className={`absolute -top-5 -right-5 w-20 h-20 rounded-full blur-2xl opacity-20 group-hover:opacity-30 transition-opacity ${accent}`} />
-    <div className="flex items-center justify-between mb-3">
-      <span className={`w-9 h-9 rounded-xl flex items-center justify-center ${accent} bg-opacity-20`}>{icon}</span>
-      <span className="text-gray-400 text-xs font-medium">{sub}</span>
+const StatCard = ({ label, value, icon, color }) => (
+  <div style={{
+    background: '#fff', border: '1px solid #f1f5f9', borderRadius: 16,
+    padding: '20px', display: 'flex', alignItems: 'center', gap: 16,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+  }}>
+    <div style={{
+      width: 52, height: 52, borderRadius: 12, background: `${color}18`,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      {React.cloneElement(icon, { size: 24, color })}
     </div>
-    <p className="text-gray-800 text-2xl font-bold tracking-tight">{value}</p>
-    <p className="text-gray-400 text-xs font-medium mt-0.5 tracking-wide uppercase">{label}</p>
+    <div>
+      <div style={{ fontSize: 24, fontWeight: 800, color: '#111827' }}>{value}</div>
+      <div style={{ fontSize: 13, color: '#64748b', marginTop: 2 }}>{label}</div>
+    </div>
   </div>
 );
 
-/* ─── Bidder Row ─────────────────────────────────────────────────────────── */
-const BidderRow = ({ bidder, bidAmount, bidTime, rank, onAccept, accepting }) => {
-  const name = safeName(bidder);
-  const time = bidTime
-    ? new Date(bidTime).toLocaleString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-    : '—';
-  return (
-    <div
-      className={`flex items-center gap-3 px-3 py-2 rounded-xl ${rank === 0
-        ? 'bg-amber-50 border border-amber-200'
-        : 'bg-gray-50 border border-gray-100'
-        }`}
-    >
-      <div
-        className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${rank === 0 ? 'bg-amber-500 text-white' : 'bg-gray-200 text-gray-500'
-          }`}
-      >
-        {rank + 1}
-      </div>
-      <Avatar name={name} size="sm" colorIdx={rank} />
-      <div className="flex-1 min-w-0">
-        <p className="text-gray-700 text-xs font-semibold truncate">{name}</p>
-        <p className="text-gray-400 text-[10px] truncate">{bidder?.email || '—'}</p>
-        <p className="text-gray-400 text-[10px] truncate">{bidder?.phone || '—'}</p>
-      </div>
-      <div className="text-right flex-shrink-0 flex items-center gap-2">
-        <div>
-          <p className={`font-bold text-sm ${rank === 0 ? 'text-amber-500' : 'text-gray-500'}`}>
-            ₹{bidAmount?.toLocaleString() || '—'}
-          </p>
-          <p className="text-gray-300 text-[10px]">{time}</p>
-        </div>
-        {onAccept && (
-          <button
-            onClick={() => onAccept({ bidder, bidAmount, bidTime })}
-            disabled={accepting}
-            className="px-2.5 py-1 rounded-lg bg-emerald-500 text-white text-[10px] font-semibold hover:bg-emerald-600 transition-all disabled:opacity-50 flex-shrink-0"
-          >
-            {accepting ? '...' : 'Accept'}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-};
-
-/* ─── Winner Card (Grid) ─────────────────────────────────────────────────── */
-const WinnerCard = ({ item, index, onAccept, acceptingId }) => {
-  const [expanded, setExpanded] = useState(false);
-  const navigate = useNavigate();
-
-  const winner = item.winner || {};
-  const user = item.user || {};
-  const car = item.carDetails || {};
-
-  const winnerName = safeName(winner);
-  const ownerName = safeName(user);
-
-  return (
-    <div className="rounded-2xl bg-white border border-gray-100 overflow-hidden hover:border-gray-200 hover:shadow-md transition-all duration-300 shadow-sm">
-      <div className="h-1 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600" />
-
-      <div className="p-5">
-        {/* Rank + Auction ID */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center">
-              <span className="text-amber-500 text-xs font-bold">#{index + 1}</span>
-            </div>
-            <span className="text-gray-300 text-[10px] font-mono">
-              {(item.auctionId || '').slice(-8).toUpperCase()}
-            </span>
-          </div>
-          <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 text-[10px] font-semibold uppercase">
-            {item.status || '—'}
-          </span>
-        </div>
-
-        {/* Winner */}
-        <div className="flex items-center gap-3 mb-4">
-          <Avatar src={winner.profileImage} name={winnerName} size="lg" colorIdx={index} />
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <Trophy className="w-3 h-3 text-amber-500 flex-shrink-0" />
-              <span className="text-amber-500 text-[10px] font-bold uppercase tracking-wide">Winner</span>
-            </div>
-            <p className="text-gray-800 font-semibold text-sm truncate">{winnerName}</p>
-            <p className="text-gray-400 text-xs truncate">{winner.email || '—'}</p>
-          </div>
-        </div>
-
-        {/* Winner contact */}
-        <div className="flex items-center gap-2 mb-4">
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-50 border border-gray-100 flex-1 min-w-0">
-            <Phone className="w-3 h-3 text-gray-400 flex-shrink-0" />
-            <span className="text-gray-500 text-xs truncate">{winner.phone || '—'}</span>
-          </div>
-        </div>
-
-        {/* Winning amount — uses highestBid (mapped as winningAmount) */}
-        <div className="flex items-center justify-between p-3 rounded-xl bg-amber-50 border border-amber-100 mb-4">
-          <span className="text-gray-500 text-xs font-medium">Winning Bid</span>
-          <span className="text-amber-500 font-bold text-lg">
-            ₹{(item.winningAmount || 0).toLocaleString()}
-          </span>
-        </div>
-
-        {/* Bid stats */}
-        <div className="flex items-center justify-between p-3 rounded-xl bg-indigo-50 border border-indigo-100 mb-4">
-          <span className="text-gray-500 text-xs font-medium">Total Bids</span>
-          <span className="text-indigo-600 font-bold text-base">
-            {item.totalBids || 0}
-          </span>
-        </div>
-
-        {/* Car Details */}
-        <div className="rounded-xl bg-gray-50 border border-gray-100 p-3 mb-4">
-          <div className="flex items-center gap-1.5 mb-3">
-            <Car className="w-3.5 h-3.5 text-indigo-500" />
-            <span className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Vehicle</span>
-          </div>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-            {[
-              ['Make', car.make],
-              ['Model', car.model],
-              ['Year', car.year],
-              ['Color', car.color],
-              ['Reg No.', car.registrationNumber || '—'],
-              ['Mileage', car.mileage != null ? `${car.mileage.toLocaleString()} km` : '—'],
-            ].map(([k, v]) => (
-              <div key={k}>
-                <p className="text-gray-300 text-[9px] uppercase tracking-wider">{k}</p>
-                <p className="text-gray-600 text-xs font-medium mt-0.5 truncate" title={v}>{v || '—'}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Car Owner */}
-        <div className="rounded-xl bg-gray-50 border border-gray-100 p-3 mb-4">
-          <div className="flex items-center gap-1.5 mb-2">
-            <User className="w-3.5 h-3.5 text-violet-500" />
-            <span className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Car Owner</span>
-          </div>
-          <p className="text-gray-700 text-sm font-medium">{ownerName}</p>
-          <p className="text-gray-400 text-xs mt-0.5">{user.phone || '—'}</p>
-          <p className="text-gray-300 text-xs">{user.email || '—'}</p>
-        </div>
-
-        {/* Meta */}
-        <div className="flex items-center justify-between text-[10px] text-gray-300 mb-3">
-          <span className="flex items-center gap-1">
-            <Calendar className="w-3 h-3" />
-            {item.createdAt
-              ? new Date(item.createdAt).toLocaleDateString('en-IN', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-              })
-              : '—'}
-          </span>
-          <span className="font-mono">{(item.enquiryId || '').slice(-8).toUpperCase()}</span>
-        </div>
-
-        {/* View button */}
-        <button
-          onClick={() => navigate(`/auctions/${item.auctionId}`, { state: item })}
-          className="w-full mb-3 py-2 rounded-xl bg-indigo-500 text-white hover:bg-indigo-600 transition-all text-xs font-semibold"
-        >
-          View Details
-        </button>
-
-        {/* Expand bidders — uses topFiveBidders (mapped as lastFiveBidders) */}
-        {item.lastFiveBidders?.length > 0 && (
-          <button
-            onClick={() => setExpanded(e => !e)}
-            className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-gray-50 border border-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all text-xs font-semibold"
-          >
-            {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-            {expanded ? 'Hide' : 'Show'} Bidders ({item.lastFiveBidders.length})
-          </button>
-        )}
-      </div>
-
-      {expanded && item.lastFiveBidders?.length > 0 && (
-        <div className="px-5 pb-5 space-y-2 border-t border-gray-100 pt-4">
-          <p className="text-gray-300 text-[10px] font-bold uppercase tracking-widest mb-3">
-            Top {item.lastFiveBidders.length} Bids
-          </p>
-          {item.lastFiveBidders.map((b, i) => {
-            const id = b.bidder?._id || `${item.auctionId}-${i}`;
-            return (
-              <BidderRow
-                key={i}
-                rank={i}
-                bidder={b.bidder}
-                bidAmount={b.bidAmount}
-                bidTime={b.bidTime}
-                onAccept={onAccept ? (payload) => onAccept(item, b) : undefined}
-                accepting={acceptingId === id}
-              />
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-};
-
-/* ─── Table Row Expanded Bidders ─────────────────────────────────────────── */
-const ExpandedBidders = ({ bidders, item, onAccept, acceptingId }) => (
-  <tr>
-    <td colSpan={10} className="px-6 pb-4 pt-0">
-      <div className="rounded-xl bg-gray-50 border border-gray-100 p-3">
-        <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-3">
-          Top {bidders.length} Bids
-        </p>
-        <div className="space-y-2">
-          {bidders.map((b, i) => {
-            const id = b.bidder?._id || `${item.auctionId}-${i}`;
-            return (
-              <BidderRow
-                key={i}
-                rank={i}
-                bidder={b.bidder}
-                bidAmount={b.bidAmount}
-                bidTime={b.bidTime}
-                onAccept={onAccept ? (payload) => onAccept(item, b) : undefined}
-                accepting={acceptingId === id}
-              />
-            );
-          })}
-        </div>
-      </div>
-    </td>
-  </tr>
+/* ─── Shared badge helper ────────────────────────────────────────────────── */
+const Badge = ({ children, bg, color }) => (
+  <span style={{
+    display: 'inline-flex', alignItems: 'center', padding: '3px 10px',
+    borderRadius: 999, background: bg, color, fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
+  }}>{children}</span>
 );
 
+const ocbBadge = (status) => {
+  const map = {
+    open:   { bg: '#dbeafe', color: '#1d4ed8' },
+    closed: { bg: '#f1f5f9', color: '#64748b' },
+    pending:{ bg: '#fef9c3', color: '#a16207' },
+  };
+  const s = (status || 'closed').toLowerCase();
+  const { bg, color } = map[s] || map.closed;
+  return <Badge bg={bg} color={color}>{s.toUpperCase()}</Badge>;
+};
+
+/* ─── Table styles ───────────────────────────────────────────────────────── */
+const tdStyle = { padding: '14px 16px', borderBottom: '1px solid #f1f5f9', verticalAlign: 'middle' };
+const thStyle = { textAlign: 'left', padding: '14px 16px', fontWeight: 600, color: '#475569', fontSize: 13, whiteSpace: 'nowrap' };
+
+/* ─── AuctionTableRow ────────────────────────────────────────────────────── */
+const AuctionTableRow = ({ item, index, onViewDetails, expanded, onToggle }) => {
+  const car    = item.carDetails  || {};
+  const winner = item.winner      || null;
+  const owner  = item.user        || {};
+  const ocb    = item.ocb         || null;
+
+  return (
+    <>
+      <tr style={{ transition: 'background .15s' }}
+        onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
+        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+      >
+        {/* # */}
+        <td style={{ ...tdStyle, color: '#94a3b8', fontWeight: 600 }}>{index + 1}</td>
+ <td style={tdStyle}>
+          <div style={{ fontWeight: 700, color: '#0f172a' }}> {item.enquiryIdcustom || ''}</div>
+       
+          
+        </td>
+        {/* Vehicle */}
+        <td style={tdStyle}>
+          <div style={{ fontWeight: 700, color: '#0f172a' }}> {car.model || ''}</div>
+          <div style={{ fontSize: 12, color: '#64748b', marginTop: 3, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Tag size={11} /> {car.registrationNumber || 'No reg.'}
+            {car.year && <span style={{ marginLeft: 6, background: '#f1f5f9', borderRadius: 4, padding: '1px 6px' }}>{car.year}</span>}
+          </div>
+        </td>
+
+        {/* Auction Winner */}
+        <td style={tdStyle}>
+          {winner ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Avatar name={safeName(winner)} size="sm" colorIdx={index} />
+              <div>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>{safeName(winner)}</div>
+                <div style={{ fontSize: 12, color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Phone size={10} /> {winner.phone || '—'}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <span style={{ color: '#cbd5e1', fontSize: 13 }}>No bids</span>
+          )}
+        </td>
+
+        {/* Winning Bid (Auction) */}
+        <td style={tdStyle}>
+          <div style={{ fontWeight: 800, color: '#059669', fontSize: 15 }}>{(item.winningAmount)}</div>
+          <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{item.totalBids} bid{item.totalBids !== 1 ? 's' : ''}</div>
+        </td>
+
+        {/* OCB Status */}
+        <td style={tdStyle}>
+          {ocb ? ocbBadge(ocb.status) : <span style={{ color: '#cbd5e1' }}>—</span>}
+        </td>
+
+        {/* OCB Final Price */}
+        <td style={tdStyle}>
+          {ocb?.finalPrice
+            ? <span style={{ fontWeight: 700, color: '#6366f1' }}>{(ocb.finalPrice)}</span>
+            : <span style={{ color: '#cbd5e1' }}>—</span>}
+        </td>
+
+        {/* OCB Winner */}
+        <td style={tdStyle}>
+          {ocb?.winner?.bidder ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Avatar name={safeName(ocb.winner.bidder)} size="sm" colorIdx={index + 2} />
+              <div>
+                <div style={{ fontWeight: 600, fontSize: 13 }}>{safeName(ocb.winner.bidder)}</div>
+                <div style={{ fontSize: 11, color: '#64748b' }}>{(ocb.winner.acceptedAmount)}</div>
+              </div>
+            </div>
+          ) : (
+            <span style={{ color: '#cbd5e1', fontSize: 13 }}>—</span>
+          )}
+        </td>
+
+        {/* Date */}
+        <td style={{ ...tdStyle, fontSize: 13, color: '#64748b' }}>{fmtDate(item.createdAt)}</td>
+
+        {/* Actions */}
+        <td style={tdStyle}>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button onClick={() => onViewDetails(item.enquiryId)}
+              style={{
+                border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+                color: '#fff', padding: '7px 14px', borderRadius: 8, cursor: 'pointer',
+                fontWeight: 600, fontSize: 13,
+              }}>View</button>
+            <button onClick={onToggle}
+              style={{
+                border: '1px solid #e2e8f0', background: '#fff', padding: '7px 10px',
+                borderRadius: 8, cursor: 'pointer', color: '#64748b',
+                display: 'flex', alignItems: 'center',
+              }}>
+              {expanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+            </button>
+          </div>
+        </td>
+      </tr>
+
+      {/* ── Expanded Detail Row ───────────────────────────────────────────── */}
+      {expanded && (
+        <tr>
+          <td colSpan={9} style={{ background: '#f8fafc', padding: 0 }}>
+            <div style={{ padding: '20px 24px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 24 }}>
+
+              {/* Owner */}
+              {/* <Section title="Car Owner">
+                <InfoRow label="Name"  value={safeName(owner)} />
+                <InfoRow label="Email" value={owner.email || '—'} />
+                <InfoRow label="Phone" value={owner.phone || '—'} />
+              </Section> */}
+
+              {/* Auction Bids */}
+              <Section title={`Current Round · ${item.currentBids?.length || 0} bid(s)`}>
+                {item.currentBids?.length ? (
+                  <MiniTable
+                    rows={item.currentBids}
+                    cols={[
+                      { label: 'Bidder', render: b => safeName(b.bidder) },
+                      { label: 'Phone',  render: b => b.bidder?.phone || '—' },
+                      { label: 'Amount', render: b => (b.bidAmount) },
+                      { label: 'Time',   render: b => fmtTimeShort(b.bidTime) },
+                    ]}
+                  />
+                ) : <Empty>No bids</Empty>}
+              </Section>
+
+              {/* OCB Interests */}
+              <Section title={`BNB Interests · ${item.ocb?.currentInterests?.total ?? 0}`}>
+                {item.ocb?.currentInterests?.interests?.length ? (
+                  <MiniTable
+                    rows={item.ocb.currentInterests.interests}
+                    cols={[
+                      { label: 'Bidder', render: r => r.bidderName || safeName(r.bidder) },
+                      { label: 'Phone',  render: r => r.bidder?.phone || '—' },
+                      { label: 'Offer',  render: r => (r.interestAmount) },
+                      { label: 'Status', render: r => <Badge bg="#fef9c3" color="#a16207">{r.status}</Badge> },
+                    ]}
+                  />
+                ) : <Empty>No interests yet</Empty>}
+              </Section>
+               {/* OCB Interests */}
+            <Section
+  title={`BNB Previous Interests · ${item.ocb?.previousInterests?.length || 0}`}
+>
+  {item.ocb?.previousInterests?.length ? (
+    <MiniTable
+      rows={item.ocb.previousInterests}
+      cols={[
+        {
+          label: 'Bidder',
+          render: r => r.bidderName || safeName(r.bidder),
+        },
+        {
+          label: 'Phone',
+          render: r => r.bidderPhone || r.bidder?.phone || '—',
+        },
+        {
+          label: 'Offer',
+          render: r => `₹${Number(r.interestAmount || 0).toLocaleString()}`,
+        },
+        {
+          label: 'Status',
+          render: r => (
+            <Badge bg="#fef9c3" color="#a16207">
+              {r.status}
+            </Badge>
+          ),
+        },
+        {
+          label: 'Moved',
+          render: r => fmtDate(r.movedAt),
+        },
+      ]}
+    />
+  ) : (
+    <Empty>No previous interests</Empty>
+  )}
+</Section>
+
+              {/* Previous Auction Rounds (full width if present) */}
+              {item.previousBidRounds?.length > 0 && (
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <Section title={`Previous Bid Rounds · ${item.previousBidRounds.length}`}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 12 }}>
+                      {item.previousBidRounds.map((round, ri) => (
+                        <div key={ri} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14 }}>
+                          <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Round #{ri + 1}</div>
+                          <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 10 }}>{fmtDate(round.movedAt)}</div>
+                          <MiniTable
+                            rows={round.bids || []}
+                            cols={[
+                              { label: 'Bidder', render: b => safeName(b.bidder) },
+                              { label: 'Phone',  render: b => b.bidder?.phone || '—' },
+                              { label: 'Amount', render: b => (b.bidAmount) },
+                              { label: 'Time',   render: b => fmtTimeShort(b.bidTime) },
+                            ]}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </Section>
+                </div>
+              )}
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
+  );
+};
+
+/* ─── Small helpers for expanded rows ───────────────────────────────────── */
+const Section = ({ title, children }) => (
+  <div>
+    <div style={{ fontSize: 11, fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>{title}</div>
+    {children}
+  </div>
+);
+const InfoRow = ({ label, value }) => (
+  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
+    <span style={{ color: '#94a3b8' }}>{label}</span>
+    <span style={{ fontWeight: 600, color: '#1e293b' }}>{value}</span>
+  </div>
+);
+const MiniTable = ({ rows, cols }) => (
+  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+    <thead>
+      <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+        {cols.map(c => <th key={c.label} style={{ textAlign: 'left', padding: '4px 8px', color: '#94a3b8', fontWeight: 600 }}>{c.label}</th>)}
+      </tr>
+    </thead>
+    <tbody>
+      {rows.map((row, i) => (
+        <tr key={i} style={{ borderBottom: '1px solid #f8fafc' }}>
+          {cols.map(c => <td key={c.label} style={{ padding: '6px 8px', color: '#1e293b' }}>{c.render(row)}</td>)}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+);
+const Empty = ({ children }) => (
+  <div style={{ color: '#cbd5e1', fontSize: 13, fontStyle: 'italic', padding: '8px 0' }}>{children}</div>
+);
+const Chip = ({ children, color }) => (
+  <span style={{
+    fontSize: 10, padding: '3px 9px', borderRadius: 6,
+    background: `${color}18`, color, border: `1px solid ${color}50`,
+  }}>{children}</span>
+);
+
+const StatMini = ({ label, value, accent, bg, border }) => (
+  <div style={{ background: bg, border: `1px solid ${border}`, borderRadius: 10, padding: '10px 12px' }}>
+    <div style={{ fontSize: 9.5, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>{label}</div>
+    <div style={{ fontSize: 17, fontWeight: 800, color: accent, marginTop: 4 }}>{value}</div>
+  </div>
+);
+
+const PersonRow = ({ icon, label, name, phone, idx, small }) => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+    <Avatar name={name} size={small ? 'sm' : 'sm'} colorIdx={idx} />
+    <div>
+      <div style={{ fontSize: 9.5, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 4 }}>
+        {icon} {label}
+      </div>
+      <div style={{ fontWeight: 600, fontSize: small ? 13 : 14 }}>{name}</div>
+      {phone && <div style={{ fontSize: 11, color: '#64748b' }}>{phone}</div>}
+    </div>
+  </div>
+);
 
 /* ─── Main Component ─────────────────────────────────────────────────────── */
 export default function Winners() {
   const { addToast } = useToast();
-  const [winners, setWinners] = useState([]);
-  const [filtered, setFiltered] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [selectedId, setSelectedId] = useState(null);
-  const [viewMode, setViewMode] = useState('table');
-  const [expandedRows, setExpandedRows] = useState(new Set());
-  const [acceptingId, setAcceptingId] = useState(null);
-  const navigate = useNavigate();
+  const [winners,      setWinners]      = useState([]);
+  const [filtered,     setFiltered]     = useState([]);
+  const [searchTerm,   setSearchTerm]   = useState('');
+  const [loading,      setLoading]      = useState(false);
+  const [selectedId,   setSelectedId]   = useState(null);
+ 
+  const [expandedRows, setExpandedRows] = useState({});
 
-  /* ── Fetch ─────────────────────────────────────────────────────────────── */
+  /* ── Data fetching & mapping ────────────────────────────────────────── */
   const fetchWinners = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get('/api/admin/enquiries/winners', {
-        headers: getAuthHeaders(),
-      });
+      const { data } = await api.get('/api/admin/enquiries/winners', { headers: getAuthHeaders() });
+      const firstDecrypt  = decryptResponse(data);
+      const secondDecrypt = firstDecrypt?.data?.iv ? decryptResponse(firstDecrypt.data) : firstDecrypt;
+      const list          = secondDecrypt?.data || [];
 
-      const firstDecrypt = decryptResponse(data);
-      const secondDecrypt = firstDecrypt?.data?.iv
-        ? decryptResponse(firstDecrypt.data)
-        : firstDecrypt;
-
-      const list = secondDecrypt?.data || [];
-
-      // Filter nulls, then map API field names → component field names
-      // API sends: highestBid, topFiveBidders, totalBids
       const safe = Array.isArray(list)
-        ? list
-          .filter(item => item && item.user && item.carDetails) // removed `item.winner` check
-          .map(item => ({
-            ...item,
-            winningAmount: item.highestBid,
-            lastFiveBidders: item.topFiveBidders,
-          }))
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // ← latest first
+        ? list.map((item) => {
+            const auction      = item.auction      || {};
+            const currentRound = auction.currentRound || {};
+            const ocb          = item.ocb          || null;
+
+            // ── Auction winner
+            let auctionWinner = auction.winner?.bidder || null;
+            if (!auctionWinner && currentRound.topFiveBidders?.length) {
+              auctionWinner = currentRound.topFiveBidders[0]?.bidder || null;
+            }
+
+            return {
+              ...item,
+              enquiryId:        item.enquiryId,
+              user:             item.user             || {},
+              carDetails:       item.carDetails        || {},
+              auction:          auction,                          // keep full object for card
+              auctionId:        auction.auctionId      || '',
+              status:           auction.status         || 'open',
+              createdAt:        auction.createdAt,
+              winner:           auctionWinner,
+              winningAmount:    auction.winner?.winningBidAmount ?? currentRound.highestBid ?? 0,
+              totalBids:        currentRound.totalBids  ?? 0,
+              highestBid:       currentRound.highestBid ?? 0,
+              currentBids:      currentRound.bids        || [],
+              topFiveBidders:   currentRound.topFiveBidders || [],
+              previousBidRounds: auction.previousBidRounds || [],
+              ocb,              // ← full OCB object (includes winner, currentInterests, etc.)
+            };
+          })
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         : [];
 
       setWinners(safe);
+      setFiltered(safe);
     } catch (err) {
       addToast(err?.response?.data?.message || 'Error loading winners', 'error');
     } finally {
@@ -993,332 +432,154 @@ export default function Winners() {
 
   useEffect(() => { fetchWinners(); }, []);
 
-  /* ── Accept Bid ────────────────────────────────────────────────────────── */
-  const handleAcceptBid = async (item, bidEntry) => {
-    const id = bidEntry.bidder?._id || `${item.auctionId}-${bidEntry.bidAmount}`;
-    setAcceptingId(id);
-    try {
-      await api.post(
-        `/api/admin/enquiries/${item.enquiryId}/accept-bid`,
-        {
-          auctionId: item.auctionId,
-          bidderId: bidEntry.bidder?._id,
-          bidAmount: bidEntry.bidAmount,
-        },
-        { headers: getAuthHeaders() }
-      );
-      addToast('Bid accepted successfully!', 'success');
-      fetchWinners();
-    } catch (err) {
-      addToast(err?.response?.data?.message || 'Error accepting bid', 'error');
-    } finally {
-      setAcceptingId(null);
-    }
-  };
-
-  /* ── Filter ────────────────────────────────────────────────────────────── */
+  /* ── Search ─────────────────────────────────────────────────────────── */
   useEffect(() => {
-    const t = searchTerm.toLowerCase();
-    setFiltered(
-      winners.filter(item => {
-        const w = item.winner;   // may be null
-        const u = item.user;
-        const c = item.carDetails;
-        return [
-          w?.firstName, w?.lastName, w?.email, w?.phone,
-          u?.firstName, u?.lastName, u?.phone, u?.email,
-          c?.make, c?.model, c?.registrationNumber,
-          item.auctionId, item.enquiryId,
-        ]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase()
-          .includes(t);
-      })
-    );
+    const term = searchTerm.toLowerCase();
+    setFiltered(winners.filter(item => {
+      const blob = [
+        item.carDetails?.make,
+        item.carDetails?.model,
+        item.carDetails?.registrationNumber,
+        safeName(item.winner),
+        safeName(item.user),
+        item.winner?.phone,
+        item.user?.phone,
+        item.auctionId,
+        item.ocb?.winner?.bidder ? safeName(item.ocb.winner.bidder) : '',
+      ].filter(Boolean).join(' ').toLowerCase();
+      return blob.includes(term);
+    }));
   }, [winners, searchTerm]);
 
-  if (selectedId) {
-    return (
-      <EnquiryDetailPage
-        enquiryId={selectedId}
-        onBack={() => setSelectedId(null)}
-      />
-    );
-  }
+  /* ── Derived stats ──────────────────────────────────────────────────── */
+  const totalValue    = winners.reduce((s, w) => s + (w.winningAmount || 0), 0);
+  const uniqueWinners = new Set(winners.filter(w => w.winner).map(w => w.winner._id)).size;
+  const ocbOpen       = winners.filter(w => w.ocb?.status === 'open').length;
+  const ocbClosed     = winners.filter(w => w.ocb?.status === 'closed').length;
 
-  /* ── Stats ── */
-  const totalBidAmount = winners.reduce((s, w) => s + (w.winningAmount || 0), 0);
-  const uniqueWinners = new Set(
-    winners.filter(w => w.winner).map(w => w.winner._id)
-  ).size;
-  const totalBids = winners.reduce((s, w) => s + (w.totalBids || 0), 0);
+  const toggleExpand = (id) => setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
 
-  /* ── Row toggle ────────────────────────────────────────────────────────── */
-  const toggleRow = (id) => {
-    setExpandedRows(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
+  if (selectedId) return <EnquiryDetailPage enquiryId={selectedId} onBack={() => setSelectedId(null)} />;
 
+  /* ── Render ─────────────────────────────────────────────────────────── */
   return (
-    <div className="flex flex-col gap-6">
+    <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Auction Winners</h1>
-          <p className="text-gray-400 text-sm mt-1">All closed auction winners and bidding history</p>
+          <h1 style={{ margin: 0, fontSize: 28, fontWeight: 900, color: '#0f172a' }}>Auction Winners</h1>
+          <p style={{ margin: '6px 0 0', color: '#64748b' }}>
+            {winners.length} auctions · {uniqueWinners} unique winners
+          </p>
         </div>
-        <button
-          onClick={fetchWinners}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-all text-xs font-medium flex-shrink-0 shadow-sm"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+        <button onClick={fetchWinners} style={{
+          display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px',
+          borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff',
+          fontWeight: 600, cursor: 'pointer',
+        }}>
+          <RefreshCw size={16} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
           Refresh
         </button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard
-          label="Total Auctions Won"
-          value={winners.length}
-          icon={<Trophy className="w-4 h-4 text-amber-500" />}
-          accent="bg-amber-500"
-          sub="All Time"
-        />
-        <StatCard
-          label="Unique Winners"
-          value={uniqueWinners}
-          icon={<User className="w-4 h-4 text-indigo-500" />}
-          accent="bg-indigo-500"
-          sub="Distinct"
-        />
-        <StatCard
-          label="Total Bid Amount"
-          value={`₹${(totalBidAmount / 100000).toFixed(1)}L`}
-          icon={<DollarSign className="w-4 h-4 text-emerald-500" />}
-          accent="bg-emerald-500"
-          sub="Combined"
-        />
-        <StatCard
-          label="Bids Tracked"
-          value={totalBids}
-          icon={<Hash className="w-4 h-4 text-violet-500" />}
-          accent="bg-violet-500"
-          sub="Total"
-        />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 16 }}>
+        <StatCard label="Total Auctions"  value={winners.length}          icon={<Trophy />}     color="#f59e0b" />
+        <StatCard label="Unique Winners"  value={uniqueWinners}           icon={<User />}       color="#6366f1" />
+        <StatCard label="Total Bid Value" value={(totalValue)} icon={<DollarSign />} color="#10b981" />
+        <StatCard label="BNB Open"        value={ocbOpen}                 icon={<Gavel />}      color="#3b82f6" />
+        <StatCard label="BNB Closed"      value={ocbClosed}               icon={<History />}    color="#64748b" />
       </div>
 
-      {/* Search + View Toggle */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+      {/* Search + Toggle */}
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', flex: 1, minWidth: 240, maxWidth: 480 }}>
+          <Search size={16} color="#94a3b8"
+            style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
           <input
             type="text"
-            placeholder="Search winner, owner, car, reg no…"
+            placeholder="Search by car, winner, owner, phone, reg…"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 placeholder-gray-400 focus:border-indigo-400 focus:outline-none transition-all text-sm shadow-sm"
+            style={{
+              width: '100%', padding: '11px 12px 11px 44px',
+              borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 14,
+              outline: 'none', boxSizing: 'border-box',
+            }}
           />
         </div>
-        <div className="flex items-center gap-1 p-1 rounded-xl bg-gray-100 border border-gray-200">
-          {['table', 'grid'].map(mode => (
-            <button
-              key={mode}
-              onClick={() => setViewMode(mode)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${viewMode === mode
-                ? 'bg-indigo-500 text-white shadow-sm'
-                : 'text-gray-400 hover:text-gray-600'
-                }`}
-            >
-              {mode}
-            </button>
-          ))}
-        </div>
+
+        
       </div>
 
       {/* Content */}
       {loading ? (
-        <div className="rounded-2xl bg-white border border-gray-100 p-12 flex items-center justify-center shadow-sm">
-          <div className="flex items-center gap-3 text-gray-400">
-            <RefreshCw className="w-5 h-5 animate-spin" />
-            <span>Loading winners…</span>
-          </div>
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-2xl bg-white border border-gray-100 p-16 flex flex-col items-center justify-center gap-3 shadow-sm">
-          <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center">
-            <Trophy className="w-5 h-5 text-gray-300" />
-          </div>
-          <p className="text-gray-400 text-sm font-medium">No winners found</p>
-          <p className="text-gray-300 text-xs">Try adjusting your search</p>
-        </div>
-      ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((item, i) => (
-            <WinnerCard
-              key={item.auctionId}
-              item={item}
-              index={i}
-              onAccept={handleAcceptBid}
-              acceptingId={acceptingId}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="rounded-2xl bg-white border border-gray-100 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full whitespace-nowrap min-w-[1000px]">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50">
-                  {['#', '', 'Winner', 'Car Owner', 'Vehicle', 'Reg No.', 'Winning Bid', 'Total Bids', 'Date', 'Action', ''].map(h => (
-                    <th
-                      key={h}
-                      className="px-4 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest"
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {filtered.map((item, index) => {
-                  const winner = item.winner;
-                  const user = item.user;
-                  const car = item.carDetails;
-                  const winnerName = safeName(winner);
-                  const ownerName = safeName(user);
-                  const isExpanded = expandedRows.has(item.auctionId);
-                  const hasBidders = item.lastFiveBidders?.length > 0;
+  <div style={{ textAlign: 'center', padding: '100px 20px', color: '#64748b' }}>
+    <RefreshCw
+      size={32}
+      style={{ animation: 'spin 1s linear infinite', marginBottom: 16 }}
+    />
+    <div>Loading auctions…</div>
+  </div>
+) : filtered.length === 0 ? (
+  <div style={{ textAlign: 'center', padding: '120px 20px', color: '#94a3b8' }}>
+    <Trophy size={48} strokeWidth={1} />
+    <p style={{ marginTop: 16, fontSize: 18 }}>No results found</p>
+  </div>
+) : (
+  <div
+    style={{
+      background: '#fff',
+      borderRadius: 16,
+      border: '1px solid #e2e8f0',
+      overflowX: 'auto',
+    }}
+  >
+    <table
+      style={{
+        width: '100%',
+        borderCollapse: 'collapse',
+        minWidth: 900,
+      }}
+    >
+      <thead>
+        <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+          <th style={thStyle}>#</th>
+          <th style={thStyle}>Enquiry ID</th>
+          <th style={thStyle}>Vehicle</th>
+          <th style={thStyle}>Auction Winner</th>
+          <th style={thStyle}>Bid Amount</th>
+          <th style={thStyle}>Status</th>
+          <th style={thStyle}>BNB Price</th>
+          <th style={thStyle}>BNB Winner</th>
+          <th style={thStyle}>Date</th>
+          <th style={{ ...thStyle, textAlign: 'center' }}>Actions</th>
+        </tr>
+      </thead>
 
-                  return (
-                    <React.Fragment key={item.auctionId}>
-                      <tr className={`hover:bg-gray-50 transition-colors ${isExpanded ? 'bg-gray-50/50' : ''}`}>
+      <tbody>
+        {filtered.map((item, i) => (
+          <AuctionTableRow
+            key={item.auctionId || i}
+            item={item}
+            index={i}
+            onViewDetails={id => setSelectedId(id)}
+            expanded={!!expandedRows[item.auctionId]}
+            onToggle={() => toggleExpand(item.auctionId)}
+          />
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
 
-                        {/* Rank */}
-                        <td className="px-4 py-3">
-                          <div className="w-7 h-7 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center">
-                            <span className="text-amber-500 text-xs font-bold">{index + 1}</span>
-                          </div>
-                        </td>
-
-                        {/* Winner */}
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2.5">
-                            <Avatar src={winner?.profileImage} name={winnerName} colorIdx={index} />
-                            <div className="min-w-0">
-                              {winner ? (
-                                <>
-                                  <div className="flex items-center gap-1 mb-0.5">
-                                    <Trophy className="w-3 h-3 text-amber-500 flex-shrink-0" />
-                                    <p className="text-gray-800 font-semibold text-sm truncate">{winnerName}</p>
-                                  </div>
-                                  <p className="text-gray-400 text-xs truncate max-w-[160px]">{winner.email || '—'}</p>
-                                  <p className="text-gray-300 text-xs">{winner.phone || '—'}</p>
-                                </>
-                              ) : (
-                                <span className="text-gray-300 text-xs italic">No winner yet</span>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* Car Owner */}
-                        <td className="px-4 py-3">
-                          <p className="text-gray-700 text-sm font-medium">{ownerName}</p>
-                          <p className="text-gray-400 text-xs">{user?.phone || '—'}</p>
-                          <p className="text-gray-300 text-xs truncate max-w-[140px]">{user?.email || '—'}</p>
-                        </td>
-
-                        {/* Vehicle */}
-                        <td className="px-4 py-3">
-                          <p className="text-gray-700 text-sm font-medium capitalize truncate max-w-[140px]">{car?.make || '—'}</p>
-                          <p className="text-gray-400 text-xs truncate max-w-[140px]">{car?.model || '—'}</p>
-                          <p className="text-gray-300 text-xs">{car?.year || '—'} · {car?.color || '—'}</p>
-                        </td>
-
-                        {/* Reg No */}
-                        <td className="px-4 py-3">
-                          <span className="font-mono text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100">
-                            {car?.registrationNumber || '—'}
-                          </span>
-                          <p className="text-gray-300 text-xs mt-1">
-                            {car?.mileage != null ? `${car.mileage.toLocaleString()} km` : '—'}
-                          </p>
-                        </td>
-
-                        {/* Winning Bid — from highestBid mapped as winningAmount */}
-                        <td className="px-4 py-3">
-                          <span className="text-amber-500 font-bold text-base">
-                            ₹{(item.winningAmount || 0).toLocaleString()}
-                          </span>
-                        </td>
-
-                        {/* Total Bids — from API's totalBids field */}
-                        <td className="px-4 py-3">
-                          <span className="text-indigo-500 font-semibold text-sm">
-                            {item.totalBids || 0}
-                          </span>
-                          <p className="text-gray-300 text-[10px]">total</p>
-                        </td>
-
-                        {/* Date */}
-                        <td className="px-4 py-3 text-gray-400 text-xs">
-                          {item.createdAt
-                            ? new Date(item.createdAt).toLocaleDateString('en-IN', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric',
-                            })
-                            : '—'}
-                        </td>
-
-                        {/* View Button */}
-                        <td className="px-4 py-3">
-                          <button
-                            onClick={() => setSelectedId(item.enquiryId)}
-                            className="px-3 py-1.5 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 transition-all text-xs font-semibold"
-                          >
-                            View
-                          </button>
-                        </td>
-
-                        {/* Expand Bidders */}
-                        <td className="px-4 py-3">
-                          {hasBidders && (
-                            <button
-                              onClick={() => toggleRow(item.auctionId)}
-                              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${isExpanded
-                                ? 'bg-indigo-100 text-indigo-600 border border-indigo-200'
-                                : 'bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-gray-600 border border-gray-100'
-                                }`}
-                            >
-                              {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                              Bids
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-
-                      {isExpanded && hasBidders && (
-                        <ExpandedBidders
-                          bidders={item.lastFiveBidders}
-                          item={item}
-                          onAccept={handleAcceptBid}
-                          acceptingId={acceptingId}
-                        />
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        * { box-sizing: border-box; }
+        button { transition: all .2s ease; }
+        button:hover { opacity: .9; }
+      `}</style>
     </div>
   );
 }

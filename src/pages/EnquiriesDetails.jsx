@@ -32,7 +32,7 @@ const COMPLETED_STATUSES = new Set(['resolved', 'closed', 'completed']);
 
 const normalizeEnquiry = (raw, idx) => ({
   id: raw._id || raw.id || `idx-${idx}`,
-  name: [raw.userId?.firstName, raw.userId?.lastName].filter(Boolean).join(' ') || 'Unknown',
+  name: [raw.userId?.firstName, raw.userId?.lastName].filter(Boolean).join(' ') || raw.customerName || 'Unknown',
   email: raw.userId?.email || 'N/A',
   phone: raw.contactNumber || raw.userId?.phone || '—',
   subject: raw.title || raw.description || 'No subject',
@@ -49,6 +49,7 @@ const normalizeEnquiry = (raw, idx) => ({
   avatar: `${raw.userId?.firstName?.[0] || 'U'}${raw.userId?.lastName?.[0] || ''}`.toUpperCase(),
   estimatedCost: raw.estimatedCost || 0,
   actualCost: raw.actualCost || 0,
+  customerName: raw.customerName || '—',
   enquiryId: raw.enquiryId || raw._id || raw.id || `idx-${idx}`,
   auctionStarted: raw.auctionStarted || false,
 });
@@ -250,6 +251,7 @@ const StartAuctionModal = ({ enquiry, onClose, onConfirm, loading }) => {
   );
 };
 
+const TABLE_GRID ="grid-cols-[120px_240px_220px_110px_120px_180px_180px]";
 /* ─── Main Component ─────────────────────────────────────────────────────── */
 const EnquiriesDetails = () => {
   const [enquiries, setEnquiries] = useState([]);
@@ -270,61 +272,61 @@ const EnquiriesDetails = () => {
   const token = () => localStorage.getItem('adminToken');
   const authHeader = () => ({ Authorization: `Bearer ${token()}` });
 
-   const assignRA = async (enquiryId,raId) => {
-        try {
-          console.log( "Assigning RA:",{ enquiryId, raId });
+  const assignRA = async (enquiryId, raId) => {
+    try {
+      console.log("Assigning RA:", { enquiryId, raId });
 
-          const res = await axios.put(
-            `${import.meta.env.VITE_API_URL
-            }/api/admin/RA/${enquiryId}/${raId}`,
-            {},
-            {
-              headers: {
-                "Content-Type":
-                  "application/json",
-                ...authHeader(),
-              },
-            }
-          );
-
-          console.log(
-            "RA Assigned:",
-            res.data
-          );
-
-          // Update UI instantly
-          setEnquiries((prev) =>
-            prev.map((item) =>
-              item.id === enquiryId
-                ? {
-                  ...item,
-                  assignedRaId: raId,
-                }
-                : item
-            )
-          );
-
-          toast.success?.(
-            "RA assigned successfully"
-          );
-
-          // Optional refresh from API
-          fetchEnquiries(
-            pagination.page
-          );
-        } catch (error) {
-          console.error(
-            "Assign RA Error:",
-            error
-          );
-
-          toast.error?.(
-            error?.response?.data
-              ?.message ||
-            "Failed to assign RA"
-          );
+      const res = await axios.put(
+        `${import.meta.env.VITE_API_URL
+        }/api/admin/RA/${enquiryId}/${raId}`,
+        {},
+        {
+          headers: {
+            "Content-Type":
+              "application/json",
+            ...authHeader(),
+          },
         }
-      };
+      );
+
+      console.log(
+        "RA Assigned:",
+        res.data
+      );
+
+      // Update UI instantly
+      setEnquiries((prev) =>
+        prev.map((item) =>
+          item.id === enquiryId
+            ? {
+              ...item,
+              assignedRaId: raId,
+            }
+            : item
+        )
+      );
+
+      toast.success?.(
+        "RA assigned successfully"
+      );
+
+      // Optional refresh from API
+      fetchEnquiries(
+        pagination.page
+      );
+    } catch (error) {
+      console.error(
+        "Assign RA Error:",
+        error
+      );
+
+      toast.error?.(
+        error?.response?.data
+          ?.message ||
+        "Failed to assign RA"
+      );
+    }
+  };
   /* ── Fetch ──────────────────────────────────────────────────────────────── */
   const fetchEnquiries = useCallback(async (page = 1) => {
     setLoading(true);
@@ -342,7 +344,7 @@ const EnquiriesDetails = () => {
           },
         }
       );
-     
+
 
       const rawList = res.data?.data ?? res.data ?? [];
       const rawPagination = res.data?.pagination ?? null;
@@ -508,258 +510,235 @@ const EnquiriesDetails = () => {
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl bg-white border border-white/[0.06] overflow-hidden">
-        <div className="overflow-x-auto">
-          <div className="min-w-[780px]">
-            {/* Headers */}
-            <div className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr_1fr_180px] gap-4 px-5 py-3 border-b border-white/[0.05] bg-white/[0.02]">
-              {['Sender', 'Subject', 'Priority', 'Status', 'Cost', 'RA', 'Actions'].map(h => (
-                <span key={h} className="indigo-500/25 text-[10px] font-bold tracking-widest uppercase">{h}</span>
-              ))}
-            </div>
+  <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+  <div className="overflow-x-auto">
+    <div className="min-w-[1320px]">
 
-            {/* Skeleton */}
-            {loading && (
-              <div className="divide-y divide-white/[0.04]">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr_180px] gap-4 px-5 py-4 items-center animate-pulse">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-white/10 flex-shrink-0" />
-                      <div className="space-y-1.5 flex-1">
-                        <div className="h-3 bg-white/10 rounded w-3/4" />
-                        <div className="h-2.5 bg-white/[0.06] rounded w-1/2" />
-                      </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <div className="h-3 bg-white/10 rounded w-4/5" />
-                      <div className="h-2.5 bg-white/[0.06] rounded w-1/3" />
-                    </div>
-                    <div className="h-5 bg-white/10 rounded-full w-16" />
-                    <div className="h-5 bg-white/10 rounded-full w-20" />
-                    <div className="h-5 bg-white/10 rounded w-20" />
+      {/* Header */}
+      <div
+        className={`grid ${TABLE_GRID} gap-4 px-4 py-3 bg-slate-50 border-b border-slate-200`}
+      >
+        {[
+          "Enquiry ID",
+          "Sender",
+          "Subject",
+          "Priority",
+          "Status",
+          
+          "RA",
+          "Actions",
+        ].map((h) => (
+          <div
+            key={h}
+            className="text-[11px] font-semibold uppercase tracking-wider text-slate-500"
+          >
+            {h}
+          </div>
+        ))}
+      </div>
 
-                    <div className="flex gap-2">
-                      <div className="h-7 bg-white/10 rounded-lg w-24" />
-                      <div className="h-7 bg-white/10 rounded-lg w-10" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+      {/* Loading */}
+      {loading && (
+        <div className="divide-y divide-slate-100">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className={`grid ${TABLE_GRID} gap-4 px-4 py-3 items-center animate-pulse`}
+            >
+              <div className="h-4 bg-slate-200 rounded w-20" />
 
-            {/* Empty */}
-            {!loading && filtered.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="w-12 h-12 rounded-xl bg-white/[0.04] flex items-center justify-center mb-3">
-                  <svg className="w-5 h-5 indigo-500/20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-slate-200" />
+
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 bg-slate-200 rounded w-32" />
+                  <div className="h-2 bg-slate-100 rounded w-24" />
                 </div>
-                <p className="indigo-500/30 text-sm font-medium">No completed enquiries found</p>
-                <p className="indigo-500/15 text-xs mt-1">
-                  {filterStatus !== 'all'
-                    ? `No "${filterStatus}" enquiries${search ? ' matching your search' : ''}`
-                    : 'No completed enquiries yet'}
+              </div>
+
+              <div className="space-y-2">
+                <div className="h-3 bg-slate-200 rounded w-40" />
+                <div className="h-2 bg-slate-100 rounded w-24" />
+              </div>
+
+              <div className="h-6 bg-slate-200 rounded-full w-20" />
+              <div className="h-6 bg-slate-200 rounded-full w-24" />
+              <div className="h-4 bg-slate-200 rounded w-16" />
+              <div className="h-10 bg-slate-200 rounded-lg w-full" />
+              <div className="h-8 bg-slate-200 rounded-lg w-28" />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Empty */}
+      {!loading && filtered.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-20">
+          <p className="text-sm font-medium text-slate-600">
+            No completed enquiries found
+          </p>
+
+          <p className="mt-1 text-xs text-slate-400">
+            {filterStatus !== "all"
+              ? `No "${filterStatus}" enquiries found`
+              : "No completed enquiries yet"}
+          </p>
+        </div>
+      )}
+
+      {/* Rows */}
+      {!loading &&
+        filtered.map((enq, idx) => {
+          const sc = statusConfig[enq.status] || {
+            label: enq.status,
+            bg: "bg-gray-100",
+            text: "text-gray-600",
+            dot: "bg-gray-500",
+          };
+
+          const pc = priorityConfig[enq.priority] || {
+            label: enq.priority,
+            bg: "bg-gray-100",
+            text: "text-gray-600",
+            border: "border-gray-200",
+          };
+
+          const grad =
+            avatarGradients[idx % avatarGradients.length];
+
+          const hasAuctionStarted =
+            auctionStarted.has(enq.id) ||
+            enq.auctionStarted;
+
+          return (
+            <div
+              key={enq.id}
+              className={`grid ${TABLE_GRID} gap-4 px-4 py-3 items-center border-b border-slate-100 hover:bg-slate-50 transition-colors`}
+            >
+              {/* Enquiry ID */}
+              <div
+                className="cursor-pointer"
+                onClick={() => setSelectedId(enq.id)}
+              >
+                <p className="font-semibold text-sm text-slate-800">
+                  {enq.enquiryId}
                 </p>
-                {filterStatus !== 'all' && (
-                  <button onClick={() => setFilter('all')} className="mt-3 text-teal-400 text-xs hover:text-teal-300 transition-colors">
-                    Show all completed
+              </div>
+
+              {/* Sender */}
+              <div className="flex items-center gap-3 min-w-0">
+                <div
+                  className={`w-9 h-9 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center text-white text-xs font-bold shrink-0`}
+                >
+                  {enq.avatar}
+                </div>
+
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-slate-900">
+                    {enq.name || enq.customerName}
+                  </p>
+
+                  <p className="truncate text-xs text-slate-500">
+                    {enq.email}
+                  </p>
+                </div>
+              </div>
+
+              {/* Subject */}
+              <div
+                className="cursor-pointer min-w-0"
+                onClick={() => setSelectedId(enq.id)}
+              >
+                <p className="truncate text-sm text-slate-700 hover:text-indigo-600">
+                  {enq.subject}
+                </p>
+
+                <p className="mt-1 text-xs text-slate-400">
+                  {enq.date}
+                </p>
+              </div>
+
+              {/* Priority */}
+              <div>
+                <span
+                  className={`inline-flex items-center rounded-full border px-2 py-1 text-[11px] font-medium ${pc.bg} ${pc.text} ${pc.border}`}
+                >
+                  {pc.label}
+                </span>
+              </div>
+
+              {/* Status */}
+              <div>
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${sc.bg} ${sc.text}`}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${sc.dot}`}
+                  />
+
+                  {sc.label}
+                </span>
+              </div>
+
+              
+
+              {/* RA */}
+              <div>
+                <select
+                  value={enq.assignedRaId || ""}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                  onChange={(e) =>
+                    assignRA(enq.id, e.target.value)
+                  }
+                >
+                  <option value="">Unassigned</option>
+
+                  {raList.map((ra) => (
+                    <option key={ra._id} value={ra._id}>
+                      {ra.firstName} {ra.lastName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-end gap-2">
+                {hasAuctionStarted ? (
+                  <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-3 py-2 text-[11px] font-medium text-emerald-700">
+                    Auction Live
+                  </span>
+                ) : (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setAuctionModal(enq);
+                    }}
+                    className="rounded-lg bg-teal-50 px-3 py-2 text-[11px] font-medium text-teal-700 hover:bg-teal-100 transition-colors"
+                  >
+                    Start Auction
                   </button>
                 )}
-              </div>
-            )}
 
-            {/* Rows */}
-            {!loading && filtered.map((enq, idx) => {
-              const sc = statusConfig[enq.status] || {
-                label: enq.status,
-                bg: 'bg-gray-500/15',
-                text: 'text-gray-400',
-                dot: 'bg-gray-400'
-              };
-
-              const pc = priorityConfig[enq.priority] || {
-                label: enq.priority,
-                bg: 'bg-gray-500/10',
-                text: 'text-gray-400',
-                border: 'border-gray-500/20'
-              };
-
-              const grad =
-                avatarGradients[idx % avatarGradients.length];
-
-              const hasAuctionStarted =
-                auctionStarted.has(enq.id) ||
-                enq.auctionStarted;
-
-              return (
-                <div
-                  key={enq.id}
-                  className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr_1fr_180px] gap-4 px-5 py-4 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.025] transition-colors duration-150 items-center group"
+                <button
+                  onClick={() => setSelectedId(enq.id)}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-700"
                 >
-                  {/* Sender */}
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div
-                      className={`w-8 h-8 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center indigo-500 text-xs font-bold flex-shrink-0`}
-                    >
-                      {enq.avatar}
-                    </div>
+                  👁
+                </button>
+              </div>
+            </div>
+          );
+        })}
 
-                    <div className="min-w-0">
-                      <p className="indigo-500/85 text-sm font-medium truncate">
-                        {enq.name}
-                      </p>
-                      <p className="indigo-500/30 text-xs truncate">
-                        {enq.email}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Subject */}
-                  <div
-                    className="min-w-0 cursor-pointer"
-                    onClick={() => setSelectedId(enq.id)}
-                  >
-                    <p className="indigo-500/70 text-sm truncate hover:text-teal-400 transition-colors">
-                      {enq.subject}
-                    </p>
-                    <p className="indigo-500/25 text-xs mt-0.5">
-                      {enq.date}
-                    </p>
-                  </div>
-
-                  {/* Priority */}
-                  <div>
-                    <span
-                      className={`inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full border ${pc.bg} ${pc.text} ${pc.border}`}
-                    >
-                      {pc.label}
-                    </span>
-                  </div>
-
-                  {/* Status */}
-                  <div>
-                    <span
-                      className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full ${sc.bg} ${sc.text}`}
-                    >
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full ${sc.dot}`}
-                      />
-                      {sc.label}
-                    </span>
-                  </div>
-
-                  {/* Cost */}
-                  <div className="min-w-0">
-                    {enq.actualCost > 0 ? (
-                      <p className="text-emerald-400 text-sm font-semibold">
-                        ₹{enq.actualCost.toLocaleString()}
-                      </p>
-                    ) : enq.estimatedCost > 0 ? (
-                      <p className="text-amber-400/70 text-xs">
-                        Est. ₹
-                        {enq.estimatedCost.toLocaleString()}
-                      </p>
-                    ) : (
-                      <p className="indigo-500/20 text-xs">—</p>
-                    )}
-                  </div>
-
-                  {/* RA */}
-                 
-                  <div className="min-w-0">
-                    <select
-                      value={enq.assignedRaId || ""}
-                      className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-                      onChange={(e) => {
-                        const selectedRaId = e.target.value;
-                        assignRA(enq.id, selectedRaId);
-                      }}
-                    >
-                      <option value="">
-                        Unassigned
-                      </option>
-
-                      {raList.map((ra) => (
-                        <option
-                          key={ra._id}
-                          value={ra._id}
-                        >
-                          {ra.firstName}{" "}
-                          {ra.lastName}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 justify-end">
-                    {hasAuctionStarted ? (
-                      <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-[11px] font-semibold">
-                        <svg
-                          className="w-3 h-3"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                        >
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        Auction Live
-                      </span>
-                    ) : (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setAuctionModal(enq);
-                        }}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-teal-500/10 text-teal-400 hover:bg-teal-500/20 text-[11px] font-semibold transition-all"
-                        title="Start Auction"
-                      >
-                        <svg
-                          className="w-3 h-3"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <polygon points="5 3 19 12 5 21 5 3" />
-                        </svg>
-                        Start Auction
-                      </button>
-                    )}
-
-                    <button
-                      onClick={() => setSelectedId(enq.id)}
-                      className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.05] indigo-500/40 hover:bg-white/[0.08] hover:indigo-500/70 transition-all"
-                      title="View Details"
-                    >
-                      <svg
-                        className="w-3.5 h-3.5"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                        <circle cx="12" cy="12" r="3" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* ── Pagination footer ─────────────────────────────────────────── */}
-            {!loading && filtered.length > 0 && (
-              <Pagination
-                pagination={pagination}
-                onPageChange={handlePageChange}
-              />
-            )}
-          </div>
-        </div>
-      </div>
+      {!loading && filtered.length > 0 && (
+        <Pagination
+          pagination={pagination}
+          onPageChange={handlePageChange}
+        />
+      )}
+    </div>
+  </div>
+</div>
 
       {/* Start Auction Modal */}
       <StartAuctionModal

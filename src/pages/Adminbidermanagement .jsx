@@ -38,29 +38,64 @@ async function apiFetch(url, opts = {}) {
 }
 
 // ─── CSV Export helper ───────────────────────────────────────────────────────
-function exportToCSV(data, filename = "biders.csv") {
-  if (!data.length) return;
-  const headers = ["Bidder ID", "Business Name", "First Name", "Last Name", "Email", "Phone", "Status", "Payment", "Registered"];
-  const rows = data.map(b => [
-    b.bidderCode,
+function exportToCSV(
+  data,
+  filename = "bidders.csv"
+) {
+  if (!Array.isArray(data) || !data.length) return;
+
+  const headers = [
+    "Bidder ID",
+    "Business Name",
+    "First Name",
+    "Last Name",
+    "Email",
+    "Phone",
+    "Status",
+    "Payment Status",
+    "Registered Date",
+  ];
+
+  const rows = data.map((b) => [
+    b.bidderCode || "",
     b.businessName || "",
-    b.firstName,
-    b.lastName,
-    b.email,
+    b.firstName || "",
+    b.lastName || "",
+    b.email || "",
     b.phone || "",
-    b.status,
+    b.status || "",
     b.is_payment ? "Paid" : "Unpaid",
-    new Date(b.createdAt).toLocaleDateString("en-IN"),
+    b.createdAt
+      ? new Date(b.createdAt).toLocaleDateString(
+          "en-IN"
+        )
+      : "",
   ]);
-  const csv = [headers, ...rows]
-    .map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(","))
+
+  const csvContent = [headers, ...rows]
+    .map((row) =>
+      row
+        .map((cell) =>
+          `"${String(cell).replace(/"/g, '""')}"`
+        )
+        .join(",")
+    )
     .join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+
+  const blob = new Blob([csvContent], {
+    type: "text/csv;charset=utf-8;",
+  });
+
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+
+  document.body.appendChild(link);
+  link.click();
+
+  document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
 

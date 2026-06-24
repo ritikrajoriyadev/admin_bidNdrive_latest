@@ -2,10 +2,11 @@
 import { useState } from "react";
 import axios from "axios";
 
-const RCVerification = () => {
+const RCVerification = ({ onSuccess, onClose }) => {
   const [rcNumber, setRcNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [data, setData] = useState(null);
   const [activeTab, setActiveTab] = useState("vehicle");
   const [creating, setCreating] = useState(false);
@@ -17,6 +18,7 @@ const RCVerification = () => {
     setError("");
     setData(null);
     setCreated(false);
+    setPhoneNumber("");
     try {
       const res = await axios.post(
         "https://api.bidndrive.in/api/cj/rc-varification",
@@ -35,81 +37,82 @@ const RCVerification = () => {
   };
 
   const createEnquiry = async () => {
-  if (!data) return;
-  setCreating(true);
-  setCreated(false);
-  const token = localStorage.getItem("adminToken");
+    if (!data) return;
+    setCreating(true);
+    setCreated(false);
+    const token = localStorage.getItem("adminToken");
 
-  try {
-    const fd = new FormData();
+    try {
+      const fd = new FormData();
 
-    // Basic fields
-    fd.append("enquiryType", "status");
-    fd.append("title", `RC Check - ${data.rc_number}`);
-    fd.append("description", `RC Verification enquiry for ${data.maker_model || "vehicle"} (${data.rc_number}). Owner: ${(data.owner_name || "").trim()}. RC Status: ${data.rc_status || "Unknown"}. Insurance: ${data.insurance_company || "N/A"} valid till ${data.insurance_upto || "N/A"}.`);
-    fd.append("priority", "medium");
-    fd.append("severity", "low");
-    fd.append("inspectionType", "center");
+      // Basic fields
+      fd.append("enquiryType", "status");
+      fd.append("title", `RC Check - ${data.rc_number}`);
+      fd.append("description", `RC Verification enquiry for ${data.maker_model || "vehicle"}). Owner: ${(data.owner_name || "").trim()}. RC Status: ${data.rc_status || "Unknown"}. Insurance: ${data.insurance_company || "N/A"} valid till ${data.insurance_upto || "N/A"}.`);
+      fd.append("priority", "medium");
+      fd.append("severity", "low");
+      fd.append("inspectionType", "center");
 
-    // Contact number from RC data
-    if (data.mobile_number) {
-      fd.append("contactNumber", data.mobile_number);
-    }
+      // Contact number from RC data
+      if (phoneNumber.trim()) {
+        fd.append("contactNumber", phoneNumber.trim());
+      }
 
-    // Customer name from RC owner
-    if (data.owner_name) {
-      fd.append("customerName", (data.owner_name || "").trim());
-    }
 
-    // Car Details - complete data
-    const carDetails = {
-      make: data.maker_description || "",
-      model: data.maker_model || "",
-      year: data.manufacturing_date_formatted?.split("-")[0] || "",
-      color: data.color || "",
-      mileage: "",
-      registrationNumber: data.rc_number || "",
-      chassisNumber: data.vehicle_chasi_number || "",
-      engineNumber: data.vehicle_engine_number || "",
-      fuelType: data.fuel_type || "",
-      bodyType: data.body_type || "",
-      category: data.vehicle_category_description || "",
-      seatCapacity: data.seat_capacity || "",
-      grossWeight: data.vehicle_gross_weight || "",
-      cubicCapacity: data.cubic_capacity || "",
-      emissionNorm: data.norms_type || "",
-      wheelbase: data.wheelbase || "",
-      manufacturingDate: data.manufacturing_date_formatted || "",
-      registrationDate: data.registration_date || "",
-      registeredAt: data.registered_at || "",
-    };
-    fd.append("carDetails", JSON.stringify(carDetails));
+      // Customer name from RC owner
+      if (data.owner_name) {
+        fd.append("customerName", (data.owner_name || "").trim());
+      }
 
-    // Selling Details - compliance + insurance info
-    const sellingDetails = {
-      fuelType: (data.fuel_type || "").toLowerCase(),
-      ownership: data.owner_number ? `${data.owner_number === "1" ? "first" : data.owner_number === "2" ? "second" : data.owner_number === "3" ? "third" : "fourth_or_more"}` : "",
-      accidentHistory: "none",
-      serviceHistoryAvailable: false,
-      city: data.present_address?.split(",").slice(-3, -1).join(",").trim() || "",
+      // Car Details - complete data
+      const carDetails = {
+        make: data.maker_description || "",
+        model: data.maker_model || "",
+        year: data.manufacturing_date_formatted?.split("-")[0] || "",
+        color: data.color || "",
+        mileage: "",
+        registrationNumber: data.rc_number || "",
+        chassisNumber: data.vehicle_chasi_number || "",
+        engineNumber: data.vehicle_engine_number || "",
+        fuelType: data.fuel_type || "",
+        bodyType: data.body_type || "",
+        category: data.vehicle_category_description || "",
+        seatCapacity: data.seat_capacity || "",
+        grossWeight: data.vehicle_gross_weight || "",
+        cubicCapacity: data.cubic_capacity || "",
+        emissionNorm: data.norms_type || "",
+        wheelbase: data.wheelbase || "",
+        manufacturingDate: data.manufacturing_date_formatted || "",
+        registrationDate: data.registration_date || "",
+        registeredAt: data.registered_at || "",
+      };
+      fd.append("carDetails", JSON.stringify(carDetails));
 
-      // Extra compliance fields as additionalInfo
-      rcStatus: data.rc_status || "",
-      fitUpto: data.fit_up_to || "",
-      taxUpto: data.tax_upto || "",
-      puccNumber: data.pucc_number || "",
-      puccUpto: data.pucc_upto || "",
-      insuranceCompany: data.insurance_company || "",
-      insurancePolicyNumber: data.insurance_policy_number || "",
-      insuranceUpto: data.insurance_upto || "",
-      blacklistStatus: data.blacklist_status || "Clear",
-      financed: data.financed || false,
-      financer: data.financer || "",
-    };
-    fd.append("sellingDetails", JSON.stringify(sellingDetails));
+      // Selling Details - compliance + insurance info
+      const sellingDetails = {
+        fuelType: (data.fuel_type || "").toLowerCase(),
+        ownership: data.owner_number ? `${data.owner_number === "1" ? "first" : data.owner_number === "2" ? "second" : data.owner_number === "3" ? "third" : "fourth_or_more"}` : "",
+        accidentHistory: "none",
+        serviceHistoryAvailable: false,
+        city: data.present_address?.split(",").slice(-3, -1).join(",").trim() || "",
 
-    // Additional Info - full RC summary
-    const additionalInfo = `
+        // Extra compliance fields as additionalInfo
+        rcStatus: data.rc_status || "",
+        fitUpto: data.fit_up_to || "",
+        taxUpto: data.tax_upto || "",
+        puccNumber: data.pucc_number || "",
+        puccUpto: data.pucc_upto || "",
+        insuranceCompany: data.insurance_company || "",
+        insurancePolicyNumber: data.insurance_policy_number || "",
+        insuranceUpto: data.insurance_upto || "",
+        blacklistStatus: data.blacklist_status || "Clear",
+        financed: data.financed || false,
+        financer: data.financer || "",
+      };
+      fd.append("sellingDetails", JSON.stringify(sellingDetails));
+
+      // Additional Info - full RC summary
+      const additionalInfo = `
 RC Number: ${data.rc_number || "—"}
 Owner: ${(data.owner_name || "").trim()}
 RC Status: ${data.rc_status || "—"}
@@ -122,30 +125,34 @@ Financed: ${data.financed ? `Yes - ${data.financer}` : "No"}
 Permit: ${data.permit_number || "None"}
 Address: ${data.present_address || "—"}
     `.trim();
-    fd.append("additionalInfo", additionalInfo);
+      fd.append("additionalInfo", additionalInfo);
 
-    await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/enquiries/admin`,
-      fd,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/enquiries/admin`,
+        fd,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    setCreated(true);
-  } catch (err) {
-    console.error("Create enquiry failed", err);
-    alert("Failed to create enquiry");
-  } finally {
-    setCreating(false);
-  }
-};
+      setCreated(true);
+      if (onSuccess) onSuccess(); 
+      if (onClose) onClose();
+      window.location.reload();
+      
+    } catch (err) {
+      console.error("Create enquiry failed", err);
+      alert("Failed to create enquiry");
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const fmt = (d) =>
     d
       ? new Date(d).toLocaleDateString("en-IN", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        })
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
       : "—";
 
   const isExpired = (d) => d && new Date(d) < new Date();
@@ -225,7 +232,7 @@ Address: ${data.present_address || "—"}
       {/* Result */}
       {data && (
         <div className="rounded-2xl border border-gray-100 overflow-hidden bg-white shadow-sm">
-          
+
           {/* Hero */}
           <div className="flex items-start gap-3 p-4 bg-gray-50 border-b border-gray-100 flex-wrap">
             <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center shrink-0">
@@ -239,18 +246,32 @@ Address: ${data.present_address || "—"}
 
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-800">{data.maker_model || "Unknown vehicle"}</p>
-              <p className="text-xs text-gray-400 font-mono mt-0.5">
-                {data.rc_number} · {data.color} · {data.fuel_type}
-              </p>
+              {/* Phone input — add after the hero flex div, before tabs */}
+              <div className="px-4 py-3 border-b border-gray-100 bg-white flex items-center gap-3">
+                <svg className="w-4 h-4 text-gray-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.77a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+                <input
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={e => setPhoneNumber(e.target.value)}
+                  placeholder="Enter customer phone number"
+                  className="flex-1 text-sm text-gray-700 outline-none bg-transparent placeholder:text-gray-300"
+                />
+                {phoneNumber && (
+                  <button onClick={() => setPhoneNumber("")} className="text-gray-300 hover:text-gray-500">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* RC Status badge */}
             <span
-              className={`flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0 ${
-                (data.rc_status || "").toLowerCase().includes("expired")
-                  ? "bg-rose-500/10 text-rose-500"
-                  : "bg-emerald-500/10 text-emerald-500"
-              }`}
+              className={`flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0 ${(data.rc_status || "").toLowerCase().includes("expired")
+                ? "bg-rose-500/10 text-rose-500"
+                : "bg-emerald-500/10 text-emerald-500"
+                }`}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-current" />
               {data.rc_status || "Active"}
@@ -260,11 +281,10 @@ Address: ${data.present_address || "—"}
             <button
               onClick={createEnquiry}
               disabled={creating || created}
-              className={`flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-full transition-all shrink-0 ${
-                created
-                  ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
-                  : "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 hover:bg-indigo-500/20"
-              } disabled:opacity-60 disabled:cursor-not-allowed`}
+              className={`flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-full transition-all shrink-0 ${created
+                ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                : "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 hover:bg-indigo-500/20"
+                } disabled:opacity-60 disabled:cursor-not-allowed`}
             >
               {creating ? (
                 <svg className="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none">
@@ -290,11 +310,10 @@ Address: ${data.present_address || "—"}
               <button
                 key={t.key}
                 onClick={() => setActiveTab(t.key)}
-                className={`px-3 py-2.5 text-xs font-semibold border-b-2 transition-colors ${
-                  activeTab === t.key
-                    ? "border-teal-500 text-teal-600"
-                    : "border-transparent text-gray-400 hover:text-gray-600"
-                }`}
+                className={`px-3 py-2.5 text-xs font-semibold border-b-2 transition-colors ${activeTab === t.key
+                  ? "border-teal-500 text-teal-600"
+                  : "border-transparent text-gray-400 hover:text-gray-600"
+                  }`}
               >
                 {t.label}
               </button>

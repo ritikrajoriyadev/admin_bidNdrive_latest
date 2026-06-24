@@ -25,15 +25,28 @@ const avatarColors = [
 /* ─── Normalize ──────────────────────────────────────────────────────────── */
 // Normalize for Auction
 const normalizeAuction = (auction) => {
+  
   const enq = auction.enquiry || {};
   const car = enq.carDetails || {};
   const sell = enq.sellingDetails || {};
-  const user = enq.userId || {};
+  const user = enq.userId || {}; // null for admin-created enquiries — see fallback below
   const thumb = enq.attachments?.[0]?.url || null;
   const bidsCount = auction.totalBids || 0;
   const topBid = auction.highestBid || 0;
+
+  // FIX: customer details aren't always nested under enquiry.userId.
+  // For admin-created enquiries (createdByAdmin: true), userId is null and the
+  // customer info instead lives directly on the enquiry object
+  // (customerName, customerEmail, contactNumber). Fall back to those.
+  const customerName =
+    `${user.firstName || ''} ${user.lastName || ''}`.trim() ||
+    enq.customerName ||
+    'N/A';
+  const customerEmail = user.email || enq.customerEmail || 'N/A';
+  const customerPhone = user.phone || enq.contactNumber || 'N/A';
+
   return {
-    id: auction.auctionId,
+    id: auction._id,
     enquiryDocId: enq._id || auction.auctionId,
     enquiryId: enq.enquiryId || '—',
     carMake: car.make || 'N/A',
@@ -47,7 +60,8 @@ const normalizeAuction = (auction) => {
     fuelType: sell.fuelType || '—',
     transmission: sell.transmission || '—',
     ownership: sell.ownership || '—',
-    kmsDriven: sell.kilometersDriven || 0,
+    // FIX: kilometersDriven isn't always present on sellingDetails — fall back to car.mileage
+    kmsDriven: sell.kilometersDriven ?? car.mileage ?? 0,
     city: sell.city || '—',
     startingPrice: auction.startingPrice || 0,
     reservePrice: auction.reservePrice || null,
@@ -62,9 +76,9 @@ const normalizeAuction = (auction) => {
     startDate: auction.startDate
       ? new Date(auction.startDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
       : '—',
-    customerName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'N/A',
-    customerEmail: user.email || 'N/A',
-    customerPhone: user.phone || 'N/A',
+    customerName,
+    customerEmail,
+    customerPhone,
     description: enq.description || '',
     priority: enq.priority || 'medium',
     remainingTime: auction.remainingTime || null,
@@ -136,10 +150,12 @@ const normalizeBNB = (ocb) => {
       : '—',
 
     customerName:
-      `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'N/A',
+      `${user.firstName || ''} ${user.lastName || ''}`.trim() ||
+      ocb.customerName ||
+      'N/A',
 
-    customerEmail: user.email || 'N/A',
-    customerPhone: user.phone || 'N/A',
+    customerEmail: user.email || ocb.customerEmail || 'N/A',
+    customerPhone: user.phone || ocb.contactNumber || 'N/A',
 
     description: ocb.description || '',
 
@@ -352,18 +368,6 @@ const ConvertBNBModal = ({ auction, onClose, onConfirm, loading }) => {
               </option>
             </select>
           </div>
-          {/* <div>
-            <label className="indigo-500/35 text-[10px] font-bold uppercase tracking-wider block mb-1.5">
-              Notes
-            </label>
-            <textarea
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
-              placeholder="Optional notes…"
-              rows={2}
-              className="w-full px-3 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.1] indigo-500 text-sm indigo-500 focus:border-emerald-400/50 focus:outline-none transition-all resize-none"
-            />
-          </div> */}
         </div>
 
         <div className="flex gap-3">
@@ -733,7 +737,14 @@ export default function AuctionCars() {
   const [bnbList, setBnbList] = useState([]);
   const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 10, pages: 1 });
   const [bnbPagination, setBnbPagination] = useState({ total: 0, page: 1, limit: 10, pages: 1 });
-  const [searchTerm, setSearchTerm] = useState('');
+
+  // FIX: split the search box into a "draft" value (what the user is typing)
+  // and an "applied" value (what's actually sent to the API). Previously
+  // there was only one `searchTerm` wired straight to onChange, which fired
+  // a network request on every keystroke and had no explicit Search button.
+  const [searchInput, setSearchInput] = useState('');   // live text in the box
+  const [searchTerm, setSearchTerm] = useState('');     // term actually applied/sent to API
+
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedAuction, setSelectedAuction] = useState(null);
   const [selectedBnb, setSelectedBnb] = useState(null);
@@ -770,7 +781,15 @@ export default function AuctionCars() {
       const rawPag = res.data?.pagination ?? null;
       const normalizedList = rawList.map(normalizeAuction);
       setAuctions(normalizedList);
-      if (rawPag) setPagination(rawPag);
+      if (rawPag) {
+        setPagination(rawPag);
+      } else {
+        // FIX: some search responses may not include a pagination object
+        // (e.g. when the backend just returns the matching rows). Make sure
+        // the page number still reflects what we requested so the table/page
+        // indicator doesn't go stale.
+        setPagination(prev => ({ ...prev, page, total: normalizedList.length, pages: 1 }));
+      }
       setSelectedAuction(prev => prev ? (normalizedList.find(a => a.id === prev.id) ?? prev) : null);
       setLastRefreshed(new Date());
       setCountdown(REFRESH_INTERVAL / 1000);
@@ -798,7 +817,11 @@ export default function AuctionCars() {
       const rawPag = res.data?.pagination ?? null;
       const normalizedList = rawList.map(normalizeBNB);
       setBnbList(normalizedList);
-      if (rawPag) setBnbPagination(rawPag);
+      if (rawPag) {
+        setBnbPagination(rawPag);
+      } else {
+        setBnbPagination(prev => ({ ...prev, page, total: normalizedList.length, pages: 1 }));
+      }
       setSelectedBnb(prev => prev ? (normalizedList.find(a => a.id === prev.id) ?? prev) : null);
       setLastRefreshed(new Date());
       setCountdown(REFRESH_INTERVAL / 1000);
@@ -810,7 +833,9 @@ export default function AuctionCars() {
     }
   }, [searchTerm, bnbPagination.limit]);
 
-  // Tab switch effect
+  // Tab switch / filter / applied-search effect
+  // (this now only re-fires when `searchTerm` — the APPLIED value — changes,
+  // i.e. when the Search button or Enter is used, not on every keystroke)
   useEffect(() => {
     if (tab === 'auction') {
       fetchAuctions(1);
@@ -844,6 +869,31 @@ export default function AuctionCars() {
       fetchBNBs(newPage);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // FIX: explicit search handlers wired to the new Search button / Enter key
+  const handleSearch = () => {
+    const trimmed = searchInput.trim();
+    if (trimmed === searchTerm) {
+      // Same term as last applied search — searchTerm won't change so the
+      // useEffect won't re-fire on its own. Force a manual refetch instead.
+      if (tab === 'auction') fetchAuctions(1);
+      else fetchBNBs(1);
+      return;
+    }
+    setSearchTerm(trimmed);
+  };
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSearch();
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchInput('');
+    setSearchTerm('');
   };
 
   // Close Auction
@@ -886,6 +936,12 @@ export default function AuctionCars() {
 
   // Start BNB
   const handleStartBNB = async ({ minimumOfferPrice, expiryHours, notes }) => {
+    console.log('BNB convert request payload:', {
+        auctionId: bnbTarget.auctionId || bnbTarget.id,
+        minimumOfferPrice: String(minimumOfferPrice),
+        expiryHours: String(expiryHours),
+        notes: notes || '',
+      });
     if (!bnbTarget) return;
     setBnbLoading(true);
     try {
@@ -899,6 +955,7 @@ export default function AuctionCars() {
         },
         { headers: authHeader() }
       );
+      
       addToast('Converted to BNB successfully!', 'success');
       setBnbTarget(null);
       fetchAuctions(currentPage);
@@ -941,14 +998,15 @@ export default function AuctionCars() {
 
   // Table headers
   const tableHeaders = [
+    'Enquiry ID',
     'Vehicle',
     'Seller',
-    tab === 'auction' ? 'Remaining Time' : '—',
-    'Expected Price',
+    // tab === 'auction' ? 'Remaining Time' : '—',
+    
     tab === 'auction' ? 'Top Bid / Bids' : 'Final Price',
-    'Fuel · Trans',
-    'KMs · Year',
-    'Status',
+    'Fuel',
+    'Year',
+    
     'Date',
     'Action',
   ];
@@ -1005,11 +1063,39 @@ export default function AuctionCars() {
       {/* Filters + Search (only for auction) */}
       {tab === 'auction' && (
         <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 indigo-500/40" />
-            <input type="text" placeholder="Search car, seller…" value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-100 border border-white/[0.06] indigo-500 placeholder-white/30 focus:border-indigo-400/50 focus:outline-none transition-all text-sm" />
+          {/* FIX: search box now has an explicit Search button + Enter-to-search,
+              instead of firing the API on every single keystroke. */}
+          <div className="flex gap-2 flex-1 max-w-md">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 indigo-500/40" />
+              <input
+                type="text"
+                placeholder="Search car, seller…"
+                value={searchInput}
+                onChange={e => setSearchInput(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
+                className="w-full pl-10 pr-8 py-2.5 rounded-xl bg-slate-100 border border-white/[0.06] indigo-500 placeholder-white/30 focus:border-indigo-400/50 focus:outline-none transition-all text-sm"
+              />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 indigo-500/30 hover:indigo-500/70 transition-colors"
+                  aria-label="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={handleSearch}
+              disabled={isLoading}
+              className="px-4 py-2.5 rounded-xl bg-indigo-500 text-white text-sm font-semibold hover:bg-indigo-400 transition-all flex items-center gap-1.5 flex-shrink-0 disabled:opacity-60"
+            >
+              <Search className="w-3.5 h-3.5" />
+              Search
+            </button>
           </div>
           <div className="flex items-center gap-1 bg-white/[0.04] rounded-xl p-1 border border-white/[0.06] overflow-x-auto">
             {filterTabs.map(tabName => (
@@ -1060,23 +1146,28 @@ export default function AuctionCars() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.04]">
+               
                   {list.map(a => {
                     const sc = statusConfig[a.status] || statusConfig.new;
                     return (
                       <tr key={a.id} className="hover:bg-white/[0.025] transition-colors duration-150">
+                          <td className="px-4 py-3">
+                          <p className="indigo-500/80 text-sm font-medium">{a.enquiryId}</p>
+                         
+                        </td>
                         {/* Vehicle */}
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2.5">
-                            {a.thumb ? (
+                            {/* {a.thumb ? (
                               <img src={a.thumb} alt="" className="w-10 h-10 rounded-lg object-cover border border-white/[0.08] flex-shrink-0" />
                             ) : (
                               <div className="w-10 h-10 rounded-lg bg-white/[0.06] flex items-center justify-center flex-shrink-0">
                                 <Car className="w-4 h-4 indigo-500/25" />
                               </div>
-                            )}
+                            )} */}
                             <div className="min-w-0">
                               <p className="indigo-500 text-sm font-semibold truncate max-w-[130px]" title={`${a.carMake} ${a.carModel}`}>
-                                {a.carMake} {a.carModel}
+                             {a.carModel}
                               </p>
                               <p className="indigo-500/30 text-xs">{a.color}</p>
                             </div>
@@ -1087,28 +1178,9 @@ export default function AuctionCars() {
                           <p className="indigo-500/80 text-sm font-medium">{a.customerName}</p>
                           <p className="indigo-500/30 text-xs">{a.customerPhone}</p>
                         </td>
-                        {/* Remaining Time (auction) or dash (bnb) */}
-                        <td className="px-4 py-3">
-                          {tab === 'auction' ? (
-                            a.isClosed ? (
-                              <span className="indigo-500/20 text-xs">Ended</span>
-                            ) : a.remainingTime ? (
-                              <p className="text-amber-400 font-semibold text-sm tabular-nums">
-                                {String(a.remainingTime.hours).padStart(2, '0')}h{' '}
-                                {String(a.remainingTime.minutes).padStart(2, '0')}m{' '}
-                                {String(a.remainingTime.seconds).padStart(2, '0')}s
-                              </p>
-                            ) : (
-                              <span className="indigo-500/20 text-xs">—</span>
-                            )
-                          ) : (
-                            <span className="indigo-500/20 text-xs">—</span>
-                          )}
-                        </td>
-                        {/* Expected Price */}
-                        <td className="px-4 py-3">
-                          <p className="indigo-500 font-semibold text-sm">₹{a.expectedPrice.toLocaleString()}</p>
-                        </td>
+                       
+                     
+                       
                         {/* Top Bid / Bids (auction) or Final Price (bnb) */}
                         <td className="px-4 py-3">
                           {tab === 'auction' ? (
@@ -1127,22 +1199,15 @@ export default function AuctionCars() {
                         {/* Fuel · Trans */}
                         <td className="px-4 py-3">
                           <p className="indigo-500/60 text-xs capitalize">{fuelIcon[a.fuelType] || ''} {a.fuelType}</p>
-                          <p className="indigo-500/35 text-xs capitalize mt-0.5">{a.transmission}</p>
+                          {/* <p className="indigo-500/35 text-xs capitalize mt-0.5">{a.transmission}</p> */}
                         </td>
                         {/* KMs · Year */}
                         <td className="px-4 py-3">
-                          <p className="indigo-500/60 text-xs">
-                            {a.kmsDriven != null ? `${a.kmsDriven.toLocaleString()} km` : '—'}
-                          </p>
+                          
                           <p className="indigo-500/35 text-xs mt-0.5">{a.carYear}</p>
                         </td>
-                        {/* Status */}
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-full ${sc.bg} ${sc.text}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
-                            {sc.label}
-                          </span>
-                        </td>
+                       
+                        
                         {/* Date */}
                         <td className="px-4 py-3 indigo-500/40 text-xs">{a.startDate}</td>
                         {/* Action */}
@@ -1170,6 +1235,7 @@ export default function AuctionCars() {
                               >
                                 Start Auction
                               </button>
+                            
                               <button
                                 onClick={() => setBnbTarget(a)}
                                 className="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-all text-xs font-semibold"
